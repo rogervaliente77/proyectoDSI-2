@@ -1,0 +1,339 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <span class="h3 text-gray-800"><%= link_to "Home /", portal_home_path, data: {turbo: false} %></span>
+            <span class="h4 text-gray-800"><%= link_to "  Documentos /", admin_documentos_path, data: {turbo: false} %></span>
+            <span class="h5 text-gray-800"><%= link_to "  #{@document.correlative_code} - edit", admin_documentos_new_path, data: {turbo: false} %></span>
+
+        </div>
+
+        <%= link_to admin_documentos_path, class: "d-none d-sm-inline-block btn btn-info shadow-sm", data: {turbo: false} do %>
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Regresar
+        <% end %>
+    </div>
+
+    <!-- Content Row -->
+
+    <div class="row">
+        <!-- Area Chart -->
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Editar documento</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Dropdown Header:</div>
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">                                     
+
+                    <%= form_with(model: @document, url: admin_documentos_update_path(document_id: @document.id), local: true, method: :put, html: { multipart: true, id: 'document-form' }) do |form| %>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <%= form.label :title %>
+                                    <%= form.text_field :title, class: "form-control" %>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <%= form.label :url %>
+                                    <%= form.text_field :url, class: "form-control", readonly: true %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <%= form.label :doc_type %>
+                                    <%= form.text_field :doc_type, class: "form-control", readonly: true %>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <%= form.label :uploaded_by_email %>
+                                    <%= form.text_field :uploaded_by_email, class: "form-control", readonly: true %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <%= form.label :filename %>
+                                    <%= form.text_field :filename, class: "form-control", readonly: true %>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <%= form.label :correlative_code %>
+                                    <%= form.text_field :correlative_code, class: "form-control", readonly: true %>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <hr style="border-color: black;">
+                        <h6 class="m-0 font-weight-bold text-primary">Elige cuantos usuarios participaran?</h6>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                <br>
+                                <%= form.select :status_count, (0..10).to_a, {}, class: "form-control" %>
+                                </div>
+                            </div>
+                        </div>
+                    <% end %>
+
+                </div>
+            </div>
+        </div>                     
+    </div>
+</div>
+<!-- /.container-fluid -->
+
+<style>
+   .upload-container {
+        text-align: center;
+        margin-top: 20px;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .upload-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed #ccc;
+        padding: 40px;
+        cursor: pointer;
+        width: 100%;
+        max-width: 800px; /* Máximo tamaño */
+        margin: auto;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+        transition: 0.3s ease-in-out;
+    }
+
+    /* Efecto hover para que se vea más interactivo */
+    .upload-box:hover {
+        border-color: #007bff;
+        background-color: #eef6ff;
+    }
+
+    .upload-box i {
+        font-size: 50px;
+        color: #007bff;
+    }
+
+    .upload-box p {
+        margin-top: 10px;
+        font-size: 18px;
+        color: #555;
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+        .upload-box {
+            padding: 30px;
+            max-width: 95%;
+        }
+    }
+
+
+    .hidden-input {
+        display: none;
+    }
+
+    #preview-container img {
+        margin-top: 10px;
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .file-name {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .btn-primary {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .btn-primary:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: #0056b3;
+    }
+
+
+    .custom-alert {
+        background-color: #4CAF50; /* Verde, o cambia a #007bff para azul */
+        color: white;
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        font-size: 16px;
+        width: auto;
+        max-width: 300px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .custom-alert.hide {
+        opacity: 0;
+        display: none;
+    }
+
+    .image-preview img {
+        width: 400px; /* Ajusta el tamaño según lo necesites */
+        height: auto; /* Mantiene la relación de aspecto */
+    }
+         /* Estilo para el icono */
+    .countdown-icon {
+        color: #ff0000; /* Color rojo para el icono */
+        font-size: 2rem; /* Tamaño base del icono */
+        margin-right: 5px; /* Espacio entre el icono y el contador */
+        vertical-align: middle; /* Alinea el icono con el texto */
+        line-height: 1; /* Asegura que la altura de la línea no desalineé el icono */
+    }
+
+    /* Estilo para el contador */
+    .countdown-timer {
+        color: red; /* Color rojo para el contador */
+        font-size: 2rem; /* Tamaño base del contador */
+        font-weight: bold;
+        transition: font-size 0.2s ease-in-out; /* Transición suave para el tamaño del texto */
+        vertical-align: middle; /* Alinea el contador con el icono */
+    }
+
+    /* Estilos responsivos para el icono y el contador */
+    @media (max-width: 1200px) {
+        .countdown-icon, .countdown-timer {
+            font-size: 1.8rem; /* Un poco más pequeño en pantallas medianas */
+        }
+    }
+
+    @media (max-width: 992px) {
+        .countdown-icon, .countdown-timer {
+            font-size: 1.6rem; /* Un poco más pequeño en pantallas pequeñas */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .countdown-icon, .countdown-timer {
+            font-size: 1.4rem; /* Un poco más pequeño en pantallas móviles */
+        }
+    }
+
+    @media (max-width: 576px) {
+        .countdown-icon, .countdown-timer {
+            font-size: 1.2rem; /* Más pequeño en pantallas muy pequeñas */
+        }
+    }
+</style>
+
+<script>
+  // Define la variable availableUsers con los usuarios disponibles
+  const availableUsers = <%= @users_json %>;
+
+  document.addEventListener('DOMContentLoaded', function() {
+  // Seleccionar el elemento status_count
+  const statusCountSelect = document.getElementById('document_status_count');
+  
+  // Crear un contenedor para los campos de selección de usuarios
+  const userSelectionContainer = document.createElement('div');
+  userSelectionContainer.id = 'user-selection-container';
+  userSelectionContainer.className = 'row mt-3';
+  
+  // Insertar el contenedor después del div del status_count
+  statusCountSelect.closest('.row').after(userSelectionContainer);
+  
+  // Función para actualizar los campos de selección de usuario
+  function updateUserSelectionFields() {
+    const count = parseInt(statusCountSelect.value);
+    userSelectionContainer.innerHTML = ''; // Limpiar los campos actuales
+    
+    // Crear campos de selección basados en el count
+    for (let i = 0; i < count; i++) {
+      const colDiv = document.createElement('div');
+      colDiv.className = 'col-sm-6 mb-3';
+      
+      const formGroup = document.createElement('div');
+      formGroup.className = 'form-group';
+      
+      const label = document.createElement('label');
+      label.textContent = `Usuario ${i + 1}`;
+      label.htmlFor = `document_user_ids_${i}`;
+      
+      const select = document.createElement('select');
+      select.id = `document_user_ids_${i}`;
+      select.name = 'document[user_ids][]';
+      select.className = 'form-control user-select';
+      
+      // Opción predeterminada
+      const defaultOption = document.createElement('option');
+      defaultOption.value = '';
+      defaultOption.textContent = 'Selecciona un usuario';
+      select.appendChild(defaultOption);
+      
+      // Asumimos que availableUsers está definido como una array de objetos { id: 1, email: 'user@example.com' }
+      // Si tienes una estructura diferente, necesitarás ajustar esto
+      if (typeof availableUsers !== 'undefined') {
+        availableUsers.forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.id;         // Guardamos el ID como valor
+          option.textContent = user.email; // Mostramos el email como texto
+          select.appendChild(option);
+        });
+      }
+      
+      formGroup.appendChild(label);
+      formGroup.appendChild(select);
+      colDiv.appendChild(formGroup);
+      userSelectionContainer.appendChild(colDiv);
+    }
+  }
+  
+  // Escuchar cambios en el status_count
+  statusCountSelect.addEventListener('change', updateUserSelectionFields);
+  
+  // Inicializar los campos cuando se carga la página
+  updateUserSelectionFields();
+});
+</script>

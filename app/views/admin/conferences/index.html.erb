@@ -1,0 +1,45 @@
+<div class="header-content">
+    <div class="breadcrumbs">
+        <strong><span><%= link_to "Inicio /", portal_home_path %></span> <span><%= link_to "Admin / Charlas", admin_charlas_path %> </strong>
+    </div>
+    <div class="actions">
+        <!--<button class="btn btn-danger">Eliminar</button>
+        <button class="btn btn-primary">Agregar</button> -->
+        
+        <%= link_to admin_charlas_new_path, class: "btn btn-primary" do %>
+          <i class="fa fa-plus"></i> Agregar
+        <% end %>
+
+    </div>
+</div>
+<hr>
+<div class="content">
+    <!-- Mostrar Flash Messages -->
+    <% if flash[:notice] %>
+      <div class="alert alert-success"><%= flash[:notice] %></div>
+    <% elsif flash[:alert] %>
+      <div class="alert alert-danger"><%= flash[:alert] %></div>
+    <% end %>
+
+    <h2>Modulo de charlas</h2>
+    <hr>
+
+    <div class="row1">
+      <% @charlas.each do |charla| %>
+        <div class="col1">
+          <div class="card1">
+            <span class="badge1">Available</span>
+            <img src="<%= charla.image_url %>" alt="Imagen de la charla">
+            <div class="card-body1">
+              <h3><%= charla.title %></h3>
+              <p class="speaker1">Por: <%= charla.speaker_name %></p>
+              <p class="description1"><%= charla.description %></p>
+              <p class="time1"><%= charla.start_date.strftime("%d/%m/%Y %H:%M %p") %></p>
+              <button class="btn-edit1">Editar</button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+</div>

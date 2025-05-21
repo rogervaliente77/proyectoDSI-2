@@ -1,0 +1,14 @@
+<p style="color: green"><%= notice %></p>
+
+<h1>Pruebas</h1> <span class="btn btn-success">Verde</span>
+
+<div id="pruebas">
+  <% @pruebas.each do |prueba| %>
+    <%= render prueba %>
+    <p>
+      <%= link_to "Show this prueba", prueba %>
+    </p>
+  <% end %>
+</div>
+
+<%= link_to "New prueba", new_prueba_path %>

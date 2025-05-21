@@ -1,0 +1,16 @@
+development:
+  clients:
+    default:
+      uri: <%= ENV['MONGO_DB_DEVELOPMENT'] %>
+      options:
+        log_level: :warn
+
+test:
+  clients:
+    default:
+      uri: <%= ENV['MONGO_DB_TEST'] %>
+      options:
+        read:
+          mode: :primary
+        max_pool_size: 1
+        log_level: :warn

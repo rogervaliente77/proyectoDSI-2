@@ -1,0 +1,45 @@
+<div class="header-content">
+    <div class="breadcrumbs">
+        <strong><span><%= link_to "Inicio /", portal_home_path %></span> <span><%= link_to "Admin / Usuarios", admin_users_path %></strong>
+    </div>
+    <div class="actions">
+        <button class="btn btn-primary">Agregar</button>
+        <button class="btn btn-danger">Eliminar</button>
+    </div>
+</div>
+<hr>
+<div class="content">
+    <!-- Mostrar Flash Messages -->
+    <% if flash[:notice] %>
+      <div class="alert alert-success"><%= flash[:notice] %></div>
+    <% elsif flash[:alert] %>
+      <div class="alert alert-danger"><%= flash[:alert] %></div>
+    <% end %>
+
+    <h2>Lista de Usuarios registrados</h2>
+
+    <!-- Tabla de prueba -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Estado</th>
+                <th>Fecha de registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% @users.each_with_index do |user, index| %>
+                <tr>
+                    <td><%= index + 1 %></td> <!-- Agrega 1 porque el index empieza en 0 -->
+                    <td><%= user.name rescue '' %></td>
+                    <td><%= user.email rescue '' %></td>
+                    <td><%= user.valid? ? 'Activo' : 'Inactivo' %></td>
+                    <td><%= user.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+                </tr>
+            <% end %>
+        </tbody>
+    </table>
+
+</div>
