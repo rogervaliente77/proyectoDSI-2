@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base
-  before_action :authenticate_user!
+  #before_action :authenticate_user!
   # before_action :check_admin_access
 
   private

@@ -1,6 +1,6 @@
 module Portal
   class AuthenticationController < ApplicationController
-    skip_before_action :authenticate_user!, only: [:login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout]
+    #skip_before_action :authenticate_user!, only: [:login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout]
     def login
       # Lógica para el formulario de login
       # binding.pry

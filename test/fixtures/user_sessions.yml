@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  session_token: MyString
+  expiration_time: 2025-06-06 23:19:50
+  user: one
+  user_email: MyString
+
+two:
+  session_token: MyString
+  expiration_time: 2025-06-06 23:19:50
+  user: two
+  user_email: MyString

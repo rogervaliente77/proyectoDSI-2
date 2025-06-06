@@ -11,7 +11,8 @@ require "action_view/railtie"
 require "active_storage/engine"
 require "rails/test_unit/railtie"
 
-require "mongoid/railtie"
+require "mongoid"               # ✅ primero
+require "mongoid/railtie"       # ✅ después
 
 Bundler.require(*Rails.groups)
 

@@ -21,6 +21,7 @@ class PruebasController < ApplicationController
 
   # POST /pruebas or /pruebas.json
   def create
+    binding.pry
     @prueba = Prueba.new(prueba_params)
     binding.pry
     respond_to do |format|

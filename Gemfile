@@ -78,3 +78,5 @@ end
 gem "simple_form", "~> 5.3"
 
 gem "cloudinary"
+
+gem 'bcrypt', '~> 3.1.7'
