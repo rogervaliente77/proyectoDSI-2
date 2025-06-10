@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
   before_action :authenticate_user!
-  # before_action :check_admin_access
+  before_action :check_admin_access
 
   private
 
@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
     # Verifica si hay una sesión activa
     if session[:user_id].present? && session[:session_token].present?
       user_session = UserSession.where(session_token: session[:session_token]).first
+      @current_user = User.where(id: session[:user_id]).first
 
       # binding.pry
       # Si el token no existe o ha expirado, cerrar sesión
@@ -24,14 +25,12 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # def check_admin_access
-  #   # Recupera el correo de usuario admin desde el archivo .env
-  #   binding.pry
-  #   # Compara el correo del usuario logueado con el correo de administrador
-  #   if @current_user.email != ENV['USER_ADMIN']
-  #     redirect_to portal_home_path, alert: "No tienes acceso a esta sección"
-  #   end
-  # end
+  def check_admin_access
+    return if @current_user.nil? # No hacer nada si no hay usuario
+    return if @current_user.email == ENV['USER_ADMIN'] # Es admin
+  
+    redirect_to portal_home_path, alert: "No tienes acceso a esta sección"
+  end  
 
   def current_user
     @current_user

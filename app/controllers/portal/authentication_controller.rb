@@ -1,6 +1,14 @@
 module Portal
   class AuthenticationController < ApplicationController
     #skip_before_action :authenticate_user!, only: [:login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout]
+    skip_before_action :authenticate_user!, only: [
+      :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
+    ]
+
+    skip_before_action :check_admin_access, only: [
+      :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
+    ]
+
     def login
       # Lógica para el formulario de login
       # binding.pry
@@ -80,7 +88,7 @@ module Portal
     end
 
     def signup_create
-      binding.pry
+      # binding.pry
       # Lógica para validar y crear el usuario
       # Encuentra al usuario por jwt_token y valida su otp_code
       user = User.where(jwt_token: params[:user][:jwt_token]).first
