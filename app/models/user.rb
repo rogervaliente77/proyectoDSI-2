@@ -1,7 +1,7 @@
 class User < ApplicationRecord
   has_secure_password
 
-  belongs_to :user_session, optional: true, inverse_of: :user
+  has_many :user_sessions
   has_many :conference_registrations
   has_many :conferences
 

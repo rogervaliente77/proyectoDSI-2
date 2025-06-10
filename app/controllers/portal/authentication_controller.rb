@@ -80,11 +80,11 @@ module Portal
     end
 
     def signup_create
-      # binding.pry
+      binding.pry
       # Lógica para validar y crear el usuario
       # Encuentra al usuario por jwt_token y valida su otp_code
-      user = User.find_by(jwt_token: params[:user][:jwt_token])
-      if user && user.otp_code == params[:user][:otp_code].to_i
+      user = User.where(jwt_token: params[:user][:jwt_token]).first
+      if user && user.otp_code.to_i == params[:user][:otp_code].to_i
         user.update(is_valid: true)
 
         # Crea un nuevo token de sesión
