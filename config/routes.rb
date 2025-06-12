@@ -53,6 +53,21 @@ Rails.application.routes.draw do
     put "/productos/update", to: "products#update"
     delete "productos/destroy", to: "products#destroy", as: :destroy_product
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
+
+    #authentication
+    get "/login", to: "authentication#login"
+    post "/new_login", to: "authentication#new_login"
+    get "/signup", to: "authentication#signup"
+    post "/signup", to: "authentication#user_request"
+    get "/validating_user", to: "authentication#validating_user"
+    post "/signup_create", to: "authentication#signup_create"
+    put "/logout", to: "authentication#logout"
+
+    #home
+    get "/home", to: "home#index"
+
+    #users
+    get "users", to: "users#index"
   end
 
   # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)

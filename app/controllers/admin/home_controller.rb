@@ -1,5 +1,5 @@
-module Portal
-  class HomeController < Portal::ApplicationController
+module Admin
+  class HomeController < Admin::ApplicationController
     layout 'dashboard'
     before_action :authenticate_user!
 
