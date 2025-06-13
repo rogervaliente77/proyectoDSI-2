@@ -7,6 +7,17 @@ module Admin
       @users = User.all
     end
 
+    #Esta función sirve para actualizar los roles desde el administrador
+     def update
+      @user = User.find(params[:id])
+      if @user.update(user_params)
+        redirect_to admin_users_path, notice: "Rol actualizado correctamente."
+      else
+        redirect_to admin_users_path, alert: "Error al actualizar el rol."
+      end
+    end
+
+
     private
 
     def check_admin_access
@@ -20,5 +31,10 @@ module Admin
     def set_current_user
       @current_user = current_user
     end
+
+     def user_params
+    params.require(:user).permit(:is_admin)
+    end
   end
+
 end

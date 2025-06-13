@@ -53,7 +53,12 @@ Rails.application.routes.draw do
     put "/productos/update", to: "products#update"
     delete "productos/destroy", to: "products#destroy", as: :destroy_product
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
+
+    #users
+   # get "/users", to: "users#index"
+    
   end
+
 
   # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)
   resources :pruebas
