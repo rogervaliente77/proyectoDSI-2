@@ -1,0 +1,98 @@
+<div class="container">
+  <!-- Outer Row -->
+  <div class="row justify-content-center">
+
+    <div class="col-xl-10 col-lg-12 col-md-9">
+      <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+          <!-- Nested Row within Card Body -->
+          <div class="row">
+            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+            <div class="col-lg-6">
+              <div class="p-5">
+                <div class="text-center">
+                  <h1 class="h4 text-gray-900 mb-4">Validando usuario</h1>
+                </div>
+
+                <% if flash[:notice] %>
+                  <div class="alert alert-success"><%= flash[:notice] %></div>
+                <% elsif flash[:alert] %>
+                  <div class="alert alert-danger"><%= flash[:alert] %></div>
+                <% end %>
+
+                <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+
+                <!-- Centered text -->
+                <p class="text-center">Por favor ingresa el código OTP enviado a tu correo</p>
+
+                <%= simple_form_for :user, url: portal_signup_create_path, method: :post, html: { class: "needs-validation", id: "otp-form" } do |form| %>
+                    <!-- JWT Input -->
+                    <%= form.hidden_field :jwt_token, value: session[:jwt_token] %>
+
+                    <!-- OTP Input -->
+                    <div class="form-group">
+                      <%= form.input :otp_code, required: true, label: false, input_html: { class: "otp-input", id: "otp-input", type: "tel", maxlength: 6, pattern: "[0-9]{6}", oninput: "moveFocus(event)", autocomplete: "off", inputmode: "numeric" } %>
+                      <div id="otp-error" style="color: red; display: none;">Por favor ingresa los 6 dígitos del código OTP.</div>
+                    </div>
+                    <br>
+
+                    <%= form.button :submit, "Validar", class: "btn btn-primary btn-user btn-block" %>
+                <% end %>
+          
+                <hr>
+                <div class="text-center">
+                  <%= link_to "¿Olvidaste tu contraseña?", "#", class: "small" %>
+                </div>
+                <div class="text-center">
+                  <%= link_to "Crear una cuenta", portal_signup_path, class: "small" %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Move focus to the next field after a valid digit is entered
+  function moveFocus(event) {
+    const input = event.target;
+    const value = input.value;
+
+    // Check if the input is a digit and only allow numbers
+    if (!/^\d{1}$/.test(value)) {
+      return; // Do nothing if the input is not a valid digit
+    }
+
+    const nextInput = input.nextElementSibling;
+    if (nextInput && nextInput.tagName.toLowerCase() === 'input' && input.value.length === 1) {
+      nextInput.focus();
+    }
+  }
+
+  // Form validation before submission
+  document.getElementById("otp-form").addEventListener("submit", function(event) {
+    const otpCode = document.getElementById("otp-input").value;
+
+    // Check if the OTP code has 6 digits
+    if (otpCode.length !== 6) {
+      event.preventDefault();  // Prevent form submission
+      document.getElementById("otp-error").style.display = 'block'; // Show error message
+    } else {
+      document.getElementById("otp-error").style.display = 'none'; // Hide error message
+    }
+  });
+</script>
+
+<!-- Add styles and JavaScript for OTP input -->
+<style>
+  .otp-input {
+    text-align: center;
+    font-size: 18px;
+    width: 100%;
+    padding: 5px;
+    letter-spacing: 10px;
+  }
+</style>

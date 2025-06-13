@@ -1,5 +1,5 @@
-module Portal
-  class AuthenticationController < Portal::ApplicationController
+module Admin
+  class AuthenticationController < Admin::ApplicationController
     #skip_before_action :authenticate_user!, only: [:login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout]
     skip_before_action :authenticate_user!, only: [
       :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
@@ -17,7 +17,7 @@ module Portal
     def new_login
       # binding.pry
       if params[:user].blank?
-        redirect_to portal_login_path, alert: "No ingresó datos, ingrese los datos en el formulario"
+        redirect_to admin_login_path, alert: "No ingresó datos, ingrese los datos en el formulario"
         return
       end
     
@@ -25,7 +25,7 @@ module Portal
       password = params[:user][:password].presence
     
       if email.blank? || password.blank?
-        redirect_to portal_login_path, alert: "Debe ingresar correo y contraseña"
+        redirect_to admin_login_path, alert: "Debe ingresar correo y contraseña"
         return
       end
     
@@ -45,13 +45,13 @@ module Portal
             @user = User.find(@user.id)
             UserVerificationMailer.send_otp_email(@user).deliver_now
             flash[:alert] = 'Usuario no validado, debe ingresar el codigo de verificacion que se envio a su correo'
-            redirect_to portal_validating_user_path
+            redirect_to admin_validating_user_path
             return
           end
         end
       else
         flash[:alert] = 'Usuario con ese correo no esta registrado'
-        redirect_to portal_login_path
+        redirect_to admin_login_path
         return
       end
     
@@ -70,9 +70,9 @@ module Portal
     
         session[:user_id] = @user.id
         session[:session_token] = user_session.session_token
-        redirect_to portal_home_path, notice: "Bienvenido, #{@user.first_name}!"
+        redirect_to admin_home_path, notice: "Bienvenido, #{@user.first_name}!"
       else
-        redirect_to portal_login_path, alert: "Contraseña incorrecta"
+        redirect_to admin_login_path, alert: "Contraseña incorrecta"
       end
     end
     
@@ -135,7 +135,7 @@ module Portal
         session[:session_token] = session_token
 
         # Devuelve la respuesta o redirige
-        redirect_to portal_home_path, notice: "Autenticacion con exito"   
+        redirect_to admin_home_path, notice: "Autenticacion con exito"   
         #render json: { message: 'Usuario validado', session_token: session_token }
       else
         redirect_to portal_validating_user_path, alert: "Otp code invalido, por favor ingrese el codigo enviado a su corrreo"
@@ -158,7 +158,7 @@ module Portal
       reset_session
       
       # Redirige al login
-      redirect_to portal_login_path, notice: "Sesión cerrada exitosamente"
+      redirect_to admin_login_path, notice: "Sesión cerrada exitosamente"
     end
     
     # vr20033@ues.edu.sv

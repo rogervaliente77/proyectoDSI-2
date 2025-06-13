@@ -12,7 +12,7 @@
             <div class="col-lg-6">
               <div class="p-5">
                 <div class="text-center">
-                  <h1 class="h4 text-gray-900 mb-4">Welcome to Portal Login!</h1>
+                  <h1 class="h4 text-gray-900 mb-4">Welcome To Admin Login!</h1>
                 </div>
 
                 <% if flash[:notice] %>
@@ -23,7 +23,7 @@
 
                 <div id="error-message" class="alert alert-danger" style="display: none;"></div>
 
-                <%= simple_form_for :user, url: portal_new_login_path, method: :post, html: { class: "user", id: "login-form" } do |form| %>
+                <%= simple_form_for :user, url: admin_new_login_path, method: :post, html: { class: "user", id: "login-form" } do |form| %>
                   <div class="form-group">
                     <%= form.input :email, label: false, required: true, input_html: { class: "form-control form-control-user", placeholder: "Correo electrónico" } %>
                   </div>
@@ -82,3 +82,13 @@
     });
   });
 </script>
+
+<style>
+
+  .bg-gradient-primary {
+    background-color: #35a1dc;
+    background-image: linear-gradient(180deg, #e74a3b 10%, #224abe 100%);
+    background-size: cover;
+  }
+</style>
+

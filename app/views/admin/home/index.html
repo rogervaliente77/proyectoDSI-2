@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Estilos generales */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f4f7fc;
+            transition: all 0.3s ease;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding-top: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .profile {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar .profile img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .sidebar .profile h3 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .sidebar nav {
+            width: 100%;
+        }
+
+        .sidebar nav a {
+            display: block;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            border-bottom: 1px solid #34495e;
+        }
+
+        .sidebar nav a:hover {
+            background-color: #34495e;
+        }
+
+        .sidebar nav .dropdown > a {
+            background-color: #34495e;
+            cursor: pointer;
+        }
+
+        .sidebar nav .dropdown-content {
+            display: none;
+            background-color: #1a242f;
+        }
+
+        .sidebar nav .dropdown-content a {
+            padding-left: 30px;
+        }
+
+        .sidebar nav .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Botón de despliegue */
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            right: 10px;  /* Ajustado para que quede pegado al borde */
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #34495e;
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 250px;
+            width: 100%;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            background-color: #ffffff;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .header .breadcrumbs {
+            display: flex;
+            align-items: center;
+        }
+
+        .header .breadcrumbs span {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .header .breadcrumbs span + span {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        /* Content area */
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                width: 60px;
+                display: none;  /* Ocultar por defecto */
+            }
+
+            .sidebar.active {
+                display: flex;  /* Mostrar cuando esté activa */
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+            }
+
+            .header {
+                padding: 8px 15px;
+            }
+
+            .header .breadcrumbs {
+                font-size: 12px;
+            }
+
+            .sidebar nav a {
+                font-size: 14px;
+                padding: 8px 10px;
+            }
+
+            .sidebar nav .dropdown > a {
+                font-size: 14px;
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="profile">
+            <img src="https://www.w3schools.com/w3images/avatar2.png" alt="Profile Picture">
+            <h3>Usuario Nombre</h3>
+        </div>
+        <nav>
+            <a href="#">Dashboard</a>
+            <div class="dropdown">
+                <a href="#">Módulo 1 <i class="fa fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#">Submódulo 1.1</a>
+                    <a href="#">Submódulo 1.2</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#">Módulo 2 <i class="fa fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#">Submódulo 2.1</a>
+                    <a href="#">Submódulo 2.2</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Botón para desplegar el sidebar -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="breadcrumbs">
+                <span>Inicio</span>  / <span>Dashboard</span> / <span>Vista Actual</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2>Bienvenido al Dashboard</h2>
+            <p>Aquí podrás visualizar la información y acceder a diferentes módulos de tu aplicación.</p>
+        </div>
+    </div>
+
+    <script>
+        // Función para alternar el estado del sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+    </script>
+
+</body>
+</html>
