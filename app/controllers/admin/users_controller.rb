@@ -1,22 +1,39 @@
 module Admin
   class UsersController < ApplicationController
-    before_action :check_admin_access
+    #before_action :check_admin_access
     before_action :set_current_user
     layout 'dashboard'
     def index
+      
       @users = User.all
-    end
-
-    #Esta función sirve para actualizar los roles desde el administrador
-     def update
-      @user = User.find(params[:id])
-      if @user.update(user_params)
-        redirect_to admin_users_path, notice: "Rol actualizado correctamente."
-      else
-        redirect_to admin_users_path, alert: "Error al actualizar el rol."
+      unless @current_user.role == "super_admin"
+        redirect_to admin_home_path
+        return
       end
     end
 
+    def new
+
+    end
+
+    #Función para crear usuario desde el super_admin
+    def create
+      
+    end
+
+    #Esta función sirve para actualizar los roles desde el administrador  
+    def edit
+      @user = User.find(params[:id])
+    end
+
+    def update
+      @user = User.find(params[:id])
+      if @user.update(user_params)
+        redirect_to admin_users_path, notice: "Usuario actualizado correctamente."
+      else
+        redirect_to admin_users_path, alert: "Error al actualizar el usuario."
+      end
+    end
 
     private
 
@@ -32,9 +49,12 @@ module Admin
       @current_user = current_user
     end
 
-     def user_params
-    params.require(:user).permit(:is_admin)
+    def user_params
+      params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
     end
+
+    
+    
   end
 
 end

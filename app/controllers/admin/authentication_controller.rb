@@ -5,9 +5,9 @@ module Admin
       :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
     ]
 
-    skip_before_action :check_admin_access, only: [
-      :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
-    ]
+    # skip_before_action :check_admin_access, only: [
+    # :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
+    #] 
 
     def login
       # Lógica para el formulario de login
@@ -36,6 +36,12 @@ module Admin
       end
 
       @user = user
+
+      if @user.role == "cliente"
+        flash[:alert] = 'Usted no es administrador'
+        redirect_to admin_login_path
+        return
+      end
 
       if @user.present?
         if !@user.is_valid?

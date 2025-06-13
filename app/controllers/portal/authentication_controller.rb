@@ -37,6 +37,12 @@ module Portal
 
       @user = user
 
+      if @user.role == "super_admin" || @user.role == "admin" || @user.role == "cajero"
+        flash[:alert] = 'Inicio sesión en el login para clientes, favor inicie sesión en este login'
+        redirect_to admin_login_path
+        return
+      end
+
       if @user.present?
         if !@user.is_valid?
           respond_to do |format|
