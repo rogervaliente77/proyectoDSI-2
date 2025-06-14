@@ -1,28 +1,28 @@
 module Admin
-  class SalesController < Admin::ApplicationController
+  class CajasController < Admin::ApplicationController
     # before_action :set_current_user
     before_action :check_admin_access
     # before_action :set_product, only: %i[ product_sales edit update destroy]
     layout 'dashboard'
     
     def index
-      @sales = Sale.all
+      @cajas = Caja.all
     end
 
     def new
-      @sale = Sale.new
+      @caja = Caja.new
     end
 
-    # def create
-    #     @product = Product.new(product_params)
+    def create
+        @caja = Caja.new(caja_params)
       
-    #     if @product.save
-    #       redirect_to admin_productos_path, notice: "Producto creado con éxito."
-    #     else
-    #       flash[:alert] = "Hubo un error al crear el producto"
-    #       render :new, status: :unprocessable_entity
-    #     end
-    # end
+        if @caja.save
+          redirect_to admin_cajas_path, notice: "Caja creada con éxito."
+        else
+          flash[:alert] = "Hubo un error al crear el producto"
+          render :new, status: :unprocessable_entity
+        end
+    end
 
     # def product_sales
     #   @products = @product&.product_sales
@@ -78,8 +78,8 @@ module Admin
     #   @current_user = current_user
     # end
 
-    # def product_params
-    #   params.require(:product).permit(:name, :description, :quantity, :price, :image_url)
-    # end
+    def caja_params
+      params.require(:caja).permit(:nombre, :caja_number)
+    end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_14_053936) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_14_181101) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -18,6 +18,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_14_053936) do
     t.string "nombre"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "caja_number"
   end
 
   create_table "cajeros", force: :cascade do |t|
@@ -35,6 +36,18 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_14_053936) do
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "product_sales", force: :cascade do |t|
+    t.bigint "sale_id", null: false
+    t.bigint "product_id", null: false
+    t.integer "quantity"
+    t.float "unit_price"
+    t.float "discount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_sales_on_product_id"
+    t.index ["sale_id"], name: "index_product_sales_on_sale_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -69,6 +82,16 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_14_053936) do
     t.index ["cajero_id"], name: "index_sales_on_cajero_id"
   end
 
+  create_table "user_sales", force: :cascade do |t|
+    t.bigint "sale_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "sale_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sale_id"], name: "index_user_sales_on_sale_id"
+    t.index ["user_id"], name: "index_user_sales_on_user_id"
+  end
+
   create_table "user_sessions", force: :cascade do |t|
     t.string "session_token"
     t.datetime "expiration_time"
@@ -99,8 +122,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_14_053936) do
 
   add_foreign_key "cajeros", "cajas"
   add_foreign_key "cajeros", "users"
+  add_foreign_key "product_sales", "products"
+  add_foreign_key "product_sales", "sales"
   add_foreign_key "products", "categories"
   add_foreign_key "sales", "cajas"
   add_foreign_key "sales", "cajeros"
+  add_foreign_key "user_sales", "sales"
+  add_foreign_key "user_sales", "users"
   add_foreign_key "user_sessions", "users"
 end
