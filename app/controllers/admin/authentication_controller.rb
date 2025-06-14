@@ -76,7 +76,9 @@ module Admin
     
         session[:user_id] = @user.id
         session[:session_token] = user_session.session_token
-        redirect_to admin_home_path, notice: "Bienvenido, #{@user.first_name}!"
+        flash[:notice] = "Bienvenido, #{@user.first_name}!"
+        redirect_to admin_home_path
+        return
       else
         redirect_to admin_login_path, alert: "Contraseña incorrecta"
       end

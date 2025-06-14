@@ -34,9 +34,16 @@ Rails.application.routes.draw do
     resources :users, only: [:index, :show, :edit, :destroy, :new] 
     post "/users/create", to: "users#create"
     patch "/users/update", to: "users#update"
+
+    #charlas
     get "/charlas", to: "conferences#index"
     get "/charlas/new", to: "conferences#new"
     post "/charlas/create", to: "conferences#create"
+
+    # ventas // product_sales
+    get "/sales", to: "sales#index"
+    get "/sales/new", to: "sales#new"
+    post "/sales/create", to: "sales#create"
 
     #document
     get "/documentos", to: "documents#index"

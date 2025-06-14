@@ -10,9 +10,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_13_040932) do
+ActiveRecord::Schema[7.1].define(version: 2025_06_14_053936) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "cajas", force: :cascade do |t|
+    t.string "nombre"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "cajeros", force: :cascade do |t|
+    t.string "nombre"
+    t.bigint "caja_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["caja_id"], name: "index_cajeros_on_caja_id"
+    t.index ["user_id"], name: "index_cajeros_on_user_id"
+  end
+
+  create_table "categories", force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "products", force: :cascade do |t|
     t.string "name"
@@ -22,6 +45,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_13_040932) do
     t.string "image_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "category_id", null: false
+    t.index ["category_id"], name: "index_products_on_category_id"
   end
 
   create_table "pruebas", force: :cascade do |t|
@@ -29,6 +54,19 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_13_040932) do
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "sales", force: :cascade do |t|
+    t.datetime "sold_at"
+    t.string "client_name"
+    t.bigint "caja_id", null: false
+    t.bigint "cajero_id", null: false
+    t.integer "client_id"
+    t.float "total_amount"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["caja_id"], name: "index_sales_on_caja_id"
+    t.index ["cajero_id"], name: "index_sales_on_cajero_id"
   end
 
   create_table "user_sessions", force: :cascade do |t|
@@ -59,5 +97,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_13_040932) do
     t.index ["email"], name: "index_users_on_email"
   end
 
+  add_foreign_key "cajeros", "cajas"
+  add_foreign_key "cajeros", "users"
+  add_foreign_key "products", "categories"
+  add_foreign_key "sales", "cajas"
+  add_foreign_key "sales", "cajeros"
   add_foreign_key "user_sessions", "users"
 end
