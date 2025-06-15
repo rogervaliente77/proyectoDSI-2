@@ -1,7 +1,7 @@
 module Admin
   class ProductsController < ApplicationController
     before_action :set_current_user
-    before_action :check_admin_access
+    # before_action :check_admin_access
     before_action :set_product, only: %i[ product_sales edit update destroy]
     layout 'dashboard'
     
@@ -14,14 +14,14 @@ module Admin
     end
 
     def create
-        @product = Product.new(product_params)
-      
-        if @product.save
-          redirect_to admin_productos_path, notice: "Producto creado con éxito."
-        else
-          flash[:alert] = "Hubo un error al crear el producto"
-          render :new, status: :unprocessable_entity
-        end
+      @product = Product.new(product_params)
+    
+      if @product.save
+        redirect_to admin_productos_path, notice: "Producto creado con éxito."
+      else
+        flash[:alert] = "Hubo un error al crear el producto"
+        render :new, status: :unprocessable_entity
+      end
     end
 
     def product_sales
@@ -79,7 +79,7 @@ module Admin
     end
 
     def product_params
-      params.require(:product).permit(:name, :description, :quantity, :price, :image_url)
+      params.require(:product).permit(:name, :description, :quantity, :price, :image_url, :category_id)
     end
   end
 end

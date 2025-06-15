@@ -1,12 +1,7 @@
-class Product
-  include Mongoid::Document
-  include Mongoid::Timestamps
-
-  field :name, type: String
-  field :description, type: String
-  field :quantity, type: Integer
-  field :price, type: Float
-  field :image_url, type: String
+class Product < ApplicationRecord
   
   has_many :product_sales
+  belongs_to :category
+
+  validates :name, :price, :quantity, presence: true
 end

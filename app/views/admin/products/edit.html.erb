@@ -1,4 +1,4 @@
-<!-- Begin Page Content -->
+<<!-- Begin Page Content -->
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -75,6 +75,16 @@
                             <div class="col">
                                 <div class="mb-3">
                                     <%= form.input :image_url, label: "Imagen", required: true, input_html: { class: "form-control" } %>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="mb-4">
+                                    <%= form.input :category_id, 
+                                    label: "Category", 
+                                    collection: Category.all.map { |c| [c.name, c.id] },
+                                    include_blank: "Selecciona una categoria",
+                                    input_html: { class: "form-select" } %>
                                 </div>
                             </div>
                         </div>
