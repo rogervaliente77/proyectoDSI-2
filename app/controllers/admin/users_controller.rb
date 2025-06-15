@@ -18,7 +18,14 @@ module Admin
 
     #Función para crear usuario desde el super_admin
     def create
-      
+      @user = User.new(user_params)
+    
+      if @user.save
+        redirect_to admin_users_path, notice: "Usuario creado con éxito."
+      else
+        flash[:alert] = "Hubo un error al crear el usuario"
+        render :new, status: :unprocessable_entity
+      end
     end
 
     #Esta función sirve para actualizar los roles desde el administrador  

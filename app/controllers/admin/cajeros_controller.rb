@@ -78,8 +78,8 @@ module Admin
     #   @current_user = current_user
     # end
 
-    def caja_params
-      params.require(:caja).permit(:nombre, :caja_number)
+    def cajero_params
+      params.require(:cajero).permit(:nombre, :user_id, :caja_id)
     end
   end
 end
