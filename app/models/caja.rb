@@ -1,0 +1,2 @@
+class Caja < ApplicationRecord
+end

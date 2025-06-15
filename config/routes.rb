@@ -69,6 +69,20 @@ Rails.application.routes.draw do
     put "/productos/update", to: "products#update"
     delete "productos/destroy", to: "products#destroy", as: :destroy_product
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
+
+    #cajas
+    get "/cajas", to: "cajas#index"
+    get "/cajas/new", to: "cajas#new"
+    post "/cajas/create", to: "cajas#create"
+    get "/cajas/edit", to: "cajas#edit"
+    patch "/cajas/update", to: "cajas#update"
+
+    #cajeros
+    get "/cajeros", to: "cajeros#index"
+    get "/cajeros/new", to: "cajeros#new"
+    post "/cajeros/create", to: "cajeros#create"
+    get "/cajeros/edit", to: "cajeros#edit"
+    patch "/cajeros/update", to: "cajeros#update"
   end
 
   # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)
