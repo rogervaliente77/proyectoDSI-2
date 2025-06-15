@@ -111,6 +111,21 @@
         </div>
     </li>
 
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
+            aria-expanded="true" aria-controls="collapseCajeros">
+            <i class="fas fa-store"></i>
+            <span>Cajeros</span>
+        </a>
+        <div id="collapseCajeros" class="collapse" aria-labelledby="headingCajeros" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Login Screens:</h6>
+            <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
+            <a class="collapse-item" href="<%= admin_cajeros_new_path %>" data-turbo="false">Crear un nuevo cajero</a>
+            </div>
+        </div>
+    </li>
+
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 

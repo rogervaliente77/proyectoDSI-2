@@ -80,6 +80,15 @@ Rails.application.routes.draw do
     get "/cajas", to: "cajas#index"
     get "/cajas/new", to: "cajas#new"
     post "/cajas/create", to: "cajas#create"
+    get "/cajas/edit", to: "cajas#edit"
+    patch "/cajas/update", to: "cajas#update"
+
+    #cajeros
+    get "/cajeros", to: "cajeros#index"
+    get "/cajeros/new", to: "cajeros#new"
+    post "/cajeros/create", to: "cajeros#create"
+    get "/cajeros/edit", to: "cajeros#edit"
+    patch "/cajeros/update", to: "cajeros#update"
 
   end
 

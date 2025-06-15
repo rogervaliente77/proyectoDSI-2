@@ -14,14 +14,14 @@ module Admin
     end
 
     def create
-        @product = Product.new(product_params)
-      
-        if @product.save
-          redirect_to admin_productos_path, notice: "Producto creado con éxito."
-        else
-          flash[:alert] = "Hubo un error al crear el producto"
-          render :new, status: :unprocessable_entity
-        end
+      @product = Product.new(product_params)
+    
+      if @product.save
+        redirect_to admin_productos_path, notice: "Producto creado con éxito."
+      else
+        flash[:alert] = "Hubo un error al crear el producto"
+        render :new, status: :unprocessable_entity
+      end
     end
 
     def product_sales
