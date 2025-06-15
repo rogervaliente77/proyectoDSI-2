@@ -31,10 +31,26 @@ Rails.application.routes.draw do
   # Namespace para Admin
   namespace :admin do
     # Ejemplo de rutas para un módulo Admin
-    resources :users, only: [:index, :show, :edit, :update, :destroy]
+    #users
+    resources :users, only: [:index, :show, :edit, :destroy, :new] 
+    post "/users/create", to: "users#create"
+    patch "/users/update", to: "users#update"
+
     get "/charlas", to: "conferences#index"
     get "/charlas/new", to: "conferences#new"
     post "/charlas/create", to: "conferences#create"
+
+    #home
+    get "/home", to: "home#index"
+
+    #authentication
+    get "/login", to: "authentication#login"
+    post "/new_login", to: "authentication#new_login"
+    get "/signup", to: "authentication#signup"
+    post "/signup", to: "authentication#user_request"
+    get "/validating_user", to: "authentication#validating_user"
+    post "/signup_create", to: "authentication#signup_create"
+    put "/logout", to: "authentication#logout"
 
     #document
     get "/documentos", to: "documents#index"

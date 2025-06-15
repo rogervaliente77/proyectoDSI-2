@@ -1,0 +1,74 @@
+<div class="container">
+  <div class="card o-hidden border-0 shadow-lg my-5">
+    <div class="card-body p-0">
+      <div class="row">
+        <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
+        <div class="col-lg-7">
+          <div class="p-5">
+
+            <div class="text-center">
+              <h1 class="h4 text-gray-900 mb-4">¡Crear una cuenta!</h1>
+            </div>
+
+            <% if @user.present? && @user.errors.any? %>
+              <div class="alert alert-danger">
+                <ul>
+                  <% @user.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <% if flash[:notice] %>
+              <div class="alert alert-success"><%= flash[:notice] %></div>
+            <% elsif flash[:alert] %>
+              <div class="alert alert-danger"><%= flash[:alert] %></div>
+            <% end %>
+
+            <%= simple_form_for :user, url: portal_signup_path, method: :post, html: { class: "user" } do |form| %>
+              <div class="form-group row">
+                <div class="col-sm-6 mb-3">
+                  <%= form.input :first_name, label: false, placeholder: "Nombres", required: true,
+                      input_html: { class: "form-control form-control-user" } %>
+                </div>
+
+                <div class="col-sm-6 mb-3">
+                  <%= form.input :last_name, label: false, placeholder: "Apellidos", required: true,
+                      input_html: { class: "form-control form-control-user" } %>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <%= form.input :email, label: false, placeholder: "Correo electrónico", required: true,
+                    input_html: { class: "form-control form-control-user" } %>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-sm-6 mb-3 mb-sm-0">
+                  <%= form.input :password, label: false, placeholder: "Contraseña", required: true,
+                      input_html: { class: "form-control form-control-user" } %>
+                </div>
+                <div class="col-sm-6">
+                  <%= form.input :password_confirmation, label: false, placeholder: "Confirmar contraseña", required: true,
+                      input_html: { class: "form-control form-control-user" } %>
+                </div>
+              </div>
+
+              <%= form.button :submit, "Registrarse", class: "btn btn-primary btn-user btn-block" %>
+            <% end %>
+
+            <hr>
+            <!--<div class="text-center">
+              <a class="small" href="<%#= forgot_password_path %>">¿Olvidaste tu contraseña?</a>
+            </div>
+            <div class="text-center">
+              <a class="small" href="<%#= portal_login_path %>">¿Ya tienes cuenta? Iniciar sesión</a>
+            </div>-->
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

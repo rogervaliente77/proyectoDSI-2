@@ -1,45 +1,83 @@
-<div class="header-content">
-    <div class="breadcrumbs">
-        <strong><span><%= link_to "Inicio /", portal_home_path %></span> <span><%= link_to "Admin / Usuarios", admin_users_path %></strong>
-    </div>
-    <div class="actions">
-        <button class="btn btn-primary">Agregar</button>
-        <button class="btn btn-danger">Eliminar</button>
-    </div>
-</div>
-<hr>
-<div class="content">
-    <!-- Mostrar Flash Messages -->
-    <% if flash[:notice] %>
-      <div class="alert alert-success"><%= flash[:notice] %></div>
-    <% elsif flash[:alert] %>
-      <div class="alert alert-danger"><%= flash[:alert] %></div>
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    <%= link_to new_admin_user_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear Usuario
     <% end %>
+  </div>
 
-    <h2>Lista de Usuarios registrados</h2>
+  <!-- Content Row -->
+  <div class="row">
+    <!-- Area Chart -->
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Dropdown Header:</div>
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          <h1 class="h3 mb-4 text-gray-800">Gestión de Roles de Usuario</h1>
 
-    <!-- Tabla de prueba -->
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>#</th>
+          <table class="table table-bordered" id="usersTable">
+            <thead class="thead-light">
+              <tr>
                 <th>Nombre</th>
-                <th>Correo</th>
-                <th>Estado</th>
-                <th>Fecha de registro</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% @users.each_with_index do |user, index| %>
+                <th>Email</th>
+                <th>Rol actual</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @users.each do |user| %>
                 <tr>
-                    <td><%= index + 1 %></td> <!-- Agrega 1 porque el index empieza en 0 -->
-                    <td><%= user.name rescue '' %></td>
-                    <td><%= user.email rescue '' %></td>
-                    <td><%= user.valid? ? 'Activo' : 'Inactivo' %></td>
-                    <td><%= user.created_at.strftime("%d/%m/%Y %H:%M") %></td>
-                </tr>
-            <% end %>
-        </tbody>
-    </table>
+                  <td><%= user.full_name %></td>
+                  <td><%= user.email %></td>
+                  <td>
+                    <% if user.role == "super_admin" %>
+                      <span class="badge badge-success">Super Administrador</span>
+                    <% elsif user.role == "admin"%>
+                      <span class="badge badge-info">Administrador</span>
+                    <% elsif user.role == "cajero"%>
+                      <span class="badge badge-primary">Cajero</span>
+                    <% else %>
+                      <span class="badge badge-secondary">Cliente</span>
+                    <% end %>
+                  </td>
+                    <td> 
+                        <%= link_to edit_admin_user_path(id: user.id), class: "btn btn-primary btn-sm" do %>
+                                <i class="fa fa-edit"></i><span>
+                                <span>Editar</span>
+                              <% end %>
 
+                    </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+
+
+<!-- /.container-fluid -->
+
