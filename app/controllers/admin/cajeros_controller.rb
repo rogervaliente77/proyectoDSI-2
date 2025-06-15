@@ -28,19 +28,21 @@ module Admin
     #   @products = @product&.product_sales
     # end
 
-    # def edit
-    #   # binding.pry
-    # end
+    def edit
+      @cajero = Cajero.find(params[:id])
+    end
 
-    # def update
-    #   respond_to do |format|
-    #     if @product.update(product_params)
-    #       format.html {redirect_to admin_edit_product_path(product_id: @product.id), notice: "Producto actualizado con éxito" }
-    #     else
-    #       format.html { redirect_to admin_edit_product_path(product_id: @product.id), alert: "Ocurrio un error" }
-    #     end
-    #   end
-    # end
+    def update
+      @cajero = Cajero.find(params[:id])
+
+      respond_to do |format|
+        if @cajero.update(cajero_params)
+          format.html {redirect_to admin_cajeros_path, notice: "Cajero actualizado con éxito" }
+        else
+          format.html { redirect_to admin_cajeros_path, alert: "Ocurrio un error" }
+        end
+      end
+    end
 
     # def mark_as_delivered
     #   @product_sale = ProductSale.find(params[:product_sale_id])

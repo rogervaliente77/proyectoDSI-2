@@ -12,7 +12,7 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 3 }, if: :password_required?
   validates :password_confirmation, presence: true, if: :password_required?
 
-  before_create :save_full_name
+  before_save :save_full_name
 
   def save_full_name
     self.full_name = "#{first_name} #{last_name}"

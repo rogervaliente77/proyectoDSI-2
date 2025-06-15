@@ -18,7 +18,6 @@ module Admin
 
     #Función para crear usuario desde el super_admin
     def create
-      binding.pry
       @user = User.new(user_params)
     
       if @user.save
@@ -36,6 +35,8 @@ module Admin
 
     def update
       @user = User.find(params[:id])
+
+      binding.pry
       if @user.update(user_params)
         redirect_to admin_users_path, notice: "Usuario actualizado correctamente."
       else

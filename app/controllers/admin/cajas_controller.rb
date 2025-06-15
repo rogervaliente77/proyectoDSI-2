@@ -24,6 +24,10 @@ module Admin
         end
     end
 
+    def edit
+      @caja = Caja.find(params[:id])
+    end
+
     # def product_sales
     #   @products = @product&.product_sales
     # end
@@ -32,15 +36,17 @@ module Admin
     #   # binding.pry
     # end
 
-    # def update
-    #   respond_to do |format|
-    #     if @product.update(product_params)
-    #       format.html {redirect_to admin_edit_product_path(product_id: @product.id), notice: "Producto actualizado con éxito" }
-    #     else
-    #       format.html { redirect_to admin_edit_product_path(product_id: @product.id), alert: "Ocurrio un error" }
-    #     end
-    #   end
-    # end
+    def update
+      @caja = Caja.find(params[:id])
+
+      respond_to do |format|
+        if @caja.update(caja_params)
+          format.html {redirect_to admin_cajas_path, notice: "Caja actualizada con éxito" }
+        else
+          format.html { redirect_to admin_cajas_path, alert: "Ocurrio un error" }
+        end
+      end
+    end
 
     # def mark_as_delivered
     #   @product_sale = ProductSale.find(params[:product_sale_id])

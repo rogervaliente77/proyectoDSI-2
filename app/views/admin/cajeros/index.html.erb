@@ -3,9 +3,10 @@
   <!-- Page Heading -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-      <i class="fas fa-download fa-sm text-white-50"></i> Generate Report
-    </a>
+    
+    <%= link_to admin_cajeros_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear cajero
+    <% end %>
   </div>
 
   <!-- Content Row -->
@@ -49,6 +50,7 @@
                 <th>Nombre</th>
                 <th>Cajero</th>
                 <th>F. creacion</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -58,6 +60,12 @@
                   <td><%= cajero.user.full_name %></td>
                   <td><%= cajero.nombre %></td>
                   <td><%= cajero.created_at %></td>
+                  <td>
+                    <%= link_to admin_cajeros_edit_path(id: cajero.id), class: "btn btn-primary btn-sm" do %>
+                                <i class="fa fa-edit"></i><span>
+                                <span>Editar</span>
+                              <% end %>
+                  </td>
                 </tr>
               <% end %>
             </tbody>
