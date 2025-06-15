@@ -18,6 +18,7 @@ module Admin
 
     #Función para crear usuario desde el super_admin
     def create
+      binding.pry
       @user = User.new(user_params)
     
       if @user.save
@@ -60,8 +61,9 @@ module Admin
       params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
     end
 
-    
-    
+    def created_user_params
+      params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
+    end
   end
 
 end

@@ -8,7 +8,7 @@ class User < ApplicationRecord
   # Validaciones
   validates :first_name, :last_name, presence: { message: "Nombres y apellidos requeridos" }
   validates :email, presence: { message: "Correo electrónico requerido" }, uniqueness: { message: "Este correo ya está en uso" }
-  validates :jwt_token, uniqueness: { message: "Este token ya esta en uso" }
+  validates :jwt_token, uniqueness: { message: "Este token ya está en uso" }, allow_blank: true
   validates :password, presence: true, length: { minimum: 3 }, if: :password_required?
   validates :password_confirmation, presence: true, if: :password_required?
 
