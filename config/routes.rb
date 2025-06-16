@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     resources :users, only: [:index, :show, :edit, :destroy, :new] 
     post "/users/create", to: "users#create"
     patch "/users/update", to: "users#update"
+    get "/users/edit_password", to: "users#edit_password"
 
     get "/charlas", to: "conferences#index"
     get "/charlas/new", to: "conferences#new"

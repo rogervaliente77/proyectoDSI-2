@@ -44,6 +44,14 @@ module Admin
       end
     end
 
+    def edit_password
+      @user = User.find(params[:id])
+    end
+
+    def show
+
+    end
+
     private
 
     def check_admin_access
