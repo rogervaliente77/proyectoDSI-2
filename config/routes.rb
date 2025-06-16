@@ -89,6 +89,7 @@ Rails.application.routes.draw do
     get "/sales", to: "sales#index"
     get "/sales/new", to: "sales#new"
     post "/sales/create", to: "sales#create"
+    get "/sales/detalle_venta", to: "sales#detalle_venta"
   end
 
   # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)

@@ -1,0 +1,82 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Detalle de venta</h1>
+    <%= link_to admin_sales_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a ventas
+    <% end %>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Detalles de la venta</h6>
+        </div>
+        <div class="card-body">
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <div class="row">
+            <div class="col-sm-4 mb-3">
+              <label><strong>Nombre del cliente</strong></label>
+              <input type="text" class="form-control" value="<%= @sale.client_name %>" readonly>
+            </div>
+
+            <% if @sale.cajero.present? %>
+              <div class="col-sm-4 mb-3">
+                <label><strong>Cajero</strong></label>
+                <input type="text" class="form-control" value="<%= @sale.cajero.nombre %>" readonly>
+              </div>
+
+              <% if @sale.caja.present? %>
+                <div class="col-sm-4 mb-3">
+                  <label><strong>Caja</strong></label>
+                  <input type="text" class="form-control" value="<%= @sale.caja.nombre %>" readonly>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+          <!-- Tabla de productos -->
+          <h5 class="mb-3 mt-4">Productos vendidos</h5>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Descuento</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @product_sales.each do |ps| %>
+                <tr>
+                  <td><%= ps.product.name %></td>
+                  <td><%= ps.quantity %></td>
+                  <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
+                  <td>$<%= number_with_precision(ps.discount, precision: 2) %></td>
+                  <td>
+                    $<%= number_with_precision(ps.quantity * (ps.unit_price - ps.discount), precision: 2) %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+
+          <br>
+
+          <!-- Total -->
+          <div class="text-right mt-3">
+            <h4>Total de la venta: $<%= number_with_precision(@sale.total_amount, precision: 2) %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

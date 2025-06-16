@@ -1,17 +1,22 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= portal_home_path %>" data-turbo="false">
-        <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fa-brands fa-slack"></i>
-        </div>
+    <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= admin_home_path %>" data-turbo="false">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fa-brands fa-slack"></i>
+            </div>
 
-        <% if @current_user.is_valid? %>
-            <div class="sidebar-brand-text mx-3">Admin <sup></sup></div>
-        <% else %>
+                <div class="sidebar-brand-text mx-3">Admin <sup></sup></div>
+        </a>
+    <% else %>
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= portal_home_path %>" data-turbo="false">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fa-brands fa-slack"></i>
+            </div>
             <div class="sidebar-brand-text mx-3">Portal de cliente <sup></sup></div>
-        <% end %>
-    </a>
+        </a>
+    <% end %>
 
 
     <!-- Divider -->

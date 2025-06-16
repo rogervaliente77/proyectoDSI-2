@@ -64,7 +64,7 @@ module Admin
 
     def search
       products = Product.where("name ILIKE ?", "%#{params[:q]}%").limit(10)
-      render json: products.select(:id, :name, :description)
+      render json: products.select(:id, :name, :description, :price)
     end
 
     private

@@ -3,8 +3,10 @@
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+        
+        <%= link_to admin_sales_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+          <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a ventas
+        <% end %>
     </div>
 
     <!-- Content Row -->
@@ -44,15 +46,43 @@
                     
                     <%= simple_form_for :sale, url: admin_sales_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
                         <div class="row">
-                        <div class="col-sm-6 mb-3">
+                          <div class="col-sm-4 mb-3">
                             <%= form.input :client_name, label: "Nombre del cliente", required: true, input_html: { class: "form-control" } %>
-                        </div>
+                          </div>
+
+                          <% if @current_user.role == "cajero" %>
+                            <% cajero = Cajero.find_by(user_id: @current_user.id) %>
+                            <% if cajero.present? && cajero.caja.present? %>
+                              <div class="col-sm-4 mb-3">
+                                <%= form.input :cajero_id,
+                                      label: "Cajero",
+                                      as: :string,
+                                      input_html: {
+                                        value: cajero.nombre,
+                                        readonly: true,
+                                        class: "form-control"
+                                      } %>
+                                <%= form.hidden_field :cajero_id, value: cajero.id %>
+                              </div>
+
+                              <div class="col-sm-4 mb-3">
+                                <%= form.input :caja_id,
+                                      label: "Caja",
+                                      as: :string,
+                                      input_html: {
+                                        value: cajero.caja.nombre,
+                                        readonly: true,
+                                        class: "form-control"
+                                      } %>
+                                <%= form.hidden_field :caja_id, value: cajero.caja.id %>
+                              </div>
+                            <% end %>
+                          <% end %>
                         </div>
 
-                        <div class="mb-3">
-
-                            <a class="btn btn-primary" href="#" data-toggle="modal" data-target="#productModal">
-                                Agregar producto
+                        <div class="mb-3 text-right">
+                            <a class="btn btn-primary btn-sm" href="#" data-toggle="modal" data-target="#productModal">
+                                <i class="fas fa-plus fa-sm text-white-50"></i> Agregar producto
                             </a>
                         </div>
 
@@ -72,8 +102,14 @@
                         </tbody>
                         </table>
 
+                        <div class="text-right">
+                          <h5>Total: $<span id="sale-total">0.00</span></h5>
+                        </div>
+
+                        <%= form.hidden_field :total_amount, id: "sale_total_amount" %>
+
                         <div class="form-group mt-4">
-                        <%= form.submit 'Confirmar venta', class: 'btn btn-success' %>
+                          <%= form.submit 'Confirmar venta', class: 'btn btn-success' %>
                         </div>
                     <% end %>
 
@@ -117,7 +153,8 @@
 <!-- /.container-fluid -->
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+
+  document.addEventListener("DOMContentLoaded", () => {
   let productIndex = 0;
 
   // Buscar productos en el modal
@@ -177,6 +214,8 @@
         <input type="hidden" name="sale[product_sales_attributes][${productIndex}][product_id]" value="${id}">
       `;
       container.appendChild(row);
+      updateSaleTotal();
+
       productIndex++;
 
       bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
@@ -185,8 +224,37 @@
     // Eliminar producto
     if (e.target.classList.contains("remove-product")) {
       e.target.closest("tr").remove();
+      updateSaleTotal();
+
     }
   });
 });
+
+document.addEventListener("input", function (e) {
+  if (e.target.name?.includes("quantity") || e.target.name?.includes("unit_price") || e.target.name?.includes("discount")) {
+    updateSaleTotal();
+  }
+});
+
+function updateSaleTotal() {
+  let total = 0;
+  const rows = document.querySelectorAll("#product-sales-container tr");
+
+  rows.forEach(row => {
+    const quantityInput = row.querySelector('input[name*="[quantity]"]');
+    const priceInput = row.querySelector('input[name*="[unit_price]"]');
+    const discountInput = row.querySelector('input[name*="[discount]"]');
+
+    const quantity = parseFloat(quantityInput?.value || 0);
+    const price = parseFloat(priceInput?.value || 0);
+    const discount = parseFloat(discountInput?.value || 0);
+
+    const subtotal = (quantity * price) - discount;
+    total += subtotal;
+  });
+
+  document.getElementById("sale-total").textContent = total.toFixed(2);
+  document.getElementById("sale_total_amount").value = total.toFixed(2);
+}
 
 </script>

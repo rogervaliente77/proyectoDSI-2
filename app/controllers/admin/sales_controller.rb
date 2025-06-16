@@ -1,7 +1,7 @@
 module Admin
   class SalesController < Admin::ApplicationController
     # before_action :set_current_user
-    before_action :check_admin_access
+    # before_action :check_admin_access
     # before_action :set_product, only: %i[ product_sales edit update destroy]
     layout 'dashboard'
     
@@ -13,16 +13,29 @@ module Admin
       @sale = Sale.new
     end
 
-    # def create
-    #     @product = Product.new(product_params)
-      
-    #     if @product.save
-    #       redirect_to admin_productos_path, notice: "Producto creado con éxito."
-    #     else
-    #       flash[:alert] = "Hubo un error al crear el producto"
-    #       render :new, status: :unprocessable_entity
-    #     end
-    # end
+    def create
+      # Restricción de rol (ya lo tenés)
+      if @current_user.role == "super_admin" || @current_user.role == "admin"
+        redirect_to admin_sales_new_path, alert: "Esta acción solo la puede hacer un cajero"
+        return
+      end
+
+      # Crear la venta con nested attributes
+      @sale = Sale.new(sale_params)
+      @sale.status = "confirmed"
+      @sale.sold_at = Time.now
+      if @sale.save
+        redirect_to admin_sales_path, notice: "Venta registrada correctamente"
+      else
+        flash.now[:alert] = "Error al registrar la venta"
+        render :new
+      end
+    end
+
+    def detalle_venta
+      @sale = Sale.find(params[:id])
+      @product_sales = @sale.product_sales
+    end
 
     # def product_sales
     #   @products = @product&.product_sales
@@ -62,7 +75,17 @@ module Admin
     #   end
     # end
 
-    # private
+    private
+
+    def sale_params
+      params.require(:sale).permit(
+        :client_name,
+        :cajero_id,
+        :caja_id,
+        :total_amount,
+        product_sales_attributes: [:product_id, :quantity, :unit_price, :discount]
+      )
+    end
 
     # def check_admin_access
     #   if current_user.is_admin == false
