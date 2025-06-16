@@ -69,6 +69,7 @@ Rails.application.routes.draw do
     put "/productos/update", to: "products#update"
     delete "productos/destroy", to: "products#destroy", as: :destroy_product
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
+    get 'products/search', to: 'products#search'
 
     #cajas
     get "/cajas", to: "cajas#index"
@@ -83,6 +84,11 @@ Rails.application.routes.draw do
     post "/cajeros/create", to: "cajeros#create"
     get "/cajeros/edit", to: "cajeros#edit"
     patch "/cajeros/update", to: "cajeros#update"
+
+    # ventas // product_sales
+    get "/sales", to: "sales#index"
+    get "/sales/new", to: "sales#new"
+    post "/sales/create", to: "sales#create"
   end
 
   # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)

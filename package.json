@@ -6,6 +6,7 @@
     "autoprefixer": "^10.4.20",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "cocoon": "^0.1.1",
     "nodemon": "^3.1.9",
     "postcss": "^8.5.1",
     "postcss-cli": "^11.0.0",
