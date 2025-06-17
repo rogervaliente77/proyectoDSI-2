@@ -64,7 +64,9 @@
             <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Login Screens:</h6>
             <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
-            <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
+            <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
+                <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
+            <% end %>
             </div>
         </div>
 
@@ -87,35 +89,37 @@
         </li>
     <% end %>
 
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
-            aria-expanded="true" aria-controls="collapseCajas">
-            <i class="fas fa-store"></i>
-            <span>Cajas</span>
-        </a>
-        <div id="collapseCajas" class="collapse" aria-labelledby="headingCajas" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Login Screens:</h6>
-            <a class="collapse-item" href="<%= admin_cajas_path %>" data-turbo="false">Cajas</a>
-            <a class="collapse-item" href="<%= admin_cajas_new_path %>" data-turbo="false">Crear una nueva caja</a>
+    <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
+                aria-expanded="true" aria-controls="collapseCajas">
+                <i class="fas fa-store"></i>
+                <span>Cajas</span>
+            </a>
+            <div id="collapseCajas" class="collapse" aria-labelledby="headingCajas" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Login Screens:</h6>
+                <a class="collapse-item" href="<%= admin_cajas_path %>" data-turbo="false">Cajas</a>
+                <a class="collapse-item" href="<%= admin_cajas_new_path %>" data-turbo="false">Crear una nueva caja</a>
+                </div>
             </div>
-        </div>
-    </li>
+        </li>
 
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
-            aria-expanded="true" aria-controls="collapseCajeros">
-            <i class="fas fa-store"></i>
-            <span>Cajeros</span>
-        </a>
-        <div id="collapseCajeros" class="collapse" aria-labelledby="headingCajeros" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Login Screens:</h6>
-            <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
-            <a class="collapse-item" href="<%= admin_cajeros_new_path %>" data-turbo="false">Crear un nuevo cajero</a>
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
+                aria-expanded="true" aria-controls="collapseCajeros">
+                <i class="fas fa-store"></i>
+                <span>Cajeros</span>
+            </a>
+            <div id="collapseCajeros" class="collapse" aria-labelledby="headingCajeros" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Login Screens:</h6>
+                <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
+                <a class="collapse-item" href="<%= admin_cajeros_new_path %>" data-turbo="false">Crear un nuevo cajero</a>
+                </div>
             </div>
-        </div>
-    </li>
+        </li>
+    <%end%>
 
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales"

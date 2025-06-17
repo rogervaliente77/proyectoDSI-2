@@ -3,9 +3,12 @@
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Admin - Productos</h1>
-        <%= link_to admin_productos_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
-          <i class="fas fa-plus fa-sm text-white-50"></i> Crear Producto
-        <% end %>
+
+        <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
+          <%= link_to admin_productos_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+            <i class="fas fa-plus fa-sm text-white-50"></i> Crear Producto
+          <% end %>
+        <%end%>
 
     </div>
 
@@ -68,22 +71,24 @@
                               <p class="mb-0"><strong>Disponibilidad:</strong> En stock(<%= product.quantity %>)</p>
                             </div>
 
-                            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                              <%= link_to admin_edit_product_path(product_id: product.id), class: "btn btn-primary btn-sm" do %>
-                                <i class="fa fa-edit"></i><span>
-                                <span>Editar</span>
-                              <% end %>
-                              <%= link_to admin_product_sales_path(product_id: product.id), class: "btn btn-info btn-sm" do %>
-                                <i class="fa fa-shop"></i><span>
-                                <span>Ventas</span>
-                              <% end %>
-                              <%= link_to admin_destroy_product_path(product_id: product.id), 
-                                          class: "btn btn-danger btn-sm", 
-                                          data: { turbo_method: :delete }, 
-                                          onclick: "return confirm('¿Estás seguro de que deseas eliminar este producto?');" do %>
-                                <i class="fa fa-trash"></i> Eliminar
-                              <% end %>
-                            </div>
+                            <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
+                              <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                                <%= link_to admin_edit_product_path(product_id: product.id), class: "btn btn-primary btn-sm" do %>
+                                  <i class="fa fa-edit"></i><span>
+                                  <span>Editar</span>
+                                <% end %>
+                                <%= link_to admin_product_sales_path(product_id: product.id), class: "btn btn-info btn-sm" do %>
+                                  <i class="fa fa-shop"></i><span>
+                                  <span>Ventas</span>
+                                <% end %>
+                                <%= link_to admin_destroy_product_path(product_id: product.id), 
+                                            class: "btn btn-danger btn-sm", 
+                                            data: { turbo_method: :delete }, 
+                                            onclick: "return confirm('¿Estás seguro de que deseas eliminar este producto?');" do %>
+                                  <i class="fa fa-trash"></i> Eliminar
+                                <% end %>
+                              </div>
+                            <% end %>
                           </div>
                         </div>
                       <% end %>

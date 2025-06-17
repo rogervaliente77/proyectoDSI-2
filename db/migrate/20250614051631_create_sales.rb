@@ -8,6 +8,7 @@ class CreateSales < ActiveRecord::Migration[7.1]
       t.references :cajero, null: false, foreign_key: true
       t.integer :client_id
       t.float :total_amount
+      t.string :code
 
       t.timestamps
     end

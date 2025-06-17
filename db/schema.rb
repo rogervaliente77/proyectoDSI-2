@@ -56,6 +56,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_14_181101) do
     t.integer "quantity"
     t.float "price"
     t.string "image_url"
+    t.string "code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "category_id", null: false
@@ -77,6 +78,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_14_181101) do
     t.bigint "cajero_id", null: false
     t.integer "client_id"
     t.float "total_amount"
+    t.string "code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["caja_id"], name: "index_sales_on_caja_id"
