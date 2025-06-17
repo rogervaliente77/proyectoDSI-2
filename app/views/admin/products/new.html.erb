@@ -41,7 +41,7 @@
                     <div class="alert alert-danger"><%= flash[:alert] %></div>
                     <% end %>
                                         
-                    <%= simple_form_for :product, url: admin_productos_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
+                    <%= simple_form_for :product, url: admin_productos_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false }, data: {turbo: false} do |form| %> 
                         <div class="row">
                             <div class="col-sm-4">
                                 <div class="mb-3">

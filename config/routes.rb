@@ -91,6 +91,7 @@ Rails.application.routes.draw do
     get "/sales/new", to: "sales#new"
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
+    get '/sales/generate_pdf' => 'sales#generate_pdf', as: :generar_comprobante_venta
   end
 
   # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)

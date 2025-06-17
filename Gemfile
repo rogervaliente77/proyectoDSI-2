@@ -82,3 +82,11 @@ gem "cloudinary"
 gem 'bcrypt', '~> 3.1.7'
 
 gem 'cocoon'
+
+gem 'prawn', '~> 2.4'
+
+gem 'prawn-table', '~> 0.2.2'     # Si querés usar tablas en el PDF
+
+gem 'barby', '~> 0.6.8'           # Para generar códigos de barra
+
+gem 'chunky_png'  

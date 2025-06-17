@@ -37,6 +37,17 @@ module Admin
       @product_sales = @sale.product_sales
     end
 
+    def generate_pdf
+      @sale = Sale.find(params[:id])
+    
+      pdf = SalePdf.new(@sale).generate
+    
+      send_data pdf,
+                filename: "venta_#{@sale.code}.pdf",
+                type: 'application/pdf',
+                disposition: 'inline'  # Cambia a 'attachment' si querés forzar descarga
+    end
+    
     # def product_sales
     #   @products = @product&.product_sales
     # end
