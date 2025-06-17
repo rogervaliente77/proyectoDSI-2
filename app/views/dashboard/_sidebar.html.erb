@@ -1,0 +1,162 @@
+<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+    <!-- Sidebar - Brand -->
+    <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= admin_home_path %>" data-turbo="false">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fa-brands fa-slack"></i>
+            </div>
+
+                <div class="sidebar-brand-text mx-3">Admin <sup></sup></div>
+        </a>
+    <% else %>
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= portal_home_path %>" data-turbo="false">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fa-brands fa-slack"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Portal de cliente <sup></sup></div>
+        </a>
+    <% end %>
+
+
+    <!-- Divider -->
+    <hr class="sidebar-divider my-0">
+
+    <!-- Nav Item - Dashboard -->
+    <li class="nav-item active">
+        <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
+            <%= link_to admin_home_path, data: { turbo: false }, class: "nav-link" do %>
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            <% end %>
+        <%else%>
+            <%= link_to portal_home_path, data: { turbo: false }, class: "nav-link" do %>
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            <% end %>
+        <%end%>
+            
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Interface
+    </div>
+
+    <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+            aria-expanded="true" aria-controls="collapseTwo">
+            <i class="fas fa-fw fa-cog"></i>
+            <span>Settings</span>
+        </a>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Custom Components:</h6>
+                <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false"> Cambiar contraseña</a>
+            </div>
+        </div>
+    </li>
+
+    <!-- Nav Item - Pages Collapse Menu: Productos -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProductos"
+            aria-expanded="true" aria-controls="collapseProductos">
+            <i class="fas fa-fw fa-folder"></i>
+            <span>Productos</span>
+        </a>
+        <div id="collapseProductos" class="collapse" aria-labelledby="headingProductos" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Login Screens:</h6>
+            <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
+            <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
+                <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
+            <% end %>
+            </div>
+        </div>
+
+    </li>
+
+    <% if @current_user.role == "super_admin"%> 
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsers"
+                aria-expanded="true" aria-controls="collapseUsers">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <div id="collapseUsers" class="collapse" aria-labelledby="headingUsers" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Login Screens:</h6>
+                <a class="collapse-item" href="<%= admin_users_path %>" data-turbo="false">Usuarios</a>
+                <a class="collapse-item" href="<%= new_admin_user_path %>" data-turbo="false">Crear nuevo usuario</a>
+                </div>
+            </div>
+        </li>
+    <% end %>
+
+    <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
+                aria-expanded="true" aria-controls="collapseCajas">
+                <i class="fas fa-store"></i>
+                <span>Cajas</span>
+            </a>
+            <div id="collapseCajas" class="collapse" aria-labelledby="headingCajas" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Login Screens:</h6>
+                <a class="collapse-item" href="<%= admin_cajas_path %>" data-turbo="false">Cajas</a>
+                <a class="collapse-item" href="<%= admin_cajas_new_path %>" data-turbo="false">Crear una nueva caja</a>
+                </div>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
+                aria-expanded="true" aria-controls="collapseCajeros">
+                <i class="fas fa-store"></i>
+                <span>Cajeros</span>
+            </a>
+            <div id="collapseCajeros" class="collapse" aria-labelledby="headingCajeros" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Login Screens:</h6>
+                <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
+                <a class="collapse-item" href="<%= admin_cajeros_new_path %>" data-turbo="false">Crear un nuevo cajero</a>
+                </div>
+            </div>
+        </li>
+    <%end%>
+
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales"
+            aria-expanded="true" aria-controls="collapseSales">
+            <i class="fas fa-store"></i>
+            <span>Ventas</span>
+        </a>
+        <div id="collapseSales" class="collapse" aria-labelledby="headingSales" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Login Screens:</h6>
+            <a class="collapse-item" href="<%= admin_sales_path %>" data-turbo="false">Ventas</a>
+            <a class="collapse-item" href="<%= admin_sales_new_path %>" data-turbo="false">Crear una nueva venta</a>
+            </div>
+        </div>
+    </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <!-- Sidebar Toggler (Sidebar) -->
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
+    <!-- Sidebar Message -->
+    <!--<div class="sidebar-card d-none d-lg-flex">
+        <img class="sidebar-card-illustration mb-2" src="img/undraw_rocket.svg" alt="...">
+        <p class="text-center mb-2"><strong>SB Admin Pro</strong> is packed with premium features, components, and more!</p>
+        <a class="btn btn-success btn-sm" href="https://startbootstrap.com/theme/sb-admin-pro">Upgrade to Pro!</a>
+    </div>-->
+
+</ul>

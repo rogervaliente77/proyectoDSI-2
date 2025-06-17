@@ -3,13 +3,13 @@ source "https://rubygems.org"
 ruby "3.2.6"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 7.1.5", ">= 7.1.5.1"
+gem "rails", "~> 7.1.2"
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
 # Use sqlite3 as the database for Active Record
-gem "sqlite3", ">= 1.4"
+gem "sqlite3", "~> 1.4"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
@@ -28,6 +28,10 @@ gem "cssbundling-rails"
 
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+
+gem 'mongoid', '8.1.4'
+
+gem 'pg'
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
@@ -50,6 +54,8 @@ gem "bootsnap", require: false
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]
+  gem 'dotenv-rails'
+  gem 'pry-byebug'
 end
 
 group :development do
@@ -68,3 +74,19 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "simple_form", "~> 5.3"
+
+gem "cloudinary"
+
+gem 'bcrypt', '~> 3.1.7'
+
+gem 'cocoon'
+
+gem 'prawn', '~> 2.4'
+
+gem 'prawn-table', '~> 0.2.2'     # Si querés usar tablas en el PDF
+
+gem 'barby', '~> 0.6.8'           # Para generar códigos de barra
+
+gem 'chunky_png'  

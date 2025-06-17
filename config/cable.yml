@@ -1,3 +1,4 @@
+
 development:
   adapter: async
 
@@ -7,4 +8,5 @@ test:
 production:
   adapter: redis
   url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } %>
-  channel_prefix: proyecto_dsi_2025_grupo_6_production
+  channel_prefix: auth_with_rails_production
+

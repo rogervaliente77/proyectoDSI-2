@@ -1,0 +1,105 @@
+<div class="header-content">
+    <div class="breadcrumbs">
+        <strong><span><%= link_to "Inicio /", portal_home_path %></span> 
+                <span><%= link_to "Admin / Charlas", admin_charlas_path %></span>
+                <span><%= link_to "/ New", admin_charlas_new_path %></span> </strong>
+    </div>
+    <div class="actions">
+        <!--<button class="btn btn-danger">Eliminar</button>
+        <button class="btn btn-primary">Agregar</button> -->
+        
+        <%= link_to admin_charlas_new_path, class: "btn btn-primary" do %>
+          <i class="fa fa-plus"></i> Agregar
+        <% end %>
+
+    </div>
+</div>
+<hr>
+<div class="content">
+    <!-- Mostrar Flash Messages -->
+    <% if flash[:notice] %>
+      <div class="alert alert-success"><%= flash[:notice] %></div>
+    <% elsif flash[:alert] %>
+      <div class="alert alert-danger"><%= flash[:alert] %></div>
+    <% end %>
+
+    <h2>New</h2>
+    <hr>
+    
+    <div class="container">
+        <%= simple_form_for :conference, url: admin_charlas_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <%= form.input :title, label: "Title", required: true, input_html: { class: "form-control", id: "title" } %>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="mb-3">
+                        <%= form.input :speaker_name, label: "Nombre de quien impartira la charla", required: true, input_html: { class: "form-control" } %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="mb-3">
+                        <%= form.input :description, as: :text, label: "Description", required: true, input_html: { class: "form-control", rows: 2, style: "resize: vertical;"} %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="mb-3">
+                        <%= form.label :start_date, class: 'form-label' %>
+                        <%= form.datetime_field :start_date, label: "Fecha y hora de inicio", required: true, class: 'form-control' %>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="mb-3">
+                        <%= form.label :end_date, class: 'form-label' %>
+                        <%= form.datetime_field :end_date, label: "Fecha y hora de finalizacion", required: true, class: 'form-control' %>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="mb-3">
+                        <%= form.label :max_limit_of_attendees, class: 'form-label' %>
+                        <%= form.number_field :max_limit_of_attendees, label: "Número máximo de asistentes",  required: true, class: "form-control" %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="mb-3">
+                        <%= form.input :image_url, required: true, input_html: { class: "form-control" } %>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="row">
+                <div class="form-group mb-4">
+                    <%= form.submit 'Save', class: 'btn btn-success btn-block' %>
+                </div>
+            </div>
+ 
+        <% end %>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("form-control");
+
+        form.addEventListener("submit", function (event) {
+            if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            }
+            form.classList.add("was-validated");
+        });
+    });
+</script>

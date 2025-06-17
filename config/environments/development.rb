@@ -1,3 +1,4 @@
+
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
@@ -73,4 +74,17 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
+
+  #Mailer SMTP
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: "smtp.gmail.com",
+    port: 587,
+    domain: "gmail.com",
+    authentication: "plain",
+    enable_starttls_auto: true,
+    user_name: ENV['SENDER_EMAIL'], # Correo configurado en .env
+    password: ENV['APP_PASSWORD']   # Contraseña de aplicación configurada en .env
+  }
+
 end

@@ -1,0 +1,95 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Admin - productos - ventas</h1>
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+    </div>
+
+    <!-- Content Row -->
+
+    <div class="row">
+        <!-- Area Chart -->
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Lista de ventas (<%= @product.product_sales.count %>)</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Dropdown Header:</div>
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                                        
+                    <% if flash[:notice] %>
+                    <div class="alert alert-success"><%= flash[:notice] %></div>
+                    <% elsif flash[:alert] %>
+                    <div class="alert alert-danger"><%= flash[:alert] %></div>
+                    <% end %>
+
+                    <!-- Tabla de prueba -->
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Usuario</th>
+                                <th>Correo</th>
+                                <th>F/H canjeo</th>
+                                <th>Entregado?</th>
+                                <th>F/H entrega</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% @product.product_sales.each_with_index do |product_sale, index| %>
+                                <tr>
+                                    <td><%= index + 1 %></td> <!-- Agrega 1 porque el index empieza en 0 -->
+                                    <td><%= product_sale.user_name rescue '' %></td>
+                                    <td><%= product_sale.user_email rescue '' %></td>
+                                    <td><%= product_sale.sold_at.strftime("%d/%m/%Y %H:%M") rescue '' %></td>
+                                    
+                                    <% if product_sale.was_delivered == true %>
+                                        <td>     
+                                            <button class="btn btn-success btn-sm" disabled>
+                                            <i class="fa-solid fa-check"></i>
+                                            <span>Entregado</span>
+                                            </button></td>
+                                        <td><%= product_sale&.delivered_at&.strftime("%d/%m/%Y %H:%M") rescue '' %></td>   
+                                    <% else %>
+                                        <td>
+                                            <%= button_to admin_productos_mark_as_delivered_path(product_sale_id: product_sale.id), 
+                                            method: :patch,
+                                            class: "btn btn-info btn-sm",
+                                            data: { turbo: false },
+                                            onclick: "return confirm('¿Marcar como entregado?');" do %>
+                                            <i class="fa-solid fa-check"></i>
+                                            <span>Marcar como entregado?</span>
+                                            <% end %>
+                                        </td>
+                                        <td></td>
+                                    <% end %>
+                                    
+                                </tr>
+                            <% end %>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>                     
+    </div>
+</div>
+<!-- /.container-fluid -->

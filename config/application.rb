@@ -1,3 +1,4 @@
+
 require_relative "boot"
 
 require "rails/all"
@@ -6,7 +7,7 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module ProyectoDsi2025Grupo6
+module AuthWithRails
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
@@ -23,5 +24,7 @@ module ProyectoDsi2025Grupo6
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.time_zone = "America/El_Salvador"
   end
 end
+

@@ -1,0 +1,84 @@
+<div class="container">
+  <!-- Outer Row -->
+  <div class="row justify-content-center">
+
+    <div class="col-xl-10 col-lg-12 col-md-9">
+
+      <div class="card o-hidden border-0 shadow-lg my-5">
+        <div class="card-body p-0">
+          <!-- Nested Row within Card Body -->
+          <div class="row">
+            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+            <div class="col-lg-6">
+              <div class="p-5">
+                <div class="text-center">
+                  <h1 class="h4 text-gray-900 mb-4">Welcome!</h1>
+                </div>
+
+                <% if flash[:notice] %>
+                  <div class="alert alert-success"><%= flash[:notice] %></div>
+                <% elsif flash[:alert] %>
+                  <div class="alert alert-danger"><%= flash[:alert] %></div>
+                <% end %>
+
+                <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+
+                <%= simple_form_for :user, url: portal_new_login_path, method: :post, html: { class: "user", id: "login-form" } do |form| %>
+                  <div class="form-group">
+                    <%= form.input :email, label: false, required: true, input_html: { class: "form-control form-control-user", placeholder: "Correo electrónico" } %>
+                  </div>
+                  <div class="form-group">
+                    <%= form.input :password, label: false, required: true, input_html: { class: "form-control form-control-user", placeholder: "Contraseña" } %>
+                  </div>
+
+                  <%= form.button :submit, "Iniciar sesión", class: "btn btn-primary btn-user btn-block" %>
+
+                  <hr>
+                  <!-- Opcional: botones sociales -->
+                  <!--<a href="#" class="btn btn-google btn-user btn-block">
+                    <i class="fab fa-google fa-fw"></i> Iniciar sesión con Google
+                  </a>
+                  <a href="#" class="btn btn-facebook btn-user btn-block">
+                    <i class="fab fa-facebook-f fa-fw"></i> Iniciar sesión con Facebook
+                  </a>-->
+                <% end %>
+
+                <hr>
+                <div class="text-center">
+                  <%= link_to "¿Olvidaste tu contraseña?", "#", class: "small" %>
+                </div>
+                <div class="text-center">
+                  <%= link_to "Crear una cuenta", portal_signup_path, class: "small" %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("login-form");
+    const emailInput = document.querySelector("#user_email");
+    const passwordInput = document.querySelector("#user_password");
+    const errorMessage = document.getElementById("error-message");
+
+    form.addEventListener("submit", function (event) {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!email || !password) {
+        event.preventDefault();
+        errorMessage.textContent = "Todos los campos son obligatorios";
+        errorMessage.style.display = "block";
+      } else {
+        errorMessage.style.display = "none";
+      }
+    });
+  });
+</script>
