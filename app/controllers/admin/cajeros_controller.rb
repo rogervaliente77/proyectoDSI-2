@@ -1,7 +1,7 @@
 module Admin
   class CajerosController < Admin::ApplicationController
     # before_action :set_current_user
-    before_action :check_admin_access
+    # before_action :check_admin_access
     # before_action :set_product, only: %i[ product_sales edit update destroy]
     layout 'dashboard'
     

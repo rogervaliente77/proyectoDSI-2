@@ -32,7 +32,7 @@ Rails.application.routes.draw do
   namespace :admin do
     # Ejemplo de rutas para un módulo Admin
     #users
-    resources :users, only: [:index, :show, :edit, :destroy, :new] 
+    resources :users, only: [:index, :edit, :destroy, :new] 
     post "/users/create", to: "users#create"
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"

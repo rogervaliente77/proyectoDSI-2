@@ -24,10 +24,18 @@
 
     <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
-        <%= link_to portal_home_path, data: { turbo: false }, class: "nav-link" do %>
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span>
-        <% end %>
+        <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
+            <%= link_to admin_home_path, data: { turbo: false }, class: "nav-link" do %>
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            <% end %>
+        <%else%>
+            <%= link_to portal_home_path, data: { turbo: false }, class: "nav-link" do %>
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            <% end %>
+        <%end%>
+            
     </li>
 
     <!-- Divider -->
@@ -48,7 +56,7 @@
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">Custom Components:</h6>
-                <a class="collapse-item" href="buttons.html">Cambiar contraseña</a>
+                <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false"> Cambiar contraseña</a>
             </div>
         </div>
     </li>
