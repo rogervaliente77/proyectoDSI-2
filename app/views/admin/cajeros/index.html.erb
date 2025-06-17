@@ -49,6 +49,7 @@
                 <th>No</th>
                 <th>Nombre</th>
                 <th>Cajero</th>
+                <th>Caja</th>
                 <th>F. creacion</th>
                 <th>Actions</th>
               </tr>
@@ -59,6 +60,7 @@
                   <td><%= cajero.id %></td>
                   <td><%= cajero.user.full_name %></td>
                   <td><%= cajero.nombre %></td>
+                  <td><%= cajero.caja.nombre %></td>
                   <td><%= cajero.created_at %></td>
                   <td>
                     <%= link_to admin_cajeros_edit_path(id: cajero.id), class: "btn btn-primary btn-sm" do %>
