@@ -104,4 +104,4 @@ Rails.application.routes.draw do
   # Define la ruta raíz de la aplicación
   root "portal/authentication#login" # Ajusta esto si tu página principal es el login del portal
 end
->>>>>>> feature/sprint03
+

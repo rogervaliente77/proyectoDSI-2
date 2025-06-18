@@ -13,4 +13,3 @@ pin "sb_admin_2", to: "sb_admin_2/sb-admin-2.js", preload: true
 pin_all_from "sb_admin_2/demo", under: "sb_admin_2/demo"
 pin "jquery-easing", to: "jquery-easing/jquery.easing.min.js", preload: true
 pin '@nathanvda/cocoon', to: '@nathanvda--cocoon.js'
->>>>>>> feature/sprint03
