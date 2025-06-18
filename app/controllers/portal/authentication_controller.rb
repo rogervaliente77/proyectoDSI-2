@@ -9,7 +9,7 @@ module Portal
     def new_login
       # binding.pry
       if params[:user].blank?
-        redirect_to portal_login_path, alert: "No ingresó datos, ingrese los datos en el formulario"
+        redirect_to admin_login_path, alert: "No ingresó datos, ingrese los datos en el formulario"
         return
       end
     
@@ -17,7 +17,7 @@ module Portal
       password = params[:user][:password].presence
     
       if email.blank? || password.blank?
-        redirect_to portal_login_path, alert: "Debe ingresar correo y contraseña"
+        redirect_to admin_login_path, alert: "Debe ingresar correo y contraseña"
         return
       end
     
@@ -26,25 +26,53 @@ module Portal
       rescue Mongoid::Errors::DocumentNotFound
         user = nil
       end
+
+      @user = user
+
+      unless @user.role == "cliente"
+        flash[:alert] = 'Usted no es usuario cliente, debe iniciar sesion en el login para administradores'
+        redirect_to admin_login_path
+        return
+      end
+
+      if @user.present?
+        if !@user.is_valid?
+          respond_to do |format|
+            @user.update(otp_code: generate_otp_code)
+            session[:jwt_token] = @user.jwt_token
+            @user = User.find(@user.id)
+            UserVerificationMailer.send_otp_email(@user).deliver_now
+            flash[:alert] = 'Usuario no validado, debe ingresar el codigo de verificacion que se envio a su correo'
+            redirect_to portal_validating_user_path
+            return
+          end
+        end
+      else
+        flash[:alert] = 'Usuario con ese correo no esta registrado'
+        redirect_to portal_login_path
+        return
+      end
     
       # Validamos que el usuario exista y que la contraseña sea correcta
-      if user && user.password == password
+      if @user&.authenticate(password)
         session_token = SecureRandom.hex(32)
         session_expiration_time = Time.now + 30.minutes # o el tiempo que necesites
-    
+        # binding.pry
         # Crea un UserSession
         user_session = UserSession.create!(
           session_token: session_token,
           expiration_time: session_expiration_time,
-          user_id: user.id,
-          user_email: user.email
+          user_id: @user.id,
+          user_email: @user.email
         )
     
-        session[:user_id] = user.id
+        session[:user_id] = @user.id
         session[:session_token] = user_session.session_token
-        redirect_to portal_home_path, notice: "Bienvenido, #{user.first_name}!"
+        flash[:notice] = "Bienvenido, #{@user.first_name}!"
+        redirect_to portal_home_path
+        return
       else
-        redirect_to portal_login_path, alert: "Correo o contraseña incorrectos. Regístrese si no tiene cuenta."
+        redirect_to portal_login_path, alert: "Contraseña incorrecta"
       end
     end
     

@@ -56,7 +56,11 @@
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <h6 class="collapse-header">Custom Components:</h6>
-                <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false"> Cambiar contraseña</a>
+                <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
+                    <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false"> Cambiar contraseña</a>
+                <%else%>
+                    <a class="collapse-item" href="<%= portal_users_edit_password_path(id: @current_user.id) %>" data-turbo="false"> Cambiar contraseña</a>
+                <%end%>
             </div>
         </div>
     </li>

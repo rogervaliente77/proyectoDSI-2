@@ -27,6 +27,10 @@ Rails.application.routes.draw do
     get "/productos", to: "products#index"
     get "/mis_productos", to: "products#my_products"
     post "/productos/canjear/:product_id", to: "products#canjear_producto", as: :canjear_producto
+
+    #create
+    patch "/users/update", to: "users#update"
+    get "/users/edit_password", to: "users#edit_password"
   end
 
   # Namespace para Admin

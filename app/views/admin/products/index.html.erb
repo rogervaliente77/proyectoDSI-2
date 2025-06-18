@@ -69,6 +69,8 @@
                               <p class="card-text text-muted small mb-2"><%= product.description %></p>
                               <p class="mb-1"><strong>Precio:</strong> $<%= product&.price %></p>
                               <p class="mb-0"><strong>Disponibilidad:</strong> En stock(<%= product.quantity %>)</p>
+                              <p class="mb-0"><strong>Categoria: </strong> <%= product.category.name.upcase %></p>
+                              <p class="mb-0"><strong>Codigo: </strong> <%= product.code %></p>
                             </div>
 
                             <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
