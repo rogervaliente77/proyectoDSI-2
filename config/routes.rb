@@ -106,6 +106,8 @@ Rails.application.routes.draw do
   get "up", to: "rails/health#show", as: :rails_health_check
 
   # Define la ruta raíz de la aplicación
-  root "portal/authentication#login" # Ajusta esto si tu página principal es el login del portal
+  # root "portal/authentication#login" # Ajusta esto si tu página principal es el login del portal
+  root "welcome#index"
+
 end
 

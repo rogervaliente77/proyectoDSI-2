@@ -1,0 +1,81 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+
+
+    <!-- Content Row -->
+
+    <div class="row">
+        <!-- Area Chart -->
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- Card Header - Dropdown -->
+                <div
+                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Lista de productos</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Dropdown Header:</div>
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card Body -->
+                <div class="card-body">
+                    <% if flash[:notice] %>
+                    <div class="alert alert-success"><%= flash[:notice] %></div>
+                    <% elsif flash[:alert] %>
+                    <div class="alert alert-danger"><%= flash[:alert] %></div>
+                    <% end %>
+
+                    <h1>Bienvenido a Ferrepro</h1>
+                    <br>
+
+                    <div class="row">
+                      <% @products.each do |product| %>                      
+
+                        <!-- Producto 1 -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                          <div class="card h-100 shadow-sm position-relative">
+                            
+
+                            <% if product.quantity > 0 %>
+                              <span class="badge badge-success position-absolute" style="top: 0.5rem; right: 0.5rem;">
+                                Disponible
+                              </span>
+                            <% else %>
+                              <span class="badge badge-secondary position-absolute" style="top: 0.5rem; right: 0.5rem;">
+                                Agotado
+                              </span>
+                            <% end %>
+
+                            <img src="<%= product.image_url %>" class="card-img-top" alt="Producto 1" style="height: 180px; object-fit: cover;">
+                            <div class="card-body">
+                              <h5 class="card-title font-weight-bold text-primary mb-1"><%= product.name %></h5>
+                              <p class="card-text text-muted small mb-2"><%= product.description %></p>
+                              <p class="mb-1"><strong>Precio:</strong> $<%= product&.price %></p>
+                              <p class="mb-0"><strong>Disponibilidad:</strong> En stock(<%= product.quantity %>)</p>
+                              <p class="mb-0"><strong>Categoria: </strong> <%= product.category.name.upcase %></p>
+                              <p class="mb-0"><strong>Codigo: </strong> <%= product.code %></p>
+                            </div>
+
+
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+
+                </div>
+            </div>
+        </div>                     
+    </div>
+</div>
+<!-- /.container-fluid -->
