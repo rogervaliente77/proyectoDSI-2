@@ -2,8 +2,11 @@
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Admin - Productos</h1>
-
+        <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
+          <h1 class="h3 mb-0 text-gray-800">Admin - Productos</h1>        
+        <% else %>
+          <h1 class="h3 mb-0 text-gray-800">Portal - Productos</h1>
+        <% end %>
         <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
           <%= link_to admin_productos_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
             <i class="fas fa-plus fa-sm text-white-50"></i> Crear Producto
