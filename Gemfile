@@ -1,7 +1,6 @@
 source "https://rubygems.org"
 
 #ruby "3.2.6"
-ruby '~> 3.2.0'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.2"
@@ -92,3 +91,4 @@ gem 'barby', '~> 0.6.8'           # Para generar códigos de barra
 
 
 gem 'chunky_png'  
+
