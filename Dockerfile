@@ -18,7 +18,15 @@ FROM base as build
 
 # Install packages needed to build gems and node modules
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential curl git libvips node-gyp pkg-config python-is-python3
+    apt-get install --no-install-recommends -y \
+      build-essential \
+      curl \
+      git \
+      libvips \
+      node-gyp \
+      pkg-config \
+      python-is-python3 \
+      libpq-dev   # necesario para compilar la gema pg
 
 # Install JavaScript dependencies
 ARG NODE_VERSION=22.12.0
@@ -29,7 +37,7 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
     npm install -g yarn@$YARN_VERSION && \
     rm -rf /tmp/node-build-master
 
-# Instalar la versión correcta de Bundler antes de instalar gems
+# Instalar la versión correcta de Bundler
 RUN gem install bundler -v 2.5.5
 
 # Install application gems
@@ -56,7 +64,11 @@ FROM base
 
 # Install packages needed for deployment
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libsqlite3-0 libvips && \
+    apt-get install --no-install-recommends -y \
+      curl \
+      libsqlite3-0 \
+      libvips \
+      libpq5 && \   # librería cliente de postgres
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
