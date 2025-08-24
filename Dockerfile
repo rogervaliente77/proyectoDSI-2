@@ -1,22 +1,24 @@
 # syntax = docker/dockerfile:1
 
-# Usa la misma versión de Ruby que en tu proyecto
+# ========================================
+# Stage 0: Base image
+# ========================================
 ARG RUBY_VERSION=3.2.6
-FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim as base
+FROM ruby:$RUBY_VERSION-slim as base
 
-# Rails app lives here
 WORKDIR /rails
 
-# Set production environment
 ENV RAILS_ENV="production" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development"
 
-# Throw-away build stage to reduce size of final image
+# ========================================
+# Stage 1: Build stage
+# ========================================
 FROM base as build
 
-# Install packages needed to build gems and node modules
+# Install system dependencies for gems & node modules
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       build-essential \
@@ -28,7 +30,7 @@ RUN apt-get update -qq && \
       python-is-python3 \
       libpq-dev
 
-# Install JavaScript dependencies
+# Install Node & Yarn
 ARG NODE_VERSION=22.12.0
 ARG YARN_VERSION=1.22.22
 ENV PATH=/usr/local/node/bin:$PATH
@@ -37,35 +39,37 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
     npm install -g yarn@$YARN_VERSION && \
     rm -rf /tmp/node-build-master
 
-# Instalar la versión correcta de Bundler
+# Install Bundler
 RUN gem install bundler -v 2.5.5
 
-# Install application gems
+# Copy Gemfile & install gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle _2.5.5_ install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile --gemfile
 
-# Install node modules
+# Copy JS package files & install node modules
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Copy application code
 COPY . .
 
-# Precompile bootsnap code for faster boot times
-RUN bundle exec bootsnap precompile app/ lib/
+# Ensure docker-entrypoint has execution permission
+RUN chmod +x bin/docker-entrypoint
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-# Precompile assets for production without requiring master key
+# Precompile bootsnap & assets for production
 ENV SECRET_KEY_BASE=dummy_secret_key_base
 ENV RAILS_MASTER_KEY=dummy_master_key
-RUN ./bin/rails assets:precompile
+RUN ruby ./bin/rails assets:precompile
+RUN bundle exec bootsnap precompile app/ lib/
 
-# Final stage for app image
+# ========================================
+# Stage 2: Final image
+# ========================================
 FROM base
 
-# Install packages needed for deployment
+# Install runtime dependencies
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
       curl \
@@ -74,18 +78,21 @@ RUN apt-get update -qq && \
       libpq5 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Copy built artifacts: gems, application
+# Copy built artifacts
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
-# Run and own only the runtime files as a non-root user for security
+# Create non-root user
 RUN useradd rails --create-home --shell /bin/bash && \
     chown -R rails:rails db log storage tmp
+
 USER rails:rails
 
-# Entrypoint prepares the database.
+# Entrypoint
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start the server by default, this can be overwritten at runtime
+# Expose default Rails port
 EXPOSE 3000
-CMD ["./bin/rails", "server"]
+
+# Default command
+CMD ["./bin/rails", "server", "-b", "0.0.0.0"]
