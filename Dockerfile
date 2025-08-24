@@ -89,8 +89,8 @@ RUN useradd rails --create-home --shell /bin/bash && \
 USER rails:rails
 
 # Entrypoint
-ENTRYPOINT ["bash", "/rails/bin/docker-entrypoint"]
-
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+CMD ["rails", "server", "-b", "0.0.0.0"]
 
 # Expose default Rails port
 EXPOSE 3000
