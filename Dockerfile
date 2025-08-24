@@ -26,7 +26,7 @@ RUN apt-get update -qq && \
       node-gyp \
       pkg-config \
       python-is-python3 \
-      libpq-dev   # necesario para compilar la gema pg
+      libpq-dev
 
 # Install JavaScript dependencies
 ARG NODE_VERSION=22.12.0
@@ -68,7 +68,7 @@ RUN apt-get update -qq && \
       curl \
       libsqlite3-0 \
       libvips \
-      libpq5 && \   # librería cliente de postgres
+      libpq5 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
