@@ -28,7 +28,8 @@ RUN apt-get update -qq && \
       node-gyp \
       pkg-config \
       python-is-python3 \
-      libpq-dev
+      libpq-dev \
+      bash
 
 # Install Node & Yarn
 ARG NODE_VERSION=22.12.0
@@ -75,12 +76,16 @@ RUN apt-get update -qq && \
       curl \
       libsqlite3-0 \
       libvips \
-      libpq5 && \
+      libpq5 \
+      bash && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
+
+# Ensure docker-entrypoint has execution permission in final image
+RUN chmod +x /rails/bin/docker-entrypoint
 
 # Create non-root user
 RUN useradd rails --create-home --shell /bin/bash && \
@@ -90,10 +95,9 @@ USER rails:rails
 
 # Entrypoint
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
-CMD ["rails", "server", "-b", "0.0.0.0"]
 
 # Expose default Rails port
 EXPOSE 3000
 
 # Default command
-CMD ["./bin/rails", "server", "-b", "0.0.0.0"]
+CMD ["rails", "server", "-b", "0.0.0.0"]
