@@ -1,14 +1,14 @@
 development:
   clients:
     default:
-      uri: <%= ENV['MONGO_DB_DEVELOPMENT'] %>
+      uri: <%= ENV['MONGO_DB_URL'] %>
       options:
         log_level: :warn
 
 test:
   clients:
     default:
-      uri: <%= ENV['MONGO_DB_TEST'] %>
+      uri: <%= ENV['MONGO_DB_URL'] %>
       options:
         read:
           mode: :primary
