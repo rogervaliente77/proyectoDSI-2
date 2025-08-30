@@ -57,7 +57,7 @@
             <tbody>
               <% @cajeros.each_with_index do |cajero, index| %>
                 <tr>
-                  <td><%= cajero.id %></td>
+                  <td><%= index + 1 %></td>
                   <td><%= cajero.user.full_name %></td>
                   <td><%= cajero.nombre %></td>
                   <td><%= cajero.caja.nombre %></td>

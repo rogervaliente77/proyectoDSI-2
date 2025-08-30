@@ -146,7 +146,7 @@ module Admin
         redirect_to admin_home_path, notice: "Autenticacion con exito"   
         #render json: { message: 'Usuario validado', session_token: session_token }
       else
-        redirect_to portal_validating_user_path, alert: "Otp code invalido, por favor ingrese el codigo enviado a su corrreo"
+        redirect_to admin_validating_user_path, alert: "Otp code invalido, por favor ingrese el codigo enviado a su corrreo"
         #render json: { error: 'Código OTP incorrecto' }, status: :unauthorized
       end
     end

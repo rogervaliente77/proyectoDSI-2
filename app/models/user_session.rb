@@ -1,8 +1,12 @@
-class UserSession < ApplicationRecord
-  belongs_to :user
+class UserSession
+  include Mongoid::Document
+  include Mongoid::Timestamps
 
-  # has_one :user, inverse_of: :user_session
-  # En tu modelo User actual
-  belongs_to :user_session, optional: true, inverse_of: :user
+  field :session_token, type: String
+  field :expiration_time, type: DateTime
+  field :user_email, type: String
 
+  belongs_to :user, class_name: "User", inverse_of: :user_sessions, optional: false
+
+  index({ user_id: 1 })
 end

@@ -1,25 +1,12 @@
-
-
+# config/database.yml
 default: &default
-  adapter: postgresql
-  encoding: unicode
-  host: localhost         # ← porque Rails corre localmente, no en Docker
-  port: 5432              # ← puerto expuesto por tu contenedor
-  username: admin
-  password: 123123
-  pool: 5
+  adapter: null
 
 development:
   <<: *default
-  database: ferre_pro_db
 
 test:
   <<: *default
-  database: ferre_pro_test
 
 production:
   <<: *default
-  database: ferre_pro_production
-  username: admin
-  password: <%= ENV['POSTGRES_PASSWORD'] || '123123' %>  # fallback si no está definida
-

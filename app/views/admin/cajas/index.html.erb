@@ -52,9 +52,9 @@
               </tr>
             </thead>
             <tbody>
-              <% @cajas.each_with_index do |caja, index| %>
+              <% @cajas&.each_with_index do |caja, index| %>
                 <tr>
-                  <td><%= caja.id %></td>
+                  <td><%= index + 1 %></td>
                   <td><%= caja.nombre %></td>
                   <td><%= caja.created_at %></td>
                   <td>

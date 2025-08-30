@@ -1,9 +1,27 @@
-class User < ApplicationRecord
-  has_secure_password
+class User
+  include Mongoid::Document
+  include Mongoid::Timestamps
+  include ActiveModel::SecurePassword
 
-  has_many :user_sessions
-  has_many :conference_registrations
-  has_many :conferences
+  # Campos
+  field :first_name,       type: String
+  field :last_name,        type: String
+  field :full_name,        type: String
+  field :jwt_token,        type: String
+  field :email,            type: String
+  field :phone_number,     type: String
+  field :password_digest,  type: String
+  field :is_valid,         type: Mongoid::Boolean, default: true
+  field :session_token_id, type: String
+  field :otp_code,         type: Integer
+  field :is_admin,         type: Mongoid::Boolean, default: false
+  field :role,             type: String, default: "cliente"
+
+  # Relacionamientos (ajústalos a tus modelos Mongoid)
+  has_many :user_sessions, class_name: "UserSession", inverse_of: :user
+
+  # Seguridad de contraseña
+  has_secure_password
 
   # Validaciones
   validates :first_name, :last_name, presence: { message: "Nombres y apellidos requeridos" }
@@ -12,10 +30,12 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 3 }, if: :password_required?
   validates :password_confirmation, presence: true, if: :password_required?
 
+  # Callbacks
   before_save :save_full_name
 
+  # Métodos
   def save_full_name
-    self.full_name = "#{first_name} #{last_name}"
+    self.full_name = "#{first_name} #{last_name}".strip
   end
 
   def password_required?

@@ -2,15 +2,19 @@ development:
   clients:
     default:
       uri: <%= ENV['MONGO_DB_URL'] %>
-      options:
-        log_level: :warn
+  options:
+    use_activesupport_time_zone: true
 
 test:
   clients:
     default:
+      uri: <%= ENV['MONGO_DB_URL_TEST'] %>
+  options:
+    use_activesupport_time_zone: true
+
+production:
+  clients:
+    default:
       uri: <%= ENV['MONGO_DB_URL'] %>
-      options:
-        read:
-          mode: :primary
-        max_pool_size: 1
-        log_level: :warn
+  options:
+    use_activesupport_time_zone: true
