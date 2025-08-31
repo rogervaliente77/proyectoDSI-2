@@ -9,7 +9,7 @@ gem "rails", "~> 7.1.2"
 gem "sprockets-rails"
 
 #activerecord
-gem "activestorage", "~> 7.1"
+#gem "activestorage", "~> 7.1"
 
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", "~> 1.4"
