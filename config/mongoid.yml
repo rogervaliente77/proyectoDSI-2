@@ -1,20 +1,23 @@
 development:
   clients:
     default:
-      uri: <%= ENV['MONGO_DB_URL'] %>
-  options:
-    use_activesupport_time_zone: true
+      uri: <%= ENV["MONGODB_URL"] %>
+      options:
+        server_api:
+          version: "1"
 
 test:
   clients:
     default:
-      uri: <%= ENV['MONGO_DB_URL_TEST'] %>
-  options:
-    use_activesupport_time_zone: true
+      uri: <%= ENV["MONGODB_URL"] %>
+      options:
+        server_api:
+          version: "1"
 
 production:
   clients:
     default:
-      uri: <%= ENV['MONGO_DB_URL'] %>
-  options:
-    use_activesupport_time_zone: true
+      uri: <%= ENV["MONGODB_URL"] %>
+      options:
+        server_api:
+          version: "1"

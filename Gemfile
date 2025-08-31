@@ -30,6 +30,7 @@ gem "cssbundling-rails"
 gem "jbuilder"
 
 gem 'mongoid', '8.1.4'
+gem 'mongo', '~> 2.19'  # o la última versión estable
 
 # gem 'pg'
 
