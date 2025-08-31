@@ -55,13 +55,13 @@ module Admin
     def update_password
       @user = User.find(params[:id])
 
-      #binding.pry
       if @user.update(user_params_password)
-        flash[:notice] = "Clave actualizada exitosamente"
-        redirect_to admin_users_edit_password_path(id: @user.id)
-      else
-        redirect_to admin_users_edit_password_path(id: @user.id), alert: "Error al actualizar clave"
-      end
+          flash[:notice] = "Clave actualizada exitosamente"
+          redirect_to admin_users_edit_password_path(id: @user.id)
+        else
+          flash.now[:alert] = @user.errors.full_messages.join(", ")
+          render :edit_password
+        end
     end
 
     private
