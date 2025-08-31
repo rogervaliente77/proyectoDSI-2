@@ -30,12 +30,15 @@ module Admin
       end
     
       begin
-        user = User.find_by(email: email)
+        @user = User.find_by(email: email)
       rescue Mongoid::Errors::DocumentNotFound
-        user = nil
+        @user = nil
       end
 
-      @user = user
+      if !@user.present?
+        redirect_to admin_login_path, alert: "Usuario no existe"
+        return
+      end
 
       if @user.role == "cliente"
         flash[:alert] = 'Usted no es administrador, debe ingresar en este login de clientes'

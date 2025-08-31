@@ -36,6 +36,11 @@
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
+                    <% if flash[:notice] %>
+                    <div class="alert alert-success"><%= flash[:notice] %></div>
+                    <% elsif flash[:alert] %>
+                    <div class="alert alert-danger"><%= flash[:alert] %></div>
+                    <% end %>
                                         
                     <%= simple_form_for :user, url: admin_users_update_path(id: @user.id), method: :patch, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
                         <div class="row">

@@ -44,7 +44,7 @@
                     <% end %>
 
                     
-                    <%= simple_form_for :sale, url: admin_sales_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
+                    <%= simple_form_for :sale, url: admin_sales_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false }, data: { turbo: false } do |form| %> 
                         <div class="row">
                           <div class="col-sm-4 mb-3">
                             <%= form.input :client_name, label: "Nombre del cliente", required: true, input_html: { class: "form-control" } %>
@@ -108,9 +108,11 @@
 
                         <%= form.hidden_field :total_amount, id: "sale_total_amount" %>
 
-                        <div class="form-group mt-4">
-                          <%= form.submit 'Confirmar venta', class: 'btn btn-success' %>
-                        </div>
+                        <% if current_user.role == 'cajero' %>
+                          <div class="form-group mt-4">
+                            <%= form.submit 'Confirmar venta', class: 'btn btn-success' %>
+                          </div>
+                        <% end %>
                     <% end %>
 
                     <!-- Modal de productos -->

@@ -52,6 +52,18 @@ module Admin
 
     end
 
+    def update_password
+      @user = User.find(params[:id])
+
+      #binding.pry
+      if @user.update(user_params_password)
+        flash[:notice] = "Clave actualizada exitosamente"
+        redirect_to admin_users_edit_password_path(id: @user.id)
+      else
+        redirect_to admin_users_edit_password_path(id: @user.id), alert: "Error al actualizar clave"
+      end
+    end
+
     private
 
     def check_admin_access
@@ -68,6 +80,10 @@ module Admin
 
     def user_params
       params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
+    end
+
+    def user_params_password
+      params.require(:user).permit(:password, :password_confirmation)
     end
 
     def created_user_params
