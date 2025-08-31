@@ -30,12 +30,15 @@ module Admin
       end
     
       begin
-        user = User.find_by(email: email)
+        @user = User.find_by(email: email)
       rescue Mongoid::Errors::DocumentNotFound
-        user = nil
+        @user = nil
       end
 
-      @user = user
+      if !@user.present?
+        redirect_to admin_login_path, alert: "Usuario no existe"
+        return
+      end
 
       if @user.role == "cliente"
         flash[:alert] = 'Usted no es administrador, debe ingresar en este login de clientes'
@@ -146,7 +149,7 @@ module Admin
         redirect_to admin_home_path, notice: "Autenticacion con exito"   
         #render json: { message: 'Usuario validado', session_token: session_token }
       else
-        redirect_to portal_validating_user_path, alert: "Otp code invalido, por favor ingrese el codigo enviado a su corrreo"
+        redirect_to admin_validating_user_path, alert: "Otp code invalido, por favor ingrese el codigo enviado a su corrreo"
         #render json: { error: 'Código OTP incorrecto' }, status: :unauthorized
       end
     end

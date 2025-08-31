@@ -31,7 +31,7 @@ gem "jbuilder"
 
 gem 'mongoid', '8.1.4'
 
-gem 'pg'
+# gem 'pg'
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"

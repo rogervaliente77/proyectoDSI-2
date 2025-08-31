@@ -41,6 +41,7 @@ Rails.application.routes.draw do
     post "/users/create", to: "users#create"
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
+    patch "/users/:id/update_password", to: "users#update_password", as: "user_update_password"
 
     get "/charlas", to: "conferences#index"
     get "/charlas/new", to: "conferences#new"

@@ -6,7 +6,8 @@ module Admin
     layout 'dashboard'
     
     def index
-      @cajas = Caja.all
+      # binding.pry
+      @cajas = Caja.all 
     end
 
     def new
