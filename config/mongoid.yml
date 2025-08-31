@@ -1,7 +1,7 @@
 development:
   clients:
     default:
-      uri: <%= ENV["MONGODB_URL"] %>
+      uri: <%= ENV["MONGO_DB_URL"] %>
       options:
         server_api:
           version: "1"
@@ -9,7 +9,7 @@ development:
 test:
   clients:
     default:
-      uri: <%= ENV["MONGODB_URL"] %>
+      uri: <%= ENV["MONGO_DB_URL"] %>
       options:
         server_api:
           version: "1"
@@ -17,7 +17,7 @@ test:
 production:
   clients:
     default:
-      uri: <%= ENV["MONGODB_URL"] %>
+      uri: <%= ENV["MONGO_DB_URL"] %>
       options:
         server_api:
           version: "1"
