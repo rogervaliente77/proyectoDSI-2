@@ -1,53 +1,63 @@
 <!-- Begin Page Content -->
-<div class="container-fluid" style="background-color: #f8f9fa; min-height: 100vh; padding-top: 2rem; padding-bottom: 2rem;">
+<div class="container-fluid bg-light min-vh-100 py-4">
 
   <!-- Encabezado -->
-  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap">
-    <!-- Logo y Título -->
-    <div class="d-flex align-items-center gap-4">
-      <!-- Logo grande -->
-      <img src="https://i.ibb.co/nsyN4Ht7/logo.png" alt="Logo" style="height: 200px; object-fit: contain;">
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mb-4 gap-4" style="background-color: #e3f2fd; padding: 1rem 1.5rem; border-radius: 0.5rem;">
 
-      <div>
+    <!-- Logo y Título -->
+    <div class="d-flex flex-column flex-md-row align-items-center gap-3 w-100">
+
+      <!-- Logo grande y responsivo -->
+      <img src="https://i.ibb.co/nsyN4Ht7/logo.png" 
+           alt="Logo" 
+           class="img-fluid" 
+           style="max-height: 200px; width: auto; height: auto;">
+
+      <!-- Título y formulario -->
+      <div class="flex-grow-1">
+
         <h1 class="h2 text-dark font-weight-bold mb-1">Catálogo de Productos</h1>
-        <p class="text-muted mb-2" style="font-size: 0.95rem;">
+        <p class="text-muted mb-2 small">
           Bienvenido a nuestro catálogo. Descubra nuestras mejores opciones y adquiera sus productos iniciando sesión o creando una cuenta.
         </p>
 
         <!-- Formulario de búsqueda y filtro -->
-        <%= form_with url: portal_productos_path, method: :get, local: true, class: "d-flex flex-wrap gap-2 mt-3 align-items-center" do %>
+        <%= form_with url: portal_productos_path, method: :get, local: true, class: "d-flex flex-column flex-md-row flex-wrap gap-3 gap-md-2 align-items-start align-items-md-center" do %>
           
           <!-- Input de búsqueda -->
           <%= text_field_tag :query, params[:query], placeholder: "Buscar productos...", class: "form-control form-control-sm flex-grow-1" %>
 
           <!-- Slider doble de rango de precio -->
-          <div class="d-flex align-items-center gap-3">
+          <div class="d-flex flex-column flex-md-row gap-3 align-items-start align-items-md-center">
+            <!-- Valor Mínimo -->
             <div class="d-flex flex-column align-items-center">
-              <label for="min_price_slider" class="form-label" style="font-size:0.85rem; color: #0d6efd;">Valor Mínimo</label>
+              <label for="min_price_slider" class="form-label small text-primary">Valor Mínimo</label>
               <input type="range" class="form-range" id="min_price_slider" name="min_price" min="0" max="1000" step="1" value="<%= params[:min_price] || 0 %>" style="accent-color: #0d6efd;">
-              <span style="font-size: 0.9rem; color: #0d6efd;">$<span id="min_price_val"><%= params[:min_price] || 0 %></span></span>
+              <span class="small text-primary">$<span id="min_price_val"><%= params[:min_price] || 0 %></span></span>
             </div>
 
+            <!-- Valor Máximo -->
             <div class="d-flex flex-column align-items-center">
-              <label for="max_price_slider" class="form-label" style="font-size:0.85rem; color: #dc3545;">Valor Máximo</label>
+              <label for="max_price_slider" class="form-label small text-danger">Valor Máximo</label>
               <input type="range" class="form-range" id="max_price_slider" name="max_price" min="0" max="1000" step="1" value="<%= params[:max_price] || 1000 %>" style="accent-color: #dc3545;">
-              <span style="font-size: 0.9rem; color: #dc3545;">$<span id="max_price_val"><%= params[:max_price] || 1000 %></span></span>
+              <span class="small text-danger">$<span id="max_price_val"><%= params[:max_price] || 1000 %></span></span>
             </div>
           </div>
 
-          <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm" %>
+          <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm mt-2 mt-md-0" %>
         <% end %>
+
       </div>
     </div>
 
     <!-- Botones de sesión/registro -->
-    <div class="mt-3 mt-md-0 d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap mt-2 mt-md-0">
       <%= link_to portal_login_path, class: "btn btn-primary btn-sm shadow-sm px-3" do %>
-        <i class="fas fa-sign-in-alt mr-1"></i> Iniciar Sesión
+        <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
       <% end %>
 
       <%= link_to portal_signup_path, class: "btn btn-outline-primary btn-sm shadow-sm px-3" do %>
-        <i class="fas fa-user-plus mr-1"></i> Registrarse
+        <i class="fas fa-user-plus me-1"></i> Registrarse
       <% end %>
     </div>
   </div>
@@ -56,34 +66,30 @@
   <div class="row">
     <% if @products.any? %>
       <% @products.each do |product| %>
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
           <div class="card border-0 shadow-sm rounded-lg h-100 position-relative bg-white">
 
             <!-- Badge de disponibilidad -->
             <% if product.quantity > 0 %>
-              <span class="badge bg-success position-absolute" style="top: 0.75rem; right: 0.75rem; font-size: 0.85rem;">
-                Disponible
-              </span>
+              <span class="badge bg-success position-absolute top-0 end-0 m-2 small">Disponible</span>
             <% else %>
-              <span class="badge bg-secondary position-absolute" style="top: 0.75rem; right: 0.75rem; font-size: 0.85rem;">
-                Agotado
-              </span>
+              <span class="badge bg-secondary position-absolute top-0 end-0 m-2 small">Agotado</span>
             <% end %>
 
             <!-- Imagen del producto -->
             <div class="d-flex align-items-center justify-content-center bg-light" style="height: 180px; overflow: hidden;">
               <img src="<%= product.image_url %>" 
-                   class="img-fluid"
-                   alt="<%= product.name %>"
+                   class="img-fluid" 
+                   alt="<%= product.name %>" 
                    style="max-height: 100%; object-fit: contain;">
             </div>
 
             <!-- Información del producto -->
             <div class="card-body">
-              <h5 class="card-title text-dark font-weight-bold mb-2" style="font-size: 1rem;"><%= product.name %></h5>
+              <h5 class="card-title text-dark fw-bold mb-2"><%= product.name %></h5>
               <p class="card-text text-muted small mb-3"><%= truncate(product.description, length: 80) %></p>
-              <p class="mb-1"><strong class="text-dark">Precio:</strong> <span class="text-success">$<%= product.price %></span></p>
-              <p class="mb-0"><strong class="text-dark">Código:</strong> <span class="text-muted"><%= product.code %></span></p>
+              <p class="mb-1"><strong>Precio:</strong> <span class="text-success">$<%= product.price %></span></p>
+              <p class="mb-0"><strong>Código:</strong> <span class="text-muted"><%= product.code %></span></p>
             </div>
 
           </div>
