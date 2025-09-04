@@ -46,7 +46,10 @@ Rails.application.routes.draw do
     get "/charlas/new", to: "conferences#new"
     post "/charlas/create", to: "conferences#create"
 
-    # home
+    #categorias 
+    resources :categories, only: [:index, :new, :create, :edit, :update, :destroy]
+      
+    #home
     get "/home", to: "home#index"
 
     # authentication
@@ -97,6 +100,8 @@ Rails.application.routes.draw do
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf' => 'sales#generate_pdf', as: :generar_comprobante_venta
+
+
   end
 
   # Rutas extra
