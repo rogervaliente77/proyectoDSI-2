@@ -76,8 +76,11 @@
             <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Login Screens:</h6>
             <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
+                            
+
             <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
                 <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
+                <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias
             <% end %>
             </div>
         </div>
