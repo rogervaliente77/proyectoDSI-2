@@ -1,0 +1,78 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    <%= link_to new_admin_category_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear Categoría
+    <% end %>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <!-- Area Chart -->
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Gestión de Categorías</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Opciones</div>
+              <a class="dropdown-item" href="#">Exportar</a>
+              <a class="dropdown-item" href="#">Otra acción</a>
+            </div>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          <h1 class="h3 mb-4 text-gray-800">Listado de Categorías</h1>
+
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <table class="table table-bordered" id="categoriesTable">
+            <thead class="thead-light">
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Creado en</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @categories.each do |category| %>
+                <tr>
+                  <td><%= category.name %></td>
+                  <td><%= category.description %></td>
+                  <td><%= category.created_at.strftime("%d/%m/%Y") if category.created_at %></td>
+                  <td>
+                    <%= link_to edit_admin_category_path(category), class: "btn btn-primary btn-sm", data: { turbo: false } do %>
+                      <i class="fa fa-edit"></i> Editar
+                    <% end %>
+                    
+                    <%= link_to admin_category_path(category),
+                            class: "btn btn-danger btn-sm",
+                             data: { turbo_method: :delete, turbo_confirm: "¿Estás seguro de eliminar esta categoría?" } do %>
+                         <i class="fa fa-trash"></i> Eliminar
+                    <% end %>
+
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.container-fluid -->
