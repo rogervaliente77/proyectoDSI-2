@@ -63,10 +63,11 @@ module Admin
     end
 
     def search
-      products = Product.where("name ILIKE ?", "%#{params[:q]}%").limit(10)
-      render json: products.select(:id, :name, :description, :price)
+      query = params[:q].to_s.strip
+      products = Product.where(name: /#{Regexp.escape(query)}/i).limit(10)
+      render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price } }
     end
-
+    
     private
 
     def check_admin_access
