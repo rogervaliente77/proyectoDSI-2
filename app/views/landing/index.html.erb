@@ -28,23 +28,19 @@
     </div>
   </div>
 
- 
+  <!-- Filtros -->
   <div class="card p-3 mb-4 shadow-sm rounded">
     <%= form_with url: landing_index_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
-      
-      <!-- Buscar por nombre -->
       <div class="col-md-4">
         <label class="form-label small text-secondary">Buscar por nombre</label>
         <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control form-control-sm" %>
       </div>
 
-      <!-- Filtrar por categoría -->
       <div class="col-md-3">
         <label class="form-label small text-secondary">Categoría</label>
         <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), prompt: "Todas las categorías", class: "form-select form-select-sm" %>
       </div>
 
-      <!-- Rango de precio -->
       <div class="col-md-3">
         <label class="form-label small text-secondary">Precio ($)</label>
         <div class="d-flex gap-2 align-items-center">
@@ -54,14 +50,12 @@
         </div>
       </div>
 
-      <!-- Botones de filtros -->
       <div class="col-md-2 d-flex gap-2">
         <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm flex-grow-1" %>
         <%= link_to landing_index_path, class: "btn btn-outline-secondary btn-sm flex-grow-1" do %>
           Limpiar
         <% end %>
       </div>
-
     <% end %>
   </div>
 
@@ -70,18 +64,29 @@
     <% if @products.any? %>
       <% @products.each do |product| %>
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-          <div class="card border-0 shadow-sm rounded-lg h-100 position-relative bg-white">
+          <div class="card border-0 shadow-sm rounded-lg h-100 position-relative product-card bg-white">
 
             <!-- Badge de disponibilidad -->
             <% if product.quantity > 0 %>
-              <span class="badge bg-success position-absolute top-0 end-0 m-2 small">Disponible</span>
+              <span class="badge bg-success small">Disponible</span>
             <% else %>
-              <span class="badge bg-secondary position-absolute top-0 end-0 m-2 small">Agotado</span>
+              <span class="badge bg-secondary small">Agotado</span>
             <% end %>
 
-            <!-- Imagen del producto -->
-            <div class="d-flex align-items-center justify-content-center bg-light" style="height: 180px; overflow: hidden;">
-              <img src="<%= product.image_url %>" class="img-fluid" alt="<%= product.name %>" style="max-height: 100%; object-fit: contain;">
+            <!-- Carrusel hover-driven con flechas -->
+            <div class="custom-carousel">
+              <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
+              <% if images.any? %>
+                <% images.each_with_index do |img, index| %>
+                  <img src="<%= img.image_url %>" 
+                       class="carousel-image <%= 'active' if index.zero? %>" 
+                       alt="<%= product.name %> imagen <%= index+1 %>">
+                <% end %>
+                <button class="carousel-btn prev" onclick="prevSlide(this)">‹</button>
+                <button class="carousel-btn next" onclick="nextSlide(this)">›</button>
+              <% else %>
+                <img src="https://via.placeholder.com/220x180" class="carousel-image active" alt="<%= product.name %>">
+              <% end %>
             </div>
 
             <!-- Información del producto -->
@@ -101,3 +106,111 @@
     <% end %>
   </div>
 </div>
+
+<style>
+.custom-carousel {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  z-index: 1;
+}
+
+.carousel-image.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* Flechas */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  z-index: 10;
+  transition: background 0.3s;
+}
+
+.carousel-btn:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
+
+/* Badge siempre visible */
+.badge {
+  position: absolute !important;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+</style>
+
+<script>
+function showSlide(carousel, index) {
+  const slides = carousel.querySelectorAll('.carousel-image');
+  slides.forEach((s, i) => s.classList.toggle('active', i === index));
+  carousel.dataset.current = index;
+}
+
+// Flechas
+function prevSlide(button) {
+  const carousel = button.closest('.custom-carousel');
+  const slides = carousel.querySelectorAll('.carousel-image');
+  let index = parseInt(carousel.dataset.current || 0);
+  index = (index - 1 + slides.length) % slides.length;
+  showSlide(carousel, index);
+}
+
+function nextSlide(button) {
+  const carousel = button.closest('.custom-carousel');
+  const slides = carousel.querySelectorAll('.carousel-image');
+  let index = parseInt(carousel.dataset.current || 0);
+  index = (index + 1) % slides.length;
+  showSlide(carousel, index);
+}
+
+// Hover-driven autoplay
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelectorAll('.product-card').forEach(card => {
+    let interval = null;
+    const carousel = card.querySelector('.custom-carousel');
+    if (!carousel) return;
+
+    card.addEventListener('mouseenter', () => {
+      let index = parseInt(carousel.dataset.current || 0);
+      interval = setInterval(() => {
+        const slides = carousel.querySelectorAll('.carousel-image');
+        index = (index + 1) % slides.length;
+        showSlide(carousel, index);
+      }, 2000);
+    });
+
+    card.addEventListener('mouseleave', () => {
+      clearInterval(interval);
+    });
+  });
+});
+</script>
