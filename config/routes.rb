@@ -1,8 +1,7 @@
-
 Rails.application.routes.draw do
   # Namespace para Portal
   namespace :portal do
-    #authentication
+    # authentication
     get "/login", to: "authentication#login"
     post "/new_login", to: "authentication#new_login"
     get "/signup", to: "authentication#signup"
@@ -11,49 +10,49 @@ Rails.application.routes.draw do
     post "/signup_create", to: "authentication#signup_create"
     put "/logout", to: "authentication#logout"
     
-    #home
+    # home
     get "/home", to: "home#index"
 
-    #charlas
+    # charlas
     get "/charlas", to: "conferences#index"
     get "/mis_charlas", to: "conferences#my_registrations"
     get "/charlas/new", to: "conferences#new"
     post "/charlas/create", to: "conferences#create"
 
-    #charla registration
+    # charla registration
     post "/charlas/registration/:conference_id", to: "conferences#new_conference_registration"
 
-    #productos
+    # productos
     get "/productos", to: "products#index"
     get "/mis_productos", to: "products#my_products"
     post "/productos/canjear/:product_id", to: "products#canjear_producto", as: :canjear_producto
 
-    #create
+    # users
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
   end
 
   # Namespace para Admin
   namespace :admin do
-    # Ejemplo de rutas para un módulo Admin
-    #users
+    # users
     resources :users, only: [:index, :edit, :destroy, :new] 
     post "/users/create", to: "users#create"
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
     patch "/users/:id/update_password", to: "users#update_password", as: "user_update_password"
 
+    # charlas
     get "/charlas", to: "conferences#index"
     get "/charlas/new", to: "conferences#new"
     post "/charlas/create", to: "conferences#create"
 
-    #categorias 
+    # categorias 
     resources :categories, only: [:index, :new, :create, :edit, :update, :destroy]
       
-    #home
+    # home
     get "/home", to: "home#index"
 
-    #authentication
+    # authentication
     get "/login", to: "authentication#login"
     post "/new_login", to: "authentication#new_login"
     get "/signup", to: "authentication#signup"
@@ -62,7 +61,7 @@ Rails.application.routes.draw do
     post "/signup_create", to: "authentication#signup_create"
     put "/logout", to: "authentication#logout"
 
-    #document
+    # documents
     get "/documentos", to: "documents#index"
     get "/documentos/new", to: "documents#new"
     get "/documentos/show", to: "documents#show"
@@ -70,7 +69,7 @@ Rails.application.routes.draw do
     get "/documentos/edit", to: "documents#edit"
     put "/documentos/update", to: "documents#update"
 
-    #products
+    # products
     get "/productos", to: "products#index"
     get "/productos/new", to: "products#new"
     post "/productos/create", to: "products#create"
@@ -81,37 +80,37 @@ Rails.application.routes.draw do
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
     get 'products/search', to: 'products#search'
 
-    #cajas
+    # cajas
     get "/cajas", to: "cajas#index"
     get "/cajas/new", to: "cajas#new"
     post "/cajas/create", to: "cajas#create"
     get "/cajas/edit", to: "cajas#edit"
     patch "/cajas/update", to: "cajas#update"
 
-    #cajeros
+    # cajeros
     get "/cajeros", to: "cajeros#index"
     get "/cajeros/new", to: "cajeros#new"
     post "/cajeros/create", to: "cajeros#create"
     get "/cajeros/edit", to: "cajeros#edit"
     patch "/cajeros/update", to: "cajeros#update"
 
-    # ventas // product_sales
+    # sales
     get "/sales", to: "sales#index"
     get "/sales/new", to: "sales#new"
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf' => 'sales#generate_pdf', as: :generar_comprobante_venta
-
-
   end
 
-  # Ruta para pruebas (puedes eliminar o mover esto a un namespace si es necesario)
+  # Rutas extra
   resources :pruebas
 
-  # Ruta para ver el estado de salud de la aplicación
+  # Health check
   get "up", to: "rails/health#show", as: :rails_health_check
 
-  # Define la ruta raíz de la aplicación
-  root "portal/authentication#login" # Ajusta esto si tu página principal es el login del portal
-end
+  # 🔹 Ruta nombrada para Landing#index (para filtros)
+  get 'landing/index', to: 'landing#index', as: 'landing_index'
 
+  # 🔹 Landing como ruta principal
+  root "landing#index"
+end
