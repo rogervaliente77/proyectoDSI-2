@@ -13,6 +13,22 @@
     </div>
 
     <div class="card-body">
+      <% if flash[:notice] %>
+        <div class="alert alert-success"><%= flash[:notice] %></div>
+      <% elsif flash[:alert] %>
+        <div class="alert alert-danger"><%= flash[:alert] %></div>
+      <% end %>
+
+      <% if @product.errors.any? %>
+        <div class="alert alert-danger">
+          <ul>
+            <% @product.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
       <%= simple_form_for @product, url: admin_productos_update_path(product_id: @product.id), method: :put, html: { class: "needs-validation", novalidate: false }, data: { turbo: false } do |form| %>
         <%= render "form_fields", form: form %>
 

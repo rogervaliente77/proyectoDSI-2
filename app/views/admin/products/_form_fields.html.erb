@@ -42,7 +42,15 @@
         <% end %>
       </div>
       <div class="col-sm-2">
-        <%= img_form.input :image_index, input_html: { class: "form-control" } %>
+        <%= img_form.input :image_index, 
+              as: :integer,
+              error: false,
+              input_html: { 
+                class: "form-control", 
+                min: 0, 
+                step: 1, 
+                oninput: "this.value=this.value.replace(/[^0-9]/g,'');" 
+              } %>
       </div>
       <div class="col-sm-2 d-flex align-items-end">
         <%= img_form.hidden_field :_destroy %>

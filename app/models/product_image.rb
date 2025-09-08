@@ -9,4 +9,5 @@ class ProductImage
   embedded_in :product
 
   validates :image_url, presence: true, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "debe ser una URL válida" }
+  validates :image_index, uniqueness: { message: "Este index ya esta en uso" }
 end

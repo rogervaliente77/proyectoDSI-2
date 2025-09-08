@@ -32,7 +32,8 @@ module Admin
       if @product.update(product_params)
         redirect_to admin_edit_product_path(product_id: @product.id), notice: "Producto actualizado con éxito"
       else
-        render :edit, status: :unprocessable_entity
+        flash[:alert] = @product.errors.full_messages.join(", ")
+        redirect_to admin_edit_product_path(product_id: @product.id)
       end
     end
 

@@ -16,6 +16,7 @@ class Product
   accepts_nested_attributes_for :product_images, allow_destroy: true
 
   validates :name, :price, :quantity, presence: true
+  validate :unique_image_indexes
 
   before_create :generate_code
 
@@ -35,5 +36,12 @@ class Product
     sequence   = count_today + 1
     padded_seq = sequence.to_s.rjust(3, '0')
     self.code = "#{prefix}-#{date_str}-#{padded_seq}"
+  end
+  
+  def unique_image_indexes
+    indexes = product_images.map(&:image_index).compact
+    if indexes.size != indexes.uniq.size
+      errors.add(:product_images, "tienen índices duplicados")
+    end
   end
 end
