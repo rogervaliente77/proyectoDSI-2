@@ -1,107 +1,217 @@
-<!-- Begin Page Content -->
+<!-- app/views/admin/products/index.html.erb -->
 <div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
-          <h1 class="h3 mb-0 text-gray-800">Admin - Productos</h1>        
-        <% else %>
-          <h1 class="h3 mb-0 text-gray-800">Portal - Productos</h1>
-        <% end %>
-        <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
-          <%= link_to admin_productos_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
-            <i class="fas fa-plus fa-sm text-white-50"></i> Crear Producto
+  <!-- Encabezado -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+      <%= @current_user.role.in?(["super_admin","admin","cajero"]) ? "Admin - Productos" : "Portal - Productos" %>
+    </h1>
+
+    <% if @current_user.role.in?(["super_admin","admin"]) %>
+      <%= link_to admin_productos_new_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+        <i class="fas fa-plus"></i> Crear Producto
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Productos -->
+  <div class="row">
+    <% @products.each do |product| %>
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card h-100 shadow-sm position-relative product-card">
+
+          <!-- Badge de disponibilidad siempre visible -->
+          <% if product.quantity.to_i > 0 %>
+            <span class="badge bg-success">Disponible</span>
+          <% else %>
+            <span class="badge bg-secondary">Agotado</span>
           <% end %>
-        <%end%>
 
-    </div>
+          <!-- Carrusel hover-driven -->
+          <div class="custom-carousel">
+            <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
+            <% if images.any? %>
+              <% images.each_with_index do |img, index| %>
+                <img src="<%= img.image_url %>" 
+                     class="carousel-image <%= 'active' if index.zero? %>" 
+                     alt="<%= product.name %> imagen <%= index+1 %>">
+              <% end %>
+              <!-- Botones de navegación -->
+              <button class="prev" onclick="prevSlide(this)">‹</button>
+              <button class="next" onclick="nextSlide(this)">›</button>
+              <!-- Indicadores -->
+              <div class="carousel-indicators">
+                <% images.each_with_index do |img, index| %>
+                  <span class="dot <%= 'active' if index.zero? %>" onclick="goToSlide(this, <%= index %>)"></span>
+                <% end %>
+              </div>
+            <% else %>
+              <img src="https://via.placeholder.com/220x180" class="carousel-image active" alt="Placeholder">
+            <% end %>
+          </div>
 
-    <!-- Content Row -->
+          <!-- Información del producto -->
+          <div class="card-body">
+            <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
+            <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
+            <p class="mb-1"><strong>Precio:</strong> $<%= product.price %></p>
+            <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
+            <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
+            <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
+          </div>
 
-    <div class="row">
-        <!-- Area Chart -->
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
-                <div
-                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Lista de productos</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                            aria-labelledby="dropdownMenuLink">
-                            <div class="dropdown-header">Dropdown Header:</div>
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-                    <% if flash[:notice] %>
-                    <div class="alert alert-success"><%= flash[:notice] %></div>
-                    <% elsif flash[:alert] %>
-                    <div class="alert alert-danger"><%= flash[:alert] %></div>
-                    <% end %>
-
-                    <div class="row">
-                      <% @products.each do |product| %>                      
-
-                        <!-- Producto 1 -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                          <div class="card h-100 shadow-sm position-relative">
-                            
-
-                            <% if product.quantity > 0 %>
-                              <span class="badge badge-success position-absolute" style="top: 0.5rem; right: 0.5rem;">
-                                Disponible
-                              </span>
-                            <% else %>
-                              <span class="badge badge-secondary position-absolute" style="top: 0.5rem; right: 0.5rem;">
-                                Agotado
-                              </span>
-                            <% end %>
-
-                            <img src="<%= product.image_url %>" class="card-img-top" alt="Producto 1" style="height: 180px; object-fit: cover;">
-                            <div class="card-body">
-                              <h5 class="card-title font-weight-bold text-primary mb-1"><%= product.name %></h5>
-                              <p class="card-text text-muted small mb-2"><%= product.description %></p>
-                              <p class="mb-1"><strong>Precio:</strong> $<%= product&.price %></p>
-                              <p class="mb-0"><strong>Disponibilidad:</strong> En stock(<%= product.quantity %>)</p>
-                              <p class="mb-0"><strong>Categoria: </strong> <%= product.category.name.upcase %></p>
-                              <p class="mb-0"><strong>Codigo: </strong> <%= product.code %></p>
-                            </div>
-
-                            <% if @current_user.role == "super_admin" || @current_user.role == "admin"%>
-                              <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                                <%= link_to admin_edit_product_path(product_id: product.id), class: "btn btn-primary btn-sm" do %>
-                                  <i class="fa fa-edit"></i><span>
-                                  <span>Editar</span>
-                                <% end %>
-                                <%= link_to admin_product_sales_path(product_id: product.id), class: "btn btn-info btn-sm" do %>
-                                  <i class="fa fa-shop"></i><span>
-                                  <span>Ventas</span>
-                                <% end %>
-                                <%= link_to admin_destroy_product_path(product_id: product.id), 
-                                            class: "btn btn-danger btn-sm", 
-                                            data: { turbo_method: :delete }, 
-                                            onclick: "return confirm('¿Estás seguro de que deseas eliminar este producto?');" do %>
-                                  <i class="fa fa-trash"></i> Eliminar
-                                <% end %>
-                              </div>
-                            <% end %>
-                          </div>
-                        </div>
-                      <% end %>
-                    </div>
-
-                </div>
+          <!-- Botones de acción -->
+          <% if @current_user.role.in?(["super_admin","admin"]) %>
+            <div class="btn-group w-100 mt-2">
+              <%= link_to admin_edit_product_path(product_id:product.id), class:"btn btn-primary btn-sm" do %>
+                <i class="fa fa-edit"></i> Editar
+              <% end %>
+              <%= link_to admin_destroy_product_path(product_id:product.id), class:"btn btn-danger btn-sm", data:{ turbo_method: :delete }, onclick:"return confirm('¿Eliminar producto?');" do %>
+                <i class="fa fa-trash"></i> Eliminar
+              <% end %>
             </div>
-        </div>                     
-    </div>
+          <% end %>
+
+        </div>
+      </div>
+    <% end %>
+  </div>
 </div>
-<!-- /.container-fluid -->
+
+<!-- Estilos del carrusel y badge -->
+<style>
+.custom-carousel {
+  position: relative;
+  width: 100%;
+  height: 220px; /* más alto para visibilidad */
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  margin-bottom: 10px;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  z-index: 1;
+}
+
+.carousel-image.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+/* Badge siempre visible */
+.badge {
+  position: absolute !important;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10; /* siempre encima del carrusel */
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+/* Botones */
+.custom-carousel button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  z-index: 2;
+  transition: background 0.3s;
+}
+
+.custom-carousel button:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+.custom-carousel .prev { left: 8px; }
+.custom-carousel .next { right: 8px; }
+
+/* Indicadores */
+.carousel-indicators {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.carousel-indicators .dot {
+  width: 10px;
+  height: 10px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.carousel-indicators .dot.active {
+  background: rgba(255,255,255,1);
+}
+</style>
+
+<!-- Script del carrusel hover-driven -->
+<script>
+function showSlide(carousel, index) {
+  const slides = carousel.querySelectorAll('.carousel-image');
+  const dots = carousel.querySelectorAll('.dot');
+  slides.forEach((s, i) => s.classList.toggle('active', i === index));
+  dots.forEach((d, i) => d.classList.toggle('active', i === index));
+  carousel.dataset.current = index;
+}
+
+function nextSlide(btn) {
+  const carousel = btn.closest('.custom-carousel');
+  let index = parseInt(carousel.dataset.current || 0);
+  const slides = carousel.querySelectorAll('.carousel-image');
+  showSlide(carousel, (index + 1) % slides.length);
+}
+
+function prevSlide(btn) {
+  const carousel = btn.closest('.custom-carousel');
+  let index = parseInt(carousel.dataset.current || 0);
+  const slides = carousel.querySelectorAll('.carousel-image');
+  showSlide(carousel, (index - 1 + slides.length) % slides.length);
+}
+
+function goToSlide(dot, index) {
+  const carousel = dot.closest('.custom-carousel');
+  showSlide(carousel, index);
+}
+
+// Hover-driven autoplay
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelectorAll('.product-card').forEach(card => {
+    let interval = null;
+    const carousel = card.querySelector('.custom-carousel');
+    if (!carousel) return;
+
+    card.addEventListener('mouseenter', () => {
+      let index = parseInt(carousel.dataset.current || 0);
+      interval = setInterval(() => {
+        const slides = carousel.querySelectorAll('.carousel-image');
+        index = (index + 1) % slides.length;
+        showSlide(carousel, index);
+      }, 2000); // cada 2 segundos
+    });
+
+    card.addEventListener('mouseleave', () => {
+      clearInterval(interval);
+    });
+  });
+});
+</script>
