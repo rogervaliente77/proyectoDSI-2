@@ -1,0 +1,27 @@
+<%= form_with model: [:admin, @marca], local: true, class: "card p-4 shadow-sm" do |form| %>
+  <% if @marca.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(@marca.errors.count, "error") %> impidieron guardar esta marca:</h5>
+      <ul>
+        <% @marca.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :name, "Nombre", class: "form-label" %>
+    <%= form.text_field :name, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :description, "Descripción", class: "form-label" %>
+    <%= form.text_area :description, rows: 4, class: "form-control" %>
+  </div>
+
+  <div>
+    <%= form.submit class: "btn btn-primary" %>
+    <%= link_to "Cancelar", admin_marcas_path, class: "btn btn-secondary ms-2" %>
+  </div>
+<% end %>

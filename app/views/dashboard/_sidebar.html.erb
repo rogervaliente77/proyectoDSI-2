@@ -2,7 +2,7 @@
 
     <!-- Sidebar - Brand -->
     <% if @current_user.role == "super_admin" || @current_user.role == "admin" || @current_user.role == "cajero" %>
-        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= admin_home_path %>" data-turbo="false">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<%= admin_home_path %>" data-turbo="false">
             <div class="sidebar-brand-icon rotate-n-15">
                 <i class="fa-brands fa-slack"></i>
             </div>
@@ -85,6 +85,22 @@
             </div>
         </div>
 
+    </li>
+
+        <!-- Nav Item - Pages Collapse Menu: Marcas -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMarcas"
+            aria-expanded="true" aria-controls="collapseMarcas">
+            <i class="fas fa-tags"></i>
+            <span>Marcas</span>
+        </a>
+        <div id="collapseMarcas" class="collapse" aria-labelledby="headingMarcas" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Gestión de Marcas:</h6>
+                <a class="collapse-item" href="<%= admin_marcas_path %>" data-turbo="false">Ver Marcas</a>
+                <a class="collapse-item" href="<%= new_admin_marca_path %>" data-turbo="false">Crear Nueva Marca</a>
+            </div>
+        </div>
     </li>
 
     <% if @current_user.role == "super_admin"%> 

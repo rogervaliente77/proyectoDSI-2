@@ -1,0 +1,38 @@
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin - Marcas</h1>
+    <%= link_to new_admin_marca_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus"></i> Crear Marca
+    <% end %>
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @marcas.each_with_index do |marca, index| %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= marca.name %></td>
+          <td><%= marca.description %></td>
+          <td>
+            <%= link_to "Editar", edit_admin_marca_path(marca), class: "btn btn-sm btn-warning" %>
+            <%= link_to "Eliminar", admin_marca_path(marca), method: :delete, data: { confirm: "¿Seguro?" }, class: "btn btn-sm btn-danger" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
