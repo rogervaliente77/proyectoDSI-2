@@ -1,0 +1,59 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    <%= link_to new_admin_role_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear Rol
+    <% end %>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Roles Registrados</h6>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <table class="table table-bordered" id="rolesTable">
+            <thead class="thead-light">
+              <tr>
+                <th>Nombre del Rol</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @roles.each do |role| %>
+                <tr>
+                  <td><%= role.name %></td>
+                  <td><%= role.description %></td>
+                  <td>
+          <!-- Editar -->
+      <%= link_to edit_admin_role_path(role.id), class: "btn btn-primary btn-sm" do %>
+        <i class="fa fa-edit"></i> Editar
+      <% end %>
+          
+      <%= link_to admin_role_path(role.id), class: "btn btn-danger btn-sm", data: { turbo_method: :delete }, onclick: "return confirm('¿Eliminar rol?');" do %>
+        <i class="fa fa-trash"></i> Eliminar
+      <% end %>
+            </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.container-fluid -->

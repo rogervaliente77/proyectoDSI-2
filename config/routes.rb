@@ -102,12 +102,8 @@ Rails.application.routes.draw do
     get '/sales/generate_pdf' => 'sales#generate_pdf', as: :generar_comprobante_venta
 
     #Roles
-    get "/roles", to: "roles#index"
-    get "/roles/new", to: "roles#new"
-    post "/roles/create", to: "roles#create"
-    get "/roles/:id/edit", to: "roles#edit", as: :edit_role
-    patch "/roles/:id", to: "roles#update"
-    delete "/roles/:id", to: "roles#destroy"
+    resources :roles, except: [:show]
+
 
   end
 
