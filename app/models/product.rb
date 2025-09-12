@@ -8,6 +8,8 @@ class Product
   field :quantity,    type: Integer
   field :price,       type: Float
   field :code,        type: String
+  field :discount,    type: Integer, default: 0
+
 
   has_many :product_sales, dependent: :destroy
   belongs_to :category
@@ -19,6 +21,20 @@ class Product
   validate :unique_image_indexes
 
   before_create :generate_code
+
+
+  def discounted_price
+    return price if discount.zero?
+    price - (price * discount / 100.0)
+  end
+
+  def discount_amount
+    price - discounted_price
+  end
+
+  def discount_decimal
+    discount / 100.0
+  end
 
   private
 
@@ -44,4 +60,6 @@ class Product
       errors.add(:product_images, "tienen índices duplicados")
     end
   end
+
+ 
 end

@@ -51,13 +51,33 @@
 
           <!-- Información del producto -->
           <div class="card-body">
-            <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
-            <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
-            <p class="mb-1"><strong>Precio:</strong> $<%= product.price %></p>
-            <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
-            <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
-            <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
-          </div>
+          <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
+          <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
+          
+           <!-- Precio del producto -->
+            <p class="mt-2 mb-2">
+              <% if product.discount.to_i > 0 %>
+                <span class="text-muted text-decoration-line-through">
+                  <%= number_to_currency(product.price) %>
+                </span>
+                <br>
+                <span class="fw-bold text-success fs-5">
+                  <%= number_to_currency(product.discounted_price) %>
+                </span>
+                <span class="fw-bold text-success fs-5">
+                  (-<%= product.discount %>%)
+                </span>
+              <% else %>
+                <span class="fw-bold fs-5">
+                  <%= number_to_currency(product.price) %>
+                </span>
+              <% end %>
+            </p>
+    
+          <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
+          <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
+          <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
+  </div>
 
           <!-- Botones de acción -->
           <% if @current_user.role.in?(["super_admin","admin"]) %>
