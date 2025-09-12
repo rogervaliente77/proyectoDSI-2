@@ -21,11 +21,6 @@
       <%= simple_form_for @marca, url: admin_marca_path(@marca), method: :patch, html: { class: "needs-validation", novalidate: false }, data: { turbo: false } do |form| %>
         <%= render "form_fields", form: form %>
 
-        <div class="row mt-3">
-          <div class="col">
-            <%= form.submit 'Actualizar', class: 'btn btn-success btn-block' %>
-          </div>
-        </div>
       <% end %>
     </div>
   </div>

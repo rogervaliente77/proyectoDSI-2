@@ -1,7 +1,7 @@
 
 // Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
 import "bootstrap"
-import "@hotwired/turbo-rails"
+import "@hotwired/turbo-rails" 
 import "controllers"
 import "jquery"
 import "sb_admin_2"

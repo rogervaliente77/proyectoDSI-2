@@ -1,6 +1,7 @@
+# app/controllers/admin/marcas_controller.rb
 module Admin
   class MarcasController < ApplicationController
-    before_action :set_current_user
+    before_action :authenticate_user! # Asegura que el usuario esté autenticado
     before_action :set_marca, only: %i[edit update destroy]
     layout 'dashboard'
 
@@ -35,18 +36,20 @@ module Admin
     end
 
     def destroy
-      @marca.destroy!
-      redirect_to admin_marcas_path, notice: "Marca eliminada exitosamente", status: :see_other
+      if @marca.destroy
+        redirect_to admin_marcas_path, notice: "Marca eliminada exitosamente", status: :see_other
+      else
+        redirect_to admin_marcas_path, alert: "No se pudo eliminar la marca", status: :unprocessable_entity
+      end
     end
 
     private
 
     def set_marca
-      @marca = Marca.find(params[:id])
-    end
-
-    def set_current_user
-      @current_user = current_user
+      @marca = Marca.find_by(id: params[:id])
+      unless @marca
+        redirect_to admin_marcas_path, alert: "Marca no encontrada"
+      end
     end
 
     def marca_params
