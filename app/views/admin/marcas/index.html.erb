@@ -1,0 +1,56 @@
+<!-- app/views/admin/marcas/index.html.erb -->
+<div class="container-fluid">
+  <!-- Encabezado y botón de nueva marca -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin - Marcas</h1>
+    <%= link_to new_admin_marca_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus"></i> Crear Marca
+    <% end %>
+  </div>
+
+  <!-- Mensajes flash -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= sanitize(flash[:alert]) %></div>
+  <% end %>
+
+  <!-- Tabla de marcas -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if @marcas.any? %>
+        <% @marcas.each_with_index do |marca, index| %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td><%= marca.name %></td>
+            <td><%= marca.description %></td>
+            <td>
+              <%= link_to edit_admin_marca_path(marca), class: "btn btn-sm btn-warning" do %>
+                <i class="fa fa-pencil"></i> Editar
+              <% end %>
+              <%= button_to admin_marca_path(marca),
+                    method: :delete,
+                    form: { class: "d-inline" },
+                    data: { turbo_confirm: "¿Estás seguro de eliminar esta marca?" },
+                    class: "btn btn-danger btn-sm" do %>
+              <i class="fa fa-trash"></i> Eliminar
+            <% end %>
+            </td>
+          </tr>
+        <% end %>
+      <% else %>
+        <tr>
+          <td colspan="4" class="text-center">No hay marcas registradas.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
