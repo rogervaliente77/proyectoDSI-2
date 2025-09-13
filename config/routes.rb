@@ -103,6 +103,10 @@ Rails.application.routes.draw do
 
     #get '/admin/marcas/:id', to: 'admin/marcas#show', as: 'admin_marca' 
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
+
+    #Roles
+    resources :roles, except: [:show]
+
   end
 
   # Rutas extra

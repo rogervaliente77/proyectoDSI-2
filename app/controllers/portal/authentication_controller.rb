@@ -29,7 +29,7 @@ module Portal
 
       @user = user
 
-      unless @user.role == "cliente"
+      unless @user.role.name == "cliente"
         flash[:alert] = 'Usted no es usuario cliente, debe iniciar sesion en el login para administradores'
         redirect_to admin_login_path
         return
