@@ -62,7 +62,7 @@
                 </span>
                 <br>
                 <span class="fw-bold text-success fs-5">
-                  <%= number_to_currency(product.discounted_price) %>
+                  <%= number_to_currency(product.discounted_price.round) %>
                 </span>
                 <span class="fw-bold text-success fs-5">
                   (-<%= product.discount %>%)

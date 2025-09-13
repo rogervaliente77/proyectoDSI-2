@@ -49,7 +49,7 @@ module Admin
     def search
       query = params[:q].to_s.strip
       products = Product.where(name: /#{Regexp.escape(query)}/i).limit(10)
-      render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price } }
+      render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price, discount: p.discount } }
     end
 
     private

@@ -35,7 +35,7 @@ class SalePdf
       # Tabla de productos
       pdf.table table_data, header: true, width: pdf.bounds.width do
         row(0).font_style = :bold
-        columns(1..4).align = :right
+        columns(1..5).align = :right
       end
 
       pdf.move_down 15
@@ -46,14 +46,16 @@ class SalePdf
   private
 
   def table_data
-    [["Producto", "Cantidad", "Precio Unitario", "Descuento", "Subtotal"]] +
+    [["Producto", "Cantidad", "Precio Unitario", "Descuento","Valor del descuento", "Subtotal"]] +
       @product_sales.map do |ps|
-        subtotal = (ps.quantity * ps.unit_price) - ps.discount
+         discount_decimal = (ps.unit_price * ps.quantity) * (ps.discount / 100.0)
+                  subtotal = (ps.unit_price * ps.quantity) - discount_decimal     
         [
           ps.product.name,
           ps.quantity,
           "$#{'%.2f' % ps.unit_price}",
-          "$#{'%.2f' % ps.discount}",
+          "#{'%.2f' % ps.discount}%",
+          "$#{'%.2f' % discount_decimal}",
           "$#{'%.2f' % subtotal}"
         ]
       end

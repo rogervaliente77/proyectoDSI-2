@@ -90,11 +90,13 @@
                         <table class="table table-bordered">
                         <thead>
                             <tr>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unitario</th>
-                            <th>Descuento</th>
-                            <th>Acciones</th>
+                              <th>Producto</th>
+                              <th>Cantidad</th>
+                              <th>Precio Unitario</th>
+                              <th>Descuento %</th>
+                              <th>Valor del Descuento </th>
+                              <th>Subtotal</th>
+                              <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="product-sales-container">
@@ -171,22 +173,23 @@
     resultsContainer.innerHTML = "";
 
     products.forEach(product => {
-      resultsContainer.innerHTML += `
-        <tr>
-          <td>${product.name}</td>
-          <td>${product.description}</td>
-          <td>$${product.price}</td>
-          <td>
-            <button type="button" class="btn btn-sm btn-success select-product-btn"
-                    data-id="${product.id}"
-                    data-name="${product.name}"
-                    data-price="${product.price}">
-              Seleccionar
-            </button>
-          </td>
-        </tr>
-      `;
-    });
+  resultsContainer.innerHTML += `
+    <tr>
+      <td>${product.name}</td>
+      <td>${product.description}</td>
+      <td>$${product.price}</td>
+      <td>
+        <button type="button" class="btn btn-sm btn-success select-product-btn"
+                data-id="${product.id}"
+                data-name="${product.name}"
+                data-price="${product.price}"
+                data-discount="${product.discount || 0}">
+          Seleccionar
+        </button>
+      </td>
+    </tr>
+  `;
+});
   });
 
   // Agregar producto desde el modal
@@ -195,26 +198,29 @@
       const id = e.target.dataset.id;
       const name = e.target.dataset.name;
       const price = e.target.dataset.price;
+const discount = e.target.dataset.discount || 0;
 
       const container = document.getElementById("product-sales-container");
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${name}</td>
-        <td>
-          <input type="number" name="sale[product_sales_attributes][${productIndex}][quantity]" value="1" class="form-control" min="1">
-        </td>
-        <td>
-          <input type="number" name="sale[product_sales_attributes][${productIndex}][unit_price]" value="${price}" class="form-control" step="0.01">
-        </td>
-        <td>
-          <input type="number" name="sale[product_sales_attributes][${productIndex}][discount]" value="0" class="form-control" step="0.01">
-        </td>
-        <td>
-          <button type="button" class="btn btn-danger btn-sm remove-product">Eliminar</button>
-        </td>
-        <input type="hidden" name="sale[product_sales_attributes][${productIndex}][product_id]" value="${id}">
-      `;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${name}</td>
+          <td>
+            <input type="number" name="sale[product_sales_attributes][${productIndex}][quantity]" value="1" class="form-control" min="1">
+          </td>
+          <td>
+            <input type="number" name="sale[product_sales_attributes][${productIndex}][unit_price]" value="${price}" class="form-control" readonly>
+          </td>
+          <td>
+            <input type="number" name="sale[product_sales_attributes][${productIndex}][discount]" value="${discount}" class="form-control" readonly>
+          </td>
+          <td class="discount-value">0.00</td>
+          <td class="subtotal">0.00</td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm remove-product">Eliminar</button>
+          </td>
+          <input type="hidden" name="sale[product_sales_attributes][${productIndex}][product_id]" value="${id}">
+        `;
       container.appendChild(row);
       updateSaleTotal();
 
@@ -251,8 +257,16 @@ function updateSaleTotal() {
     const price = parseFloat(priceInput?.value || 0);
     const discount = parseFloat(discountInput?.value || 0);
 
-    const subtotal = (quantity * price) - discount;
-    total += subtotal;
+    // descuento calculado en dinero
+    const values = quantity * price
+    const discountValue = values * (discount / 100);
+    const subtotal = (quantity * price) - discountValue;
+
+    // actualizar columnas en la fila
+    row.querySelector(".discount-value").textContent = discountValue.toFixed(2);
+row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
+
+    total = (total + subtotal);
   });
 
   document.getElementById("sale-total").textContent = total.toFixed(2);
