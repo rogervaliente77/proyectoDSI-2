@@ -1,45 +1,216 @@
-<!-- Begin Page Content -->
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+<div class="container-fluid bg-light min-vh-100 py-4">
+
+  <!-- Cabecera Profesional -->
+  <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between mb-4 p-3 rounded" style="background-color: #cfe2ff; gap: 1rem;">
+    
+    <!-- Logo -->
+    <div class="d-flex align-items-center gap-3 flex-shrink-0">
+      <img src="https://i.ibb.co/nsyN4Ht7/logo.png" alt="Logo" class="img-fluid" style="max-height: 120px; width: auto;">
     </div>
 
-    <!-- Content Row -->
-
-    <div class="row">
-        <!-- Area Chart -->
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
-                <div
-                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                            aria-labelledby="dropdownMenuLink">
-                            <div class="dropdown-header">Dropdown Header:</div>
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-                                        
-                    <h1>Bienvenido al home</h1>
-
-                </div>
-            </div>
-        </div>                     
+    <!-- Título y descripción -->
+    <div class="flex-grow-1 text-start text-lg-center">
+      <h1 class="h3 text-dark fw-bold mb-1">Catálogo de Productos</h1>
+      <p class="text-muted mb-2 small">Descubra nuestras mejores opciones y adquiera sus productos iniciando sesión o creando una cuenta.</p>
     </div>
+
+   <!-- Botones de sesión -->
+<div class="d-flex gap-2 mt-2 mt-lg-0 flex-shrink-0">
+  <% if @current_user %>
+    <%= button_to portal_logout_path, method: :put, class: "btn btn-outline-danger btn-sm shadow-sm" do %>
+      <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+    <% end %>
+  <% else %>
+    <%= link_to portal_login_path, class: "btn btn-primary btn-sm shadow-sm" do %>
+      <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+    <% end %>
+    <%= link_to portal_signup_path, class: "btn btn-outline-primary btn-sm shadow-sm" do %>
+      <i class="fas fa-user-plus me-1"></i> Crear Cuenta
+    <% end %>
+  <% end %>
 </div>
-<!-- /.container-fluid -->
+
+  </div>
+
+  <!-- Filtros -->
+  <div class="card p-3 mb-4 shadow-sm rounded">
+    <%= form_with url: portal_home_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
+      <div class="col-md-4">
+        <label class="form-label small text-secondary">Buscar por nombre</label>
+        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control form-control-sm" %>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Categoría</label>
+        <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), prompt: "Todas las categorías", class: "form-select form-select-sm" %>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Precio ($)</label>
+        <div class="d-flex gap-2 align-items-center">
+          <input type="number" name="min_price" value="<%= params[:min_price] || 0 %>" class="form-control form-control-sm" placeholder="Min" min="0" style="width: 80px;">
+          <span class="text-muted">-</span>
+          <input type="number" name="max_price" value="<%= params[:max_price] || 1000 %>" class="form-control form-control-sm" placeholder="Max" min="0" style="width: 80px;">
+        </div>
+      </div>
+
+      <div class="col-md-2 d-flex gap-2">
+        <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm flex-grow-1" %>
+        <%= link_to portal_home_path, class: "btn btn-outline-secondary btn-sm flex-grow-1" do %>
+          Limpiar
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Productos -->
+  <div class="row g-4">
+    <% if @products.any? %>
+      <% @products.each do |product| %>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+          <div class="card border-0 shadow-sm rounded-lg h-100 position-relative product-card bg-white">
+
+            <!-- Badge de disponibilidad -->
+            <% if product.quantity > 0 %>
+              <span class="badge bg-success small">Disponible</span>
+            <% else %>
+              <span class="badge bg-secondary small">Agotado</span>
+            <% end %>
+
+            <!-- Carrusel de imágenes -->
+            <div class="custom-carousel">
+              <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
+              <% if images.any? %>
+                <% images.each_with_index do |img, index| %>
+                  <img src="<%= img.image_url %>" class="carousel-image <%= 'active' if index.zero? %>" alt="<%= product.name %> imagen <%= index+1 %>">
+                <% end %>
+                <button class="carousel-btn prev" onclick="prevSlide(this)">‹</button>
+                <button class="carousel-btn next" onclick="nextSlide(this)">›</button>
+              <% else %>
+                <img src="https://via.placeholder.com/220x180" class="carousel-image active" alt="<%= product.name %>">
+              <% end %>
+            </div>
+
+            <!-- Información del producto -->
+            <div class="card-body">
+              <h5 class="card-title text-dark fw-bold mb-2"><%= product.name %></h5>
+              <p class="card-text text-muted small mb-2"><%= truncate(product.description, length: 80) %></p>
+              <p class="mt-2 mb-2">
+                <% if product.discount.to_i > 0 %>
+                  <span class="text-muted text-decoration-line-through">
+                    <%= number_to_currency(product.price) %>
+                  </span>
+                  <br>
+                  <span class="fw-bold text-success fs-5">
+                    <%= number_to_currency(product.discounted_price) %>
+                  </span>
+                  <span class="fw-bold text-success fs-5">
+                    (-<%= product.discount %>%)
+                  </span>
+                <% else %>
+                  <span class="fw-bold fs-5"><%= number_to_currency(product.price) %></span>
+                <% end %>
+              </p>
+              <p class="mb-0"><strong>Categoría:</strong> <span class="text-muted"><%= product.category.name if product.category %></span></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="col-12 text-center mt-5">
+        <p class="text-muted">No se encontraron productos con los criterios de búsqueda.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- CSS del carrusel -->
+<style>
+.custom-carousel {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  z-index: 1;
+}
+.carousel-image.active {
+  opacity: 1;
+  z-index: 1;
+}
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  z-index: 10;
+  transition: background 0.3s;
+}
+.carousel-btn:hover { background: rgba(0,0,0,0.7); }
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
+.badge {
+  position: absolute !important;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+}
+</style>
+
+<!-- JS del carrusel -->
+<script>
+function showSlide(carousel, index) {
+  const slides = carousel.querySelectorAll('.carousel-image');
+  slides.forEach((s, i) => s.classList.toggle('active', i === index));
+  carousel.dataset.current = index;
+}
+function prevSlide(button) {
+  const carousel = button.closest('.custom-carousel');
+  const slides = carousel.querySelectorAll('.carousel-image');
+  let index = parseInt(carousel.dataset.current || 0);
+  index = (index - 1 + slides.length) % slides.length;
+  showSlide(carousel, index);
+}
+function nextSlide(button) {
+  const carousel = button.closest('.custom-carousel');
+  const slides = carousel.querySelectorAll('.carousel-image');
+  let index = parseInt(carousel.dataset.current || 0);
+  index = (index + 1) % slides.length;
+  showSlide(carousel, index);
+}
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelectorAll('.product-card').forEach(card => {
+    let interval = null;
+    const carousel = card.querySelector('.custom-carousel');
+    if (!carousel) return;
+    card.addEventListener('mouseenter', () => {
+      let index = parseInt(carousel.dataset.current || 0);
+      interval = setInterval(() => {
+        const slides = carousel.querySelectorAll('.carousel-image');
+        index = (index + 1) % slides.length;
+        showSlide(carousel, index);
+      }, 2000);
+    });
+    card.addEventListener('mouseleave', () => { clearInterval(interval); });
+  });
+});
+</script>
