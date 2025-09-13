@@ -51,6 +51,29 @@
 
           <!-- Información del producto -->
           <div class="card-body">
+          <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
+          <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
+          
+           <!-- Precio del producto -->
+            <p class="mt-2 mb-2">
+              <% if product.discount.to_i > 0 %>
+                <span class="text-muted text-decoration-line-through">
+                  <%= number_to_currency(product.price) %>
+                </span>
+                <br>
+                <span class="fw-bold text-success fs-5">
+                  <%= number_to_currency(product.discounted_price.round) %>
+                </span>
+                <span class="fw-bold text-success fs-5">
+                  (-<%= product.discount %>%)
+                </span>
+              <% else %>
+                <span class="fw-bold fs-5">
+                  <%= number_to_currency(product.price) %>
+                </span>
+              <% end %>
+            </p>
+    
             <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
             <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
             <p class="mb-1"><strong>Precio:</strong> $<%= product.price %></p>

@@ -46,6 +46,12 @@ module Admin
       @products = @product&.product_sales
     end
 
+    def search
+      query = params[:q].to_s.strip
+      products = Product.where(name: /#{Regexp.escape(query)}/i).limit(10)
+      render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price, discount: p.discount } }
+    end
+
     private
 
     def set_product
@@ -58,7 +64,7 @@ module Admin
 
     def product_params
       params.require(:product).permit(
-        :name, :description, :quantity, :price, :category_id, :marca_id,
+        :name, :description, :quantity, :price, :category_id, :marca_id, :discount,
         product_images_attributes: [:id, :title, :image_url, :image_index, :_destroy]
       )
     end

@@ -50,20 +50,29 @@
                 <th>Producto</th>
                 <th>Cantidad</th>
                 <th>Precio Unitario</th>
-                <th>Descuento</th>
+                <th>Descuento %</th>
+                <th>Valor del Descuento </th>
                 <th>Subtotal</th>
               </tr>
             </thead>
             <tbody>
               <% @product_sales.each do |ps| %>
+
+                <!-- Calculo de porcentaje y valor-->
+                <%            
+                  discount_percentage = ps.unit_price > 0 ? (ps.discount / ps.unit_price) * 100 : 0
+                  discount_decimal = (ps.unit_price * ps.quantity) * (ps.discount / 100.0)
+                  subtotal = (ps.unit_price * ps.quantity) - discount_decimal                %>
+
                 <tr>
                   <td><%= ps.product.name %></td>
                   <td><%= ps.quantity %></td>
                   <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
-                  <td>$<%= number_with_precision(ps.discount, precision: 2) %></td>
-                  <td>
-                    $<%= number_with_precision(ps.quantity * (ps.unit_price - ps.discount), precision: 2) %>
-                  </td>
+                                 
+                  <td><%= number_with_precision(ps.discount, precision: 2) %>%</td>
+                  <td>$<%= number_with_precision(discount_decimal, precision: 2) %></td>
+                  <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
+
                 </tr>
               <% end %>
             </tbody>
