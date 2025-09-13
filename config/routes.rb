@@ -41,9 +41,6 @@ Rails.application.routes.draw do
     get "/users/edit_password", to: "users#edit_password"
     patch "/users/:id/update_password", to: "users#update_password", as: "user_update_password"
 
-    # Rutas para marcas (CRUD completo)
-    resources :marcas, except: [:show]
-
     # charlas
     get "/charlas", to: "conferences#index"
     get "/charlas/new", to: "conferences#new"
@@ -104,10 +101,8 @@ Rails.application.routes.draw do
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf' => 'sales#generate_pdf', as: :generar_comprobante_venta
 
-
     #get '/admin/marcas/:id', to: 'admin/marcas#show', as: 'admin_marca' 
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
-    
   end
 
   # Rutas extra
