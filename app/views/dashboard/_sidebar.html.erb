@@ -81,7 +81,7 @@
 
             <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin"%>
                 <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
-                <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias
+                <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias</a>
             <% end %>
             </div>
         </div>
@@ -104,7 +104,6 @@
         </div>
     </li>
 
-    <% if @current_user.role == "super_admin"%> 
     <% if @current_user.role.name == "super_admin"%> 
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsers"
