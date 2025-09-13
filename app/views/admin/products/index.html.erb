@@ -3,10 +3,10 @@
   <!-- Encabezado -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">
-      <%= @current_user.role.in?(["super_admin","admin","cajero"]) ? "Admin - Productos" : "Portal - Productos" %>
+      <%= @current_user.role.name.in?(["super_admin","admin","cajero"]) ? "Admin - Productos" : "Portal - Productos" %>
     </h1>
 
-    <% if @current_user.role.in?(["super_admin","admin"]) %>
+    <% if @current_user.role.name.in?(["super_admin","admin"]) %>
       <%= link_to admin_productos_new_path, class: "btn btn-sm btn-primary shadow-sm" do %>
         <i class="fas fa-plus"></i> Crear Producto
       <% end %>
@@ -74,13 +74,18 @@
               <% end %>
             </p>
     
-          <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
-          <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
-          <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
-  </div>
+            <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
+            <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
+            <p class="mb-1"><strong>Precio:</strong> $<%= product.price %></p>
+            <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
+            <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
+            <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
+            <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
+
+          </div>
 
           <!-- Botones de acción -->
-          <% if @current_user.role.in?(["super_admin","admin"]) %>
+          <% if @current_user.role.name.in?(["super_admin","admin"]) %>
             <div class="btn-group w-100 mt-2">
               <%= link_to admin_edit_product_path(product_id:product.id), class:"btn btn-primary btn-sm" do %>
                 <i class="fa fa-edit"></i> Editar

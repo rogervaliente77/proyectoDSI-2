@@ -59,7 +59,11 @@
                             </div>
                              <div class="col-sm-3">
                                 <div class="mb-3">
-                                   <%= form.input :role, as: :select, collection: ['admin', 'cajero', 'cliente'], input_html: { class: "form-control", id: "title" }, prompt: 'Seleccione un rol' %>
+                                   <%#= form.input :role, as: :select, collection: ['admin', 'cajero', 'cliente'], input_html: { class: "form-control", id: "title" }, prompt: 'Seleccione un rol' %>
+                                   <%= form.input :role_id,
+                                    collection: Role.all.map { |c| [c.name, c.id] },
+                                    include_blank: "Selecciona un rol",
+                                    input_html: { class: "form-select" } %>
                                 </div>
                             </div>
                             <div class="col-sm-3">
