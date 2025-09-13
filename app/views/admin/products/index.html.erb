@@ -56,7 +56,9 @@
             <p class="mb-1"><strong>Precio:</strong> $<%= product.price %></p>
             <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
             <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
+            <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
             <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
+
           </div>
 
           <!-- Botones de acción -->

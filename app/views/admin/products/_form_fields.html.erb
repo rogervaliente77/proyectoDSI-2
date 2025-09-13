@@ -27,6 +27,15 @@
   </div>
 </div>
 
+<div class="row mb-3"> 
+  <div class="col">
+    <%= form.input :marca_id,
+      collection: Marca.all.map { |m| [m.name, m.id] },
+      include_blank: "Selecciona una marca",
+      input_html: { class: "form-select" } %>
+  </div>
+</div>
+
 <!-- Imágenes múltiples -->
 <h5 class="mt-4">Imágenes del producto</h5>
 <div id="product-images-container">
