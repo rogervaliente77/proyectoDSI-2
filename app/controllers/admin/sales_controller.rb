@@ -15,7 +15,7 @@ module Admin
 
     def create
       # Restricción de rol (ya lo tenés)
-      if @current_user.role == "super_admin" || @current_user.role == "admin"
+      if @current_user.role.name == "super_admin" || @current_user.role.name == "admin"
         redirect_to admin_sales_new_path, alert: "Esta acción solo la puede hacer un cajero"
         return
       end

@@ -40,7 +40,7 @@ module Admin
         return
       end
 
-      if @user.role == "cliente"
+      if @user.role.name == "cliente"
         flash[:alert] = 'Usted no es administrador, debe ingresar en este login de clientes'
         redirect_to portal_login_path
         return

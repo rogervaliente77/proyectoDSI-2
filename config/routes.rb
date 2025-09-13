@@ -100,6 +100,11 @@ Rails.application.routes.draw do
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf' => 'sales#generate_pdf', as: :generar_comprobante_venta
+
+    #Roles
+    resources :roles, except: [:show]
+
+
   end
 
   # Rutas extra
