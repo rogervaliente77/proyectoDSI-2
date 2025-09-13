@@ -50,7 +50,7 @@
                             <%= form.input :client_name, label: "Nombre del cliente", required: true, input_html: { class: "form-control" } %>
                           </div>
 
-                          <% if @current_user.role == "cajero" %>
+                          <% if @current_user.role.name == "cajero" %>
                             <% cajero = Cajero.find_by(user_id: @current_user.id) %>
                             <% if cajero.present? && cajero.caja.present? %>
                               <div class="col-sm-4 mb-3">
@@ -108,7 +108,7 @@
 
                         <%= form.hidden_field :total_amount, id: "sale_total_amount" %>
 
-                        <% if current_user.role == 'cajero' %>
+                        <% if current_user.role.name == 'cajero' %>
                           <div class="form-group mt-4">
                             <%= form.submit 'Confirmar venta', class: 'btn btn-success' %>
                           </div>

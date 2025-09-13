@@ -56,11 +56,11 @@
                   <td><%= user.full_name %></td>
                   <td><%= user.email %></td>
                   <td>
-                    <% if user.role == "super_admin" %>
+                    <% if user&.role&.name == "super_admin" %>
                       <span class="badge badge-success">Super Administrador</span>
-                    <% elsif user.role == "admin"%>
+                    <% elsif user&.role&.name == "admin"%>
                       <span class="badge badge-info">Administrador</span>
-                    <% elsif user.role == "cajero"%>
+                    <% elsif user&.role&.name == "cajero"%>
                       <span class="badge badge-primary">Cajero</span>
                     <% else %>
                       <span class="badge badge-secondary">Cliente</span>

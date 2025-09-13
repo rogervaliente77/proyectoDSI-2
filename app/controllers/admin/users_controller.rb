@@ -6,7 +6,7 @@ module Admin
     def index
       
       @users = User.all
-      unless @current_user.role == "super_admin"
+      unless @current_user.role.name == "super_admin"
         redirect_to admin_home_path
         return
       end
@@ -79,7 +79,7 @@ module Admin
     end
 
     def user_params
-      params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
+      params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email, :role_id)
     end
 
     def user_params_password
@@ -87,7 +87,7 @@ module Admin
     end
 
     def created_user_params
-      params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
+      params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email, :role_id)
     end
   end
 

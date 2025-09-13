@@ -8,7 +8,7 @@ module Admin
     def index
       @roles = Role.all
       # Solo super_admin puede ver todos
-      unless @current_user.role == "super_admin"
+      unless @current_user.role.name == "super_admin"
         redirect_to admin_home_path
         return
       end

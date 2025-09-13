@@ -15,10 +15,11 @@ class User
   field :session_token_id, type: String
   field :otp_code,         type: Integer
   field :is_admin,         type: Mongoid::Boolean, default: false
-  field :role,             type: String, default: "cliente"
+  # field :role,             type: String, default: "cliente"
 
   # Relacionamientos (ajústalos a tus modelos Mongoid)
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
+  belongs_to :role
 
   # Seguridad de contraseña
   has_secure_password
