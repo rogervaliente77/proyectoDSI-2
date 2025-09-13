@@ -33,16 +33,19 @@
             <td><%= marca.name %></td>
             <td><%= marca.description %></td>
             <td>
-              <%= link_to edit_admin_marca_path(marca), class: "btn btn-sm btn-warning" do %>
-                <i class="fa fa-pencil"></i> Editar
-              <% end %>
-              <%= button_to admin_marca_path(marca),
-                    method: :delete,
-                    form: { class: "d-inline" },
-                    data: { turbo_confirm: "¿Estás seguro de eliminar esta marca?" },
-                    class: "btn btn-danger btn-sm" do %>
-              <i class="fa fa-trash"></i> Eliminar
-            <% end %>
+              <div class="d-flex gap-1"> <!-- Flex para controlar tamaño y separación -->
+                <%= link_to edit_admin_marca_path(marca), class: "btn btn-sm btn-warning flex-shrink-0" do %>
+                  <i class="fa fa-pencil"></i> Editar
+                <% end %>
+
+                <%= button_to admin_marca_path(marca),
+                      method: :delete,
+                      form: { class: "d-inline" },
+                      data: { turbo_confirm: "¿Estás seguro de eliminar esta marca?" },
+                      class: "btn btn-sm btn-danger flex-shrink-0" do %>
+                  <i class="fa fa-trash"></i> Eliminar
+                <% end %>
+              </div>
             </td>
           </tr>
         <% end %>
