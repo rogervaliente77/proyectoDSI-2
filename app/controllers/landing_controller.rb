@@ -1,10 +1,11 @@
 class LandingController < ApplicationController
   def index
-    # Traer todas las categorías para el filtro
+    # Traer todas las categorías y marcas para los filtros
     @categories = Category.all
+    @marcas = Marca.all
 
     # Iniciamos con todos los productos
-    @products = Product.includes(:category).all
+    @products = Product.includes(:category, :marca).all
 
     # Filtrar por nombre
     if params[:query].present?
@@ -15,6 +16,11 @@ class LandingController < ApplicationController
     # Filtrar por categoría
     if params[:category_id].present? && params[:category_id] != ""
       @products = @products.where(category_id: params[:category_id])
+    end
+
+    # Filtrar por marca
+    if params[:marca_id].present? && params[:marca_id] != ""
+      @products = @products.where(marca_id: params[:marca_id])
     end
 
     # Filtrar por precio mínimo y máximo

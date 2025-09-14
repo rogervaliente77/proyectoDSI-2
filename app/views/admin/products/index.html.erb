@@ -1,5 +1,6 @@
 <!-- app/views/admin/products/index.html.erb -->
 <div class="container-fluid">
+
   <!-- Encabezado -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">
@@ -13,10 +14,48 @@
     <% end %>
   </div>
 
+  <!-- Filtros -->
+  <div class="card p-4 mb-4 shadow-sm rounded">
+    <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
+
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Buscar por nombre</label>
+        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control form-control-md" %>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Categoría</label>
+        <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), prompt: "Todas las categorías", class: "form-select form-select-md" %>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Marca</label>
+        <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), prompt: "Todas las marcas", class: "form-select form-select-md" %>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small text-secondary">Precio ($)</label>
+        <div class="d-flex gap-2 align-items-center">
+          <input type="number" name="min_price" value="<%= params[:min_price] || 0 %>" class="form-control form-control-md" placeholder="Min" min="0" style="width: 90px;">
+          <span class="text-muted">-</span>
+          <input type="number" name="max_price" value="<%= params[:max_price] || 1000 %>" class="form-control form-control-md" placeholder="Max" min="0" style="width: 90px;">
+        </div>
+      </div>
+
+      <div class="col-12 d-flex gap-3 mt-3">
+        <%= submit_tag "Aplicar", class: "btn btn-primary btn-md flex-grow-1" %>
+        <%= link_to admin_productos_path, class: "btn btn-outline-secondary btn-md flex-grow-1" do %>
+          Limpiar
+        <% end %>
+      </div>
+
+    <% end %>
+  </div>
+
   <!-- Productos -->
   <div class="row">
     <% @products.each do |product| %>
-      <div class="col-xl-3 col-md-6 mb-4">
+      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
         <div class="card h-100 shadow-sm position-relative product-card">
 
           <!-- Badge de disponibilidad siempre visible -->
@@ -26,7 +65,7 @@
             <span class="badge bg-secondary">Agotado</span>
           <% end %>
 
-          <!-- Carrusel hover-driven -->
+          <!-- Carrusel hover-driven responsive -->
           <div class="custom-carousel">
             <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
             <% if images.any? %>
@@ -35,10 +74,8 @@
                      class="carousel-image <%= 'active' if index.zero? %>" 
                      alt="<%= product.name %> imagen <%= index+1 %>">
               <% end %>
-              <!-- Botones de navegación -->
               <button class="prev" onclick="prevSlide(this)">‹</button>
               <button class="next" onclick="nextSlide(this)">›</button>
-              <!-- Indicadores -->
               <div class="carousel-indicators">
                 <% images.each_with_index do |img, index| %>
                   <span class="dot <%= 'active' if index.zero? %>" onclick="goToSlide(this, <%= index %>)"></span>
@@ -51,10 +88,10 @@
 
           <!-- Información del producto -->
           <div class="card-body">
-          <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
-          <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
-          
-           <!-- Precio del producto -->
+            <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
+            <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
+
+            <!-- Precio con descuento -->
             <p class="mt-2 mb-2">
               <% if product.discount.to_i > 0 %>
                 <span class="text-muted text-decoration-line-through">
@@ -73,24 +110,20 @@
                 </span>
               <% end %>
             </p>
-    
-            <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
-            <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
-            <p class="mb-1"><strong>Precio:</strong> $<%= product.price %></p>
+
             <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
             <p class="mb-0"><strong>Categoria:</strong> <%= product.category.name.upcase if product.category %></p>
             <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
             <p class="mb-0"><strong>Codigo:</strong> <%= product.code %></p>
-
           </div>
 
           <!-- Botones de acción -->
           <% if @current_user.role.name.in?(["super_admin","admin"]) %>
             <div class="btn-group w-100 mt-2">
-              <%= link_to admin_edit_product_path(product_id:product.id), class:"btn btn-primary btn-sm" do %>
+              <%= link_to admin_edit_product_path(product_id: product.id), class:"btn btn-primary btn-sm" do %>
                 <i class="fa fa-edit"></i> Editar
               <% end %>
-              <%= link_to admin_destroy_product_path(product_id:product.id), class:"btn btn-danger btn-sm", data:{ turbo_method: :delete }, onclick:"return confirm('¿Eliminar producto?');" do %>
+              <%= link_to admin_destroy_product_path(product_id: product.id), class:"btn btn-danger btn-sm", data:{ turbo_method: :delete }, onclick:"return confirm('¿Eliminar producto?');" do %>
                 <i class="fa fa-trash"></i> Eliminar
               <% end %>
             </div>
@@ -102,12 +135,12 @@
   </div>
 </div>
 
-<!-- Estilos del carrusel y badge -->
+<!-- Estilos del carrusel responsive -->
 <style>
 .custom-carousel {
   position: relative;
   width: 100%;
-  height: 220px; /* más alto para visibilidad */
+  padding-top: 75%; /* Mantiene proporción 4:3 */
   overflow: hidden;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
@@ -115,12 +148,12 @@
 }
 
 .carousel-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
   z-index: 1;
@@ -128,15 +161,14 @@
 
 .carousel-image.active {
   opacity: 1;
-  z-index: 1;
 }
 
-/* Badge siempre visible */
+/* Badge */
 .badge {
   position: absolute !important;
   top: 0.5rem;
   right: 0.5rem;
-  z-index: 10; /* siempre encima del carrusel */
+  z-index: 10;
   padding: 0.4rem 0.7rem;
   font-size: 0.85rem;
 }
@@ -231,7 +263,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const slides = carousel.querySelectorAll('.carousel-image');
         index = (index + 1) % slides.length;
         showSlide(carousel, index);
-      }, 2000); // cada 2 segundos
+      }, 2000);
     });
 
     card.addEventListener('mouseleave', () => {

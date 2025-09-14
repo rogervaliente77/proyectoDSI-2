@@ -1,4 +1,3 @@
-# app/controllers/admin/products_controller.rb
 module Admin
   class ProductsController < ApplicationController
     before_action :set_current_user
@@ -6,7 +5,30 @@ module Admin
     layout 'dashboard'
 
     def index
-      @products = Product.all
+      @categories = Category.all
+      @marcas = Marca.all
+
+      @products = Product.includes(:category, :marca).all
+
+      # Filtrar por nombre
+      if params[:query].present?
+        @products = @products.where("name ILIKE ?", "%#{params[:query].strip}%")
+      end
+
+      # Filtrar por categoría
+      if params[:category_id].present?
+        @products = @products.where(category_id: params[:category_id])
+      end
+
+      # Filtrar por marca
+      if params[:marca_id].present?
+        @products = @products.where(marca_id: params[:marca_id])
+      end
+
+      # Filtrar por rango de precio
+      min_price = params[:min_price].present? ? params[:min_price].to_f : 0
+      max_price = params[:max_price].present? ? params[:max_price].to_f : Float::INFINITY
+      @products = @products.where(price: min_price..max_price)
     end
 
     def new
