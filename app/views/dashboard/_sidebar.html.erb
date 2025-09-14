@@ -68,24 +68,25 @@
     </div>
   </li>
 
-  <!-- Productos -->
-  <li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProductos"
-       aria-expanded="true" aria-controls="collapseProductos">
-      <i class="fas fa-fw fa-folder"></i>
-      <span>Productos</span>
-    </a>
-    <div id="collapseProductos" class="collapse" aria-labelledby="headingProductos" data-parent="#accordionSidebar">
-      <div class="bg-white py-2 collapse-inner rounded">
-        <h6 class="collapse-header">Productos:</h6>
-        <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
-        <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" %>
-          <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
-          <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias</a>
-        <% end %>
+  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" %>
+    <!-- Productos -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProductos"
+        aria-expanded="true" aria-controls="collapseProductos">
+        <i class="fas fa-fw fa-folder"></i>
+        <span>Productos</span>
+      </a>
+      <div id="collapseProductos" class="collapse" aria-labelledby="headingProductos" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Productos:</h6>
+            <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
+            <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
+            <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias</a>
+          
+        </div>
       </div>
-    </div>
-  </li>
+    </li>
+  <% end %>
 
   <!-- Marcas (solo admin y super_admin) -->
   <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" %>

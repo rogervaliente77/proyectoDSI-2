@@ -85,6 +85,7 @@ module Portal
       @user = User.new(user_params)
       @user.otp_code = generate_otp_code # Genera un código aleatorio de 6 dígitos
       @user.jwt_token = SecureRandom.hex(20)
+      @user.role = Role.where(name: 'cliente').first
   
       if @user.save
         # Si el registro es exitoso

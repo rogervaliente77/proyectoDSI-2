@@ -25,7 +25,7 @@
                 <!-- Centered text -->
                 <p class="text-center">Por favor ingresa el código OTP enviado a tu correo</p>
 
-                <%= simple_form_for :user, url: portal_signup_create_path, method: :post, html: { class: "needs-validation", id: "otp-form" } do |form| %>
+                <%= simple_form_for :user, url: portal_signup_create_path, method: :post, html: { class: "needs-validation", id: "otp-form" }, data: { turbo: false } do |form| %>
                     <!-- JWT Input -->
                     <%= form.hidden_field :jwt_token, value: session[:jwt_token] %>
 

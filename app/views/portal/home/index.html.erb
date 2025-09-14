@@ -11,6 +11,12 @@
 
   </div>
 
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
+
   <!-- Filtros -->
   <div class="card p-4 mb-5 shadow-sm rounded">
     <%= form_with url: portal_home_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
