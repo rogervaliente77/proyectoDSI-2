@@ -11,5 +11,5 @@ class Marca
 
   # Validaciones
   validates :name, presence: true, uniqueness: true
-  validates :description, length: { maximum: 500 }
+  validates :description, presence: { message: "no puede estar vacía" }, length: { maximum: 500 }
 end
