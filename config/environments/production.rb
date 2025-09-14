@@ -95,5 +95,17 @@ Rails.application.configure do
   # ]
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+   #Mailer SMTP
+   config.action_mailer.delivery_method = :smtp
+   config.action_mailer.smtp_settings = {
+     address: "smtp.gmail.com",
+     port: 587,
+     domain: "gmail.com",
+     authentication: "plain",
+     enable_starttls_auto: true,
+     user_name: ENV['SENDER_EMAIL'], # Correo configurado en .env
+     password: ENV['APP_PASSWORD']   # Contraseña de aplicación configurada en .env
+   }
 end
 
