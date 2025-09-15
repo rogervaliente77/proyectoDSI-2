@@ -53,23 +53,21 @@
 
                             <div class="col-sm-4">
                             <div class="mb-4">
-                                <%= form.input :user_id, 
-                                label: "Usuario (cajero)", 
-                                collection: User.where(role: "cajero").map { |u| [u.full_name, u.id] },
-                                include_blank: "Selecciona un usuario",
-                                input_html: { class: "form-select" } %>
+                                <%= form.label :user_id, "Usuario (cajero)" %>
+                                <p class="form-control-plaintext"><%= @cajero.user.full_name %></p>
+                                <%= form.hidden_field :user_id %>
                             </div>
                             </div>
 
                             <div class="col-sm-4">
                             <div class="mb-4">
-                                <%= form.input :caja_id, 
-                                label: "Caja asignada", 
-                                collection: Caja.all.map { |c| [c.nombre, c.id] },
-                                include_blank: "Selecciona una caja",
-                                input_html: { class: "form-select" } %>
+                                <%= form.label :caja_id, "Caja asignada" %>
+                                <p class="form-control-plaintext"><%= @cajero.caja.nombre %></p>
+                                <%= form.hidden_field :caja_id %>
                             </div>
                             </div>
+
+
                         </div>
 
                         <br>

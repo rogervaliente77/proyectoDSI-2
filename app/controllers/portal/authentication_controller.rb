@@ -22,12 +22,15 @@ module Portal
       end
     
       begin
-        user = User.find_by(email: email)
+        @user = User.find_by(email: email)
       rescue Mongoid::Errors::DocumentNotFound
-        user = nil
+        @user = nil
       end
 
-      @user = user
+      if !@user.present?
+        redirect_to portal_login_path, alert: "Usuario no existe"
+        return
+      end
 
       unless @user.role.name == "cliente"
         flash[:alert] = 'Usted no es usuario cliente, debe iniciar sesion en el login para administradores'
@@ -146,7 +149,6 @@ module Portal
 
     def logout
       #binding.pry  # Para inspeccionar el flujo
-    
       # Busca la sesión usando el token guardado en las cookies de sesión
       user_session = UserSession.find_by(session_token: session[:session_token])
       

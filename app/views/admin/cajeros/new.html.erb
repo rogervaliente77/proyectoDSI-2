@@ -53,21 +53,27 @@
 
                             <div class="col-sm-4">
                             <div class="mb-4">
-                                <%= form.input :user_id, 
-                                label: "Usuario (cajero)", 
-                                collection: User.where(role: "cajero").map { |u| [u.full_name, u.id] },
-                                include_blank: "Selecciona un usuario",
-                                input_html: { class: "form-select" } %>
+                                <%= form.input :user_id,
+                                    label: "Usuario (cajero)",
+                                    collection: begin
+                                                cajero_role = Role.find_by(name: "cajero")
+                                                User.where(role: cajero_role, :id.nin => Cajero.distinct(:user_id))
+                                                    .map { |u| [u.full_name, u.id.to_s] }
+                                                end,
+                                    include_blank: "Selecciona un usuario",
+                                    input_html: { class: "form-select" } %>
                             </div>
                             </div>
 
                             <div class="col-sm-4">
                             <div class="mb-4">
-                                <%= form.input :caja_id, 
-                                label: "Caja asignada", 
-                                collection: Caja.all.map { |c| [c.nombre, c.id] },
-                                include_blank: "Selecciona una caja",
-                                input_html: { class: "form-select" } %>
+                                <%= form.input :caja_id,
+                                    label: "Caja asignada",
+                                    collection: Caja.where(:id.nin => Cajero.distinct(:caja_id))
+                                                    .map { |c| [c.nombre, c.id.to_s] },
+                                    include_blank: "Selecciona una caja",
+                                    input_html: { class: "form-select" } %>
+
                             </div>
                             </div>
                         </div>

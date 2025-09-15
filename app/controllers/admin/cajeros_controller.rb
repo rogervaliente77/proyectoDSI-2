@@ -14,7 +14,6 @@ module Admin
     end
 
     def create
-      binding.pry
         @cajero = Cajero.new(cajero_params)
       
         if @cajero.save
