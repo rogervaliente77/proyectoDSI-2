@@ -7,28 +7,24 @@ module Admin
     def index
       @categories = Category.all
       @marcas = Marca.all
-
       @products = Product.includes(:category, :marca).all
 
       # Filtrar por nombre
       if params[:query].present?
-        @products = @products.where("name ILIKE ?", "%#{params[:query].strip}%")
+        q = params[:query].strip
+        @products = @products.where(name: /#{Regexp.escape(q)}/i)
       end
 
       # Filtrar por categoría
-      if params[:category_id].present?
-        @products = @products.where(category_id: params[:category_id])
-      end
+      @products = @products.where(category_id: params[:category_id]) if params[:category_id].present?
 
       # Filtrar por marca
-      if params[:marca_id].present?
-        @products = @products.where(marca_id: params[:marca_id])
-      end
+      @products = @products.where(marca_id: params[:marca_id]) if params[:marca_id].present?
 
       # Filtrar por rango de precio
       min_price = params[:min_price].present? ? params[:min_price].to_f : 0
       max_price = params[:max_price].present? ? params[:max_price].to_f : Float::INFINITY
-      @products = @products.where(price: min_price..max_price)
+      @products = @products.where(:price.gte => min_price, :price.lte => max_price)
     end
 
     def new
@@ -66,6 +62,16 @@ module Admin
 
     def product_sales
       @products = @product&.product_sales
+    end
+
+    # 🔹 Acción INVENTARIO
+    def inventory
+      @products = Product.all.includes(:category, :marca).asc(:name)
+
+      if params[:query].present?
+        q = params[:query].strip
+        @products = @products.any_of({ name: /#{Regexp.escape(q)}/i }, { code: /#{Regexp.escape(q)}/i })
+      end
     end
 
     def search

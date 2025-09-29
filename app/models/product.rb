@@ -10,7 +10,6 @@ class Product
   field :code,        type: String
   field :discount,    type: Integer, default: 0
 
-
   has_many :product_sales, dependent: :destroy
   belongs_to :category
   belongs_to :marca #relacion
@@ -23,6 +22,25 @@ class Product
 
   before_create :generate_code
 
+  # -------- MÉTODOS NUEVOS --------
+
+  # Detectar si el producto está en stock bajo
+  def low_stock?
+    quantity.present? && quantity < 25
+  end
+
+  # Mensaje de estado del stock
+  def stock_status
+    if quantity.to_i == 0
+      "Agotado"
+    elsif low_stock?
+      "Stock bajo (#{quantity})"
+    else
+      "En stock (#{quantity})"
+    end
+  end
+
+  # -------- MÉTODOS EXISTENTES --------
 
   def discounted_price
     return price if discount.zero?
@@ -61,6 +79,4 @@ class Product
       errors.add(:product_images, "tienen índices duplicados")
     end
   end
-
- 
 end

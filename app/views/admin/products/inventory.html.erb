@@ -1,0 +1,122 @@
+<div class="container-fluid py-4">
+
+  <!-- Encabezado -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 text-dark fw-bold mb-0">📦 Inventario de Productos</h1>
+  </div>
+
+  <!-- Filtro de búsqueda -->
+  <div class="card p-3 mb-4 shadow-sm rounded">
+    <%= form_with url: "/admin/productos/inventario", method: :get, local: true, class: "row g-3" do %>
+      <div class="col-md-6">
+        <%= text_field_tag :query, params[:query], placeholder: "🔍 Buscar por nombre o código...", class: "form-control form-control-lg shadow-sm" %>
+      </div>
+      <div class="col-md-3">
+        <%= submit_tag "Buscar", class: "btn btn-primary btn-lg w-100 shadow-sm" %>
+      </div>
+      <div class="col-md-3">
+        <%= link_to "Limpiar", "/admin/productos/inventario", class: "btn btn-outline-secondary btn-lg w-100 shadow-sm" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Tabla de inventario -->
+  <div class="card shadow-sm rounded">
+    <table class="table table-hover table-bordered align-middle mb-0">
+      <thead class="table-dark text-white">
+        <tr>
+          <th class="fw-semibold text-uppercase text-center">Código</th>
+          <th class="fw-semibold text-uppercase">Nombre</th>
+          <th class="fw-semibold text-uppercase">Categoría</th>
+          <th class="fw-semibold text-uppercase">Marca</th>
+          <th class="fw-semibold text-uppercase text-center">Precio</th>
+          <th class="fw-semibold text-uppercase text-center">Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @products.present? %>
+          <% low_stock_products = [] %>
+          <% total_valor = 0 %>
+          <% @products.each do |product| %>
+            <% total_valor += product.price * product.quantity %>
+            <% low_stock_products << product if product.quantity <= 25 %>
+            <tr class="align-middle">
+              <td class="text-muted text-center"><%= product.code %></td>
+              <td class="fw-semibold"><%= product.name %></td>
+              <td><%= product.category&.name || "—" %></td>
+              <td><%= product.marca&.name || "—" %></td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
+                  <%= number_to_currency(product.price) %>
+                </span>
+              </td>
+              <td class="text-center">
+                <% if product.quantity > 100 %>
+                  <span class="badge px-3 py-2 shadow-sm" style="background-color:#d4edda; color:#155724;">
+                    ✅ <%= product.quantity %>
+                  </span>
+                <% elsif product.quantity > 25 %>
+                  <span class="badge px-3 py-2 shadow-sm" style="background-color:#fff3cd; color:#856404;">
+                    ⚠️ <%= product.quantity %>
+                  </span>
+                <% else %>
+                  <span class="badge px-3 py-2 shadow-sm" style="background-color:#f8d7da; color:#721c24;">
+                    ❌ <%= product.quantity %>
+                  </span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+
+          <!-- Fila resumen -->
+          <tr class="table-secondary fw-bold">
+            <td colspan="4" class="text-end">Valor total en inventario:</td>
+            <td colspan="2" class="text-center">
+              <%= number_to_currency(total_valor) %>
+            </td>
+          </tr>
+        <% else %>
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              No hay productos disponibles
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Toasts para stock bajo -->
+<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+  <% if defined?(low_stock_products) && low_stock_products.any? %>
+    <% low_stock_products.each do |product| %>
+      <div class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            ⚠️ El producto <strong><%= product.name %></strong> tiene stock bajo: <%= product.quantity %> unidades.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<!-- Activar los toasts con JavaScript (no se cierran automáticamente, solo al hacer clic) -->
+<script>
+  document.addEventListener("turbo:load", function() {
+    document.querySelectorAll('.toast').forEach(function(toastEl) {
+      // Creamos el toast con autohide desactivado
+      const toast = new bootstrap.Toast(toastEl, { autohide: false });
+
+      // Mostramos el toast
+      toast.show();
+
+      // Vinculamos la X al método hide() del toast
+      toastEl.querySelector('.btn-close').addEventListener('click', function() {
+        toast.hide();
+      });
+    });
+  });
+</script>

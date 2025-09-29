@@ -4,12 +4,16 @@
   <!-- Encabezado -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">
-      <%= @current_user.role.name.in?(["super_admin","admin","cajero"]) ? "Admin - Productos" : "Portal - Productos" %>
+      <% if @current_user.role.name.in?(["super_admin","admin","cajero"]) %>
+        <i class="fas fa-boxes me-2"></i> Admin - Productos
+      <% else %>
+        <i class="fas fa-store me-2"></i> Portal - Productos
+      <% end %>
     </h1>
 
     <% if @current_user.role.name.in?(["super_admin","admin"]) %>
       <%= link_to admin_productos_new_path, class: "btn btn-sm btn-primary shadow-sm" do %>
-        <i class="fas fa-plus"></i> Crear Producto
+        <i class="fas fa-plus-circle me-1"></i> Crear Producto
       <% end %>
     <% end %>
   </div>
@@ -17,24 +21,23 @@
   <!-- Filtros -->
   <div class="card p-4 mb-4 shadow-sm rounded">
     <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
-
       <div class="col-md-3">
-        <label class="form-label small text-secondary">Buscar por nombre</label>
+        <label class="form-label small text-secondary"><i class="fas fa-search me-1"></i> Buscar por nombre</label>
         <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control form-control-md" %>
       </div>
 
       <div class="col-md-3">
-        <label class="form-label small text-secondary">Categoría</label>
+        <label class="form-label small text-secondary"><i class="fas fa-tags me-1"></i> Categoría</label>
         <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), prompt: "Todas las categorías", class: "form-select form-select-md" %>
       </div>
 
       <div class="col-md-3">
-        <label class="form-label small text-secondary">Marca</label>
+        <label class="form-label small text-secondary"><i class="fas fa-industry me-1"></i> Marca</label>
         <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), prompt: "Todas las marcas", class: "form-select form-select-md" %>
       </div>
 
       <div class="col-md-3">
-        <label class="form-label small text-secondary">Precio ($)</label>
+        <label class="form-label small text-secondary"><i class="fas fa-dollar-sign me-1"></i> Precio ($)</label>
         <div class="d-flex gap-2 align-items-center">
           <input type="number" name="min_price" value="<%= params[:min_price] || 0 %>" class="form-control form-control-md" placeholder="Min" min="0" style="width: 90px;">
           <span class="text-muted">-</span>
@@ -45,10 +48,9 @@
       <div class="col-12 d-flex gap-3 mt-3">
         <%= submit_tag "Aplicar", class: "btn btn-primary btn-md flex-grow-1" %>
         <%= link_to admin_productos_path, class: "btn btn-outline-secondary btn-md flex-grow-1" do %>
-          Limpiar
+          <i class="fas fa-sync-alt me-1"></i> Limpiar
         <% end %>
       </div>
-
     <% end %>
   </div>
 
@@ -58,31 +60,35 @@
       <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
         <div class="card h-100 shadow-sm position-relative product-card">
 
-          <!-- Badge de disponibilidad siempre visible -->
+          <!-- Badge de disponibilidad -->
           <% if product.quantity.to_i > 0 %>
-            <span class="badge bg-success">Disponible</span>
+            <span class="badge bg-success">
+              <i class="fas fa-check-circle me-1"></i> Disponible
+            </span>
           <% else %>
-            <span class="badge bg-secondary">Agotado</span>
+            <span class="badge bg-secondary">
+              <i class="fas fa-times-circle me-1"></i> Agotado
+            </span>
           <% end %>
 
           <!-- Carrusel hover-driven responsive -->
-          <div class="custom-carousel">
+          <div class="custom-carousel" data-current="0">
             <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
             <% if images.any? %>
               <% images.each_with_index do |img, index| %>
                 <img src="<%= img.image_url %>" 
                      class="carousel-image <%= 'active' if index.zero? %>" 
-                     alt="<%= product.name %> imagen <%= index+1 %>">
+                     alt="<%= product.name %> imagen <%= index+1 %>" loading="lazy">
               <% end %>
-              <button class="prev" onclick="prevSlide(this)">‹</button>
-              <button class="next" onclick="nextSlide(this)">›</button>
+              <button class="prev" aria-label="Anterior" onclick="prevSlide(this)">‹</button>
+              <button class="next" aria-label="Siguiente" onclick="nextSlide(this)">›</button>
               <div class="carousel-indicators">
                 <% images.each_with_index do |img, index| %>
                   <span class="dot <%= 'active' if index.zero? %>" onclick="goToSlide(this, <%= index %>)"></span>
                 <% end %>
               </div>
             <% else %>
-              <img src="https://via.placeholder.com/220x180" class="carousel-image active" alt="Placeholder">
+              <img src="https://via.placeholder.com/220x180" class="carousel-image active" alt="Placeholder" loading="lazy">
             <% end %>
           </div>
 
@@ -140,13 +146,12 @@
 .custom-carousel {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* Mantiene proporción 4:3 */
+  padding-top: 75%;
   overflow: hidden;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   margin-bottom: 10px;
 }
-
 .carousel-image {
   position: absolute;
   top: 0;
@@ -158,22 +163,15 @@
   transition: opacity 0.5s ease-in-out;
   z-index: 1;
 }
-
-.carousel-image.active {
-  opacity: 1;
-}
-
-/* Badge */
-.badge {
-  position: absolute !important;
+.carousel-image.active { opacity: 1; }
+.product-card .badge {
+  position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   z-index: 10;
   padding: 0.4rem 0.7rem;
   font-size: 0.85rem;
 }
-
-/* Botones */
 .custom-carousel button {
   position: absolute;
   top: 50%;
@@ -188,15 +186,9 @@
   z-index: 2;
   transition: background 0.3s;
 }
-
-.custom-carousel button:hover {
-  background: rgba(0,0,0,0.7);
-}
-
+.custom-carousel button:hover { background: rgba(0,0,0,0.7); }
 .custom-carousel .prev { left: 8px; }
 .custom-carousel .next { right: 8px; }
-
-/* Indicadores */
 .carousel-indicators {
   position: absolute;
   bottom: 8px;
@@ -206,7 +198,6 @@
   gap: 6px;
   z-index: 2;
 }
-
 .carousel-indicators .dot {
   width: 10px;
   height: 10px;
@@ -215,13 +206,10 @@
   cursor: pointer;
   transition: background 0.3s;
 }
-
-.carousel-indicators .dot.active {
-  background: rgba(255,255,255,1);
-}
+.carousel-indicators .dot.active { background: rgba(255,255,255,1); }
 </style>
 
-<!-- Script del carrusel hover-driven -->
+<!-- Script del carrusel con swipe básico -->
 <script>
 function showSlide(carousel, index) {
   const slides = carousel.querySelectorAll('.carousel-image');
@@ -230,33 +218,30 @@ function showSlide(carousel, index) {
   dots.forEach((d, i) => d.classList.toggle('active', i === index));
   carousel.dataset.current = index;
 }
-
 function nextSlide(btn) {
   const carousel = btn.closest('.custom-carousel');
   let index = parseInt(carousel.dataset.current || 0);
   const slides = carousel.querySelectorAll('.carousel-image');
   showSlide(carousel, (index + 1) % slides.length);
 }
-
 function prevSlide(btn) {
   const carousel = btn.closest('.custom-carousel');
   let index = parseInt(carousel.dataset.current || 0);
   const slides = carousel.querySelectorAll('.carousel-image');
   showSlide(carousel, (index - 1 + slides.length) % slides.length);
 }
-
 function goToSlide(dot, index) {
   const carousel = dot.closest('.custom-carousel');
   showSlide(carousel, index);
 }
 
-// Hover-driven autoplay
 document.addEventListener("DOMContentLoaded", function() {
   document.querySelectorAll('.product-card').forEach(card => {
-    let interval = null;
     const carousel = card.querySelector('.custom-carousel');
     if (!carousel) return;
+    let interval = null;
 
+    // Hover para desktop
     card.addEventListener('mouseenter', () => {
       let index = parseInt(carousel.dataset.current || 0);
       interval = setInterval(() => {
@@ -265,9 +250,18 @@ document.addEventListener("DOMContentLoaded", function() {
         showSlide(carousel, index);
       }, 2000);
     });
+    card.addEventListener('mouseleave', () => clearInterval(interval));
 
-    card.addEventListener('mouseleave', () => {
-      clearInterval(interval);
+    // Swipe básico para móviles
+    let startX = 0;
+    carousel.addEventListener('touchstart', e => { startX = e.touches[0].clientX; });
+    carousel.addEventListener('touchend', e => {
+      const endX = e.changedTouches[0].clientX;
+      const diff = endX - startX;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) nextSlide({closest: () => carousel});
+        else prevSlide({closest: () => carousel});
+      }
     });
   });
 });
