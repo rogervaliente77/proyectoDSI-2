@@ -1,5 +1,5 @@
 module Admin
-  class ProductsController < ApplicationController
+  class InventoryController < ApplicationController
     before_action :set_current_user
     before_action :set_product, only: %i[edit update destroy product_sales]
     layout 'dashboard'
