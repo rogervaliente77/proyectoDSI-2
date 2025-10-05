@@ -44,6 +44,13 @@ module Admin
       end
     end
 
+    def autorizar_devolucion
+      @devolucion = Devolucion.find(params[:id])
+      @devolucion.update(is_authorized: !@devolucion.is_authorized)
+
+      redirect_to admin_devoluciones_path, notice: "Devolución actualizada exitosamente", status: :see_other
+    end    
+
     private
 
     def set_devolucion
