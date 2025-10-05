@@ -65,6 +65,7 @@
                 <th>Caja</th>
                 <th>Cajero</th>
                 <th>Monto</th>
+                <th>Tiene devoluciones?</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -78,6 +79,14 @@
                   <td><%= sale.caja.nombre %></td>
                   <td><%= sale.cajero.nombre %></td>
                   <td>$<%= sale.total_amount || "0.00" %></td>
+                  <td class="text-center">
+                    <% if sale&.devoluciones.any? %>
+                      <button type="button" class="btn btn-success">SI</button>
+                    <% else %>
+                      <button type="button" class="btn btn-primary">NO</button>
+                    <% end %>
+                  </td>
+                 
                   <td>
                       <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-primary btn-sm" do %>
                         <span>Ver detalle</span>
