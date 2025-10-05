@@ -82,6 +82,7 @@ Rails.application.routes.draw do
     get "/cajeros/edit", to: "cajeros#edit"
     patch "/cajeros/update", to: "cajeros#update"
 
+    # Sales
     get "/sales", to: "sales#index"
     get "/sales/new", to: "sales#new"
     post "/sales/create", to: "sales#create"
@@ -91,6 +92,8 @@ Rails.application.routes.draw do
     # Ruta para obtener productos disponibles para devolución de una venta específica
     get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
 
+    # 🔹 Nueva ruta: buscar venta por código (para el formulario de devoluciones)
+    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
 
     # Devoluciones
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy]
@@ -98,7 +101,6 @@ Rails.application.routes.draw do
     # marcas
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
-
   end
 
   resources :pruebas

@@ -1,25 +1,21 @@
-# app/controllers/admin/devoluciones_controller.rb
 module Admin
   class DevolucionesController < ApplicationController
-    #before_action :authenticate_user! # Asegura que el usuario esté autenticado
-
     before_action :set_devolucion, only: %i[edit update destroy]
     layout 'dashboard'
 
     def index
-  @devoluciones = Devolucion.all.order_by(created_at: :desc)
+      @devoluciones = Devolucion.all.order_by(created_at: :desc)
     end
 
     def new
-  @devolucion = Devolucion.new
-  @ventas_disponibles = Sale.all.select(&:has_products_available_for_return?)
+      @devolucion = Devolucion.new
     end
-
 
     def create
       @devolucion = Devolucion.new(devolucion_params)
+      @devolucion.calcular_total
       if @devolucion.save
-        redirect_to admin_devoluciones_path, notice: "Devolucion creada con éxito."
+        redirect_to admin_devoluciones_path, notice: "Devolución creada con éxito."
       else
         flash[:alert] = @devolucion.errors.full_messages.join(", ")
         render :new, status: :unprocessable_entity
@@ -31,7 +27,9 @@ module Admin
 
     def update
       if @devolucion.update(devolucion_params)
-        redirect_to admin_devoluciones_path, notice: "Devolucion actualizada con éxito."
+        @devolucion.calcular_total
+        @devolucion.save
+        redirect_to admin_devoluciones_path, notice: "Devolución actualizada con éxito."
       else
         flash[:alert] = @devolucion.errors.full_messages.join(", ")
         render :edit, status: :unprocessable_entity
@@ -40,9 +38,9 @@ module Admin
 
     def destroy
       if @devolucion.destroy
-        redirect_to admin_devoluciones_path, notice: "Devolucion eliminada exitosamente", status: :see_other
+        redirect_to admin_devoluciones_path, notice: "Devolución eliminada exitosamente", status: :see_other
       else
-        redirect_to admin_devoluciones_path, alert: "No se pudo eliminar la devolucion", status: :unprocessable_entity
+        redirect_to admin_devoluciones_path, alert: "No se pudo eliminar la devolución", status: :unprocessable_entity
       end
     end
 
@@ -50,14 +48,20 @@ module Admin
 
     def set_devolucion
       @devolucion = Devolucion.find(params[:id])
-      unless @devolucion
-        redirect_to admin_devoluciones_path, alert: "Devolucion no encontrada"
-      end
+      redirect_to admin_devoluciones_path, alert: "Devolución no encontrada" unless @devolucion
     end
 
     def devolucion_params
-      params.require(:devolucion).permit(:client_id, :client_name, :fecha_devolucion, :comments_devolucion, 
-                                        :caja_id, :cajero_id, :sale_id, sale_devolucion_detalle: [] )
+      params.require(:devolucion).permit(
+        :client_id,
+        :client_name,
+        :fecha_devolucion,
+        :comments_devolucion,
+        :caja_id,
+        :cajero_id,
+        :sale_id,
+        sale_devolucion_detalle: [:product_id, :cantidad, :precio_unitario]
+      )
     end
   end
 end
