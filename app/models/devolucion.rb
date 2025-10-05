@@ -6,6 +6,7 @@ class Devolucion
   field :client_name, type: String
   field :sale_id, type: BSON::ObjectId
   field :sale_devolucion_detalle, type: Array, default: []  # [{ product_id: ..., cantidad: ..., precio_unitario: ... }]
+
   field :fecha_devolucion, type: DateTime
   field :comments_devolucion, type: String
   field :total_a_devolver, type: Float, default: 0.0
@@ -22,4 +23,12 @@ class Devolucion
     end
     self.total_a_devolver = total
   end
+
+  # Relaciones
+  belongs_to :caja, class_name: "Caja", inverse_of: :devoluciones, optional: true
+  belongs_to :cajero, class_name: "Cajero", inverse_of: :devoluciones, optional: true
+  belongs_to :sale, class_name: "Sale", inverse_of: :devoluciones
+
+  # Si tuvieras modelo Client
+  # belongs_to :client, class_name: "Client", optional: true
 end

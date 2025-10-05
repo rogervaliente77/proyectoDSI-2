@@ -5,6 +5,21 @@ module Admin
 
     def index
       @sales = Sale.all
+    
+      # Filtro por código
+      if params[:code].present?
+        @sales = @sales.where(code: /#{Regexp.escape(params[:code])}/i)
+      end
+    
+      # Filtro por rango de fecha
+      if params[:start_date].present? && params[:end_date].present?
+        start_date = DateTime.parse(params[:start_date]).beginning_of_day
+        end_date   = DateTime.parse(params[:end_date]).end_of_day
+        @sales = @sales.where(:sold_at.gte => start_date, :sold_at.lte => end_date)
+      end
+    
+      # Ordenar por fecha descendente
+      @sales = @sales.order_by(sold_at: :desc)
     end
 
     def new
