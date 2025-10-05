@@ -2,11 +2,11 @@
   <h1 class="mb-3">Listado de Devoluciones</h1>
 
   <div class="mb-3">
-    <%= link_to "➕ Nueva Devolución", new_admin_devolucione_path, class: "btn btn-primary" %>
+  <%= link_to "➕ Nueva Devolución", new_admin_devolucione_path, class: "btn btn-primary" %>
   </div>
 
   <% if @devoluciones.any? %>
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped table-responsive">
       <thead class="table-dark">
         <tr>
           <th>Cliente</th>
@@ -24,14 +24,21 @@
             <td><%= devolucion.client_name.presence || "—" %></td>
             <td><%= devolucion.fecha_devolucion&.strftime("%d/%m/%Y %H:%M") || "—" %></td>
             <td><%= devolucion.comments_devolucion.presence || "Sin comentarios" %></td>
-            <td><%= devolucion.caja&.id || "—" %></td>
-            <td><%= devolucion.cajero&.id || "—" %></td>
-            <td><%= devolucion.sale_id || "—" %></td>
+            <td><%= devolucion.caja&.nombre || "—" %></td>
+            <td><%= devolucion.cajero&.nombre || "—" %></td>
+            <td><%= devolucion.sale&.code || "—" %></td>
             <td>
-              <%= link_to "Editar", edit_admin_devolucione_path(devolucion), class: "btn btn-sm btn-warning" %>
-              <%= link_to "Eliminar", admin_devolucione_path(devolucion),
-                  data: { turbo_method: :delete, turbo_confirm: "¿Estás seguro de eliminar esta devolución?" },
-                  class: "btn btn-sm btn-danger" %>
+            <%= link_to edit_admin_devolucione_path(devolucion), class: "btn btn-sm btn-warning" do %>
+              <i class="fa fa-pencil-alt"></i> Editar
+            <% end %>
+            <%= button_to admin_devolucione_path(devolucion),
+              method: :delete,
+              form: { class: "d-inline" },
+              data: { turbo_confirm: "¿Estás seguro de eliminar esta devolución?" },
+              class: "btn btn-sm btn-danger flex-shrink-0" do %>
+          <i class="fa fa-trash"></i> Eliminar
+        <% end %>
+
             </td>
           </tr>
         <% end %>

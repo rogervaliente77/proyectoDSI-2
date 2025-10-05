@@ -11,8 +11,10 @@ module Admin
     end
 
     def new
-      @devolucion = Devolucion.new
+  @devolucion = Devolucion.new
+  @ventas_disponibles = Sale.all.select(&:has_products_available_for_return?)
     end
+
 
     def create
       @devolucion = Devolucion.new(devolucion_params)
