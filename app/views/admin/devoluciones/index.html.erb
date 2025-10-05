@@ -1,0 +1,50 @@
+<div class="container mt-4">
+  <h1 class="mb-3">Listado de Devoluciones</h1>
+
+  <div class="mb-3">
+    <%= link_to "➕ Nueva Devolución", new_admin_devolucione_path, class: "btn btn-primary", data: { turbo: false } %>
+  </div>
+
+  <% if @devoluciones.any? %>
+    <table class="table table-bordered table-striped table-responsive">
+      <thead class="table-dark">
+        <tr>
+          <th>Cliente</th>
+          <th>Fecha de Devolución</th>
+          <th>Comentarios</th>
+          <th>Caja</th>
+          <th>Cajero</th>
+          <th>Venta Asociada</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @devoluciones.each do |devolucion| %>
+          <tr>
+            <td><%= devolucion.client_name.presence || "—" %></td>
+            <td><%= devolucion.fecha_devolucion&.strftime("%d/%m/%Y %H:%M") || "—" %></td>
+            <td><%= devolucion.comments_devolucion.presence || "Sin comentarios" %></td>
+            <td><%= devolucion.caja&.nombre || "—" %></td>
+            <td><%= devolucion.cajero&.nombre || "—" %></td>
+            <td><%= devolucion.sale&.code || "—" %></td>
+            <td>
+              <%= link_to edit_admin_devolucione_path(devolucion), class: "btn btn-sm btn-warning" do %>
+                    <i class="fa fa-pencil-alt"></i> Editar
+                  <% end %>
+                  <%= button_to admin_devolucione_path(devolucion),
+                    method: :delete,
+                    form: { class: "d-inline" },
+                    data: { turbo_confirm: "¿Estás seguro de eliminar esta devolución?" },
+                    class: "btn btn-sm btn-danger flex-shrink-0" do %>
+                <i class="fa fa-trash"></i> Eliminar
+              <% end %>
+
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="alert alert-info">No hay devoluciones registradas.</div>
+  <% end %>
+</div>

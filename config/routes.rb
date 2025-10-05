@@ -88,8 +88,17 @@ Rails.application.routes.draw do
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
 
+    # Ruta para obtener productos disponibles para devolución de una venta específica
+    get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
+
+
+    # Devoluciones
+    resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy]
+
+    # marcas
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
+
   end
 
   resources :pruebas

@@ -47,6 +47,17 @@ module Admin
                 type: 'application/pdf',
                 disposition: 'inline'  # Cambia a 'attachment' si querés forzar descarga
     end
+
+    # Acción para devolver productos disponibles para devolución
+    def available_products
+      sale = Sale.find(params[:id])
+      products = sale.products_available_for_return.map do |ps|
+        { id: ps.id, name: ps.product.name, quantity: ps.quantity }
+      end
+
+      render json: products
+    end
+
     
     # def product_sales
     #   @products = @product&.product_sales

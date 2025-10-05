@@ -23,4 +23,8 @@ class ProductSale
 
     product.save
   end
+  def product_name
+    "#{product&.name || 'Producto'} (Cantidad: #{quantity})"
+  end
 end
+
