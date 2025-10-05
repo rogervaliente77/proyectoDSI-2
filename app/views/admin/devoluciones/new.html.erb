@@ -1,7 +1,7 @@
 <div class="container mt-4">
   <h1>➕ Nueva Devolución</h1>
 
-  <%= form_with(url: admin_devoluciones_path, model: @devolucion, local: true) do |f| %>
+  <%= form_with(model: @devolucion, url: admin_devoluciones_path, data: { turbo: false }) do |f| %>
     <% if @devolucion.errors.any? %>
       <div class="alert alert-danger">
         <h4>Errores:</h4>

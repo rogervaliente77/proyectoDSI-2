@@ -1,7 +1,7 @@
 <div class="container mt-4">
   <h1>✏️ Editar Devolución</h1>
 
-    <%= form_with(url: admin_devolucione_path(@devolucion), model: @devolucion, local: true) do |f| %>
+    <%= form_with(url: admin_devolucione_path(@devolucion), model: @devolucion, data: { turbo: false }) do |f| %>
     <% if @devolucion.errors.any? %>
       <div class="alert alert-danger">
         <h4>Errores:</h4>
