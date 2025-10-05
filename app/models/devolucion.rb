@@ -6,6 +6,7 @@ class Devolucion
   field :client_id, type: BSON::ObjectId
   field :client_name, type: String
   field :sale, type: Array, default: []
+  field :sale_devolucion_detalle, type: Array, default: []  # <-- aquí lo agregamos
   field :fecha_devolucion, type: DateTime
   field :comments_devolucion, type: String
 
