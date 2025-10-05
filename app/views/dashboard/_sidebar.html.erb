@@ -171,6 +171,26 @@
     </li>
   <% end %>
 
+    <!-- Devoluciones -->
+  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" %>
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDevoluciones"
+         aria-expanded="true" aria-controls="collapseDevoluciones">
+        <i class="fas fa-undo-alt"></i>
+        <span>Devoluciones</span>
+      </a>
+      <div id="collapseDevoluciones" class="collapse" aria-labelledby="headingDevoluciones" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Gestión de Devoluciones:</h6>
+          <a class="collapse-item" href="<%= admin_devoluciones_path %>" data-turbo="false">Ver Devoluciones</a>
+          <a class="collapse-item" href="<%= new_admin_devolucione_path %>" data-turbo="false">Crear Nueva Devolución</a>
+        </div>
+      </div>
+    </li>
+  <% end %>
+
+
+
   <hr class="sidebar-divider d-none d-md-block">
 
   <div class="text-center d-none d-md-inline">

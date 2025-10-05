@@ -88,8 +88,13 @@ Rails.application.routes.draw do
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
 
+    # Devoluciones
+    resources :devoluciones, only: [:index, :new, :create, :show]
+
+    # marcas
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
+
   end
 
   resources :pruebas
