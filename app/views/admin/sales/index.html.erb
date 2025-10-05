@@ -40,6 +40,7 @@
               <tr>
                 <th>#</th>
                 <th>F. venta</th>
+                <th>Comp. venta</th>
                 <th>Cliente</th>
                 <th>Caja</th>
                 <th>Cajero</th>
@@ -51,11 +52,12 @@
               <% @sales.each_with_index do |sale, index| %>
                 <tr>
                   <td><%= index + 1 %></td>
-                  <td><%= sale.sold_at %></td>
+                  <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
+                  <td><strong><%= sale&.code %></strong></td>
                   <td><%= sale.client_name %></td>
                   <td><%= sale.caja.nombre %></td>
                   <td><%= sale.cajero.nombre %></td>
-                  <td><%= sale.total_amount %></td>
+                  <td>$<%= sale.total_amount || "0.00" %></td>
                   <td>
                       <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-primary btn-sm" do %>
                         <span>Ver detalle</span>

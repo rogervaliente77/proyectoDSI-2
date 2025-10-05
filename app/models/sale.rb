@@ -1,23 +1,22 @@
-# app/models/sale.rb
 class Sale
   include Mongoid::Document
-  include Mongoid::Timestamps # Para created_at y updated_at
+  include Mongoid::Timestamps
 
   field :sold_at, type: DateTime
   field :client_name, type: String
   field :status, type: String
-  field :client_id, type: Integer
+  field :client_id, type: BSON::ObjectId
   field :total_amount, type: Float
   field :code, type: String
 
   # Relaciones
-  belongs_to :caja, class_name: "Caja", inverse_of: :sales
-  belongs_to :cajero, class_name: "Cajero", inverse_of: :sales
+  belongs_to :caja, class_name: "Caja", inverse_of: :sales, optional: true
+  belongs_to :cajero, class_name: "Cajero", inverse_of: :sales, optional: true
   has_many :product_sales, class_name: "ProductSale", inverse_of: :sale, dependent: :destroy
+  has_many :devoluciones, class_name: "Devolucion", inverse_of: :sale, dependent: :destroy
 
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 
-  # Callbacks
   before_create :generate_code
 
   def generate_code
@@ -35,17 +34,14 @@ class Sale
     self.code = "#{prefix}-#{date_str}-#{padded_seq}"
   end
 
-  # Retorna todos los product_sales que no tienen devolución
+  # Productos disponibles para devolución
   def products_available_for_return
     product_sales.select do |ps|
-      Devolucion.where(sale_id: self.id, sale_devolucion_detalle: ps.id).empty?
+      Devolucion.where(sale_id: id, "sale_devolucion_detalle.product_sale_id": ps.id.to_s).empty?
     end
   end
 
-
-   # Retorna true si hay productos disponibles para devolver
   def has_products_available_for_return?
     products_available_for_return.any?
   end
 end
-

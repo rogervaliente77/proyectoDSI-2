@@ -1,16 +1,18 @@
- # app/models/devolucion.rb
 class Devolucion
   include Mongoid::Document
-  include Mongoid::Timestamps # Para created_at y updated_at automáticos
+  include Mongoid::Timestamps
 
   field :client_id, type: BSON::ObjectId
   field :client_name, type: String
-  field :sale, type: Array, default: []
-  field :sale_devolucion_detalle, type: Array, default: []  # <-- aquí lo agregamos
+  field :sale_devolucion_detalle, type: Array, default: []  # lista de productos devueltos
   field :fecha_devolucion, type: DateTime
   field :comments_devolucion, type: String
 
-  belongs_to :caja, class_name: "Caja", inverse_of: :sales
-  belongs_to :cajero, class_name: "Cajero", inverse_of: :sales
-  belongs_to :sale
+  # Relaciones
+  belongs_to :caja, class_name: "Caja", inverse_of: :devoluciones, optional: true
+  belongs_to :cajero, class_name: "Cajero", inverse_of: :devoluciones, optional: true
+  belongs_to :sale, class_name: "Sale", inverse_of: :devoluciones
+
+  # Si tuvieras modelo Client
+  # belongs_to :client, class_name: "Client", optional: true
 end
