@@ -1,95 +1,110 @@
-<div class="container mt-4">
-  <h1 class="mb-4"><i class="fas fa-undo-alt me-2 text-primary"></i> Nueva Devolución</h1>
+<div class="container mt-4 mb-5">
+  <h1 class="mb-4 text-center fw-bold text-dark">
+    <i class="fas fa-undo-alt me-2 text-primary"></i> Nueva Devolución
+  </h1>
 
-  <%= form_with(model: @devolucion, url: admin_devoluciones_path, data: { turbo: false }, local: true) do |f| %>
-    <% if @devolucion.errors.any? %>
-      <div class="alert alert-danger">
-        <h4><i class="fas fa-exclamation-triangle me-2"></i> Errores:</h4>
-        <ul>
-          <% @devolucion.errors.full_messages.each do |msg| %>
-            <li><%= msg %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-4">
+      <%= form_with(model: @devolucion, url: admin_devoluciones_path, local: true, data: { turbo: false }) do |f| %>
+        
+        <% if @devolucion.errors.any? %>
+          <div class="alert alert-danger">
+            <h5><i class="fas fa-exclamation-circle me-2"></i> Se encontraron errores:</h5>
+            <ul class="mb-0">
+              <% @devolucion.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
 
-    <!-- Buscar venta por código -->
-    <div class="form-group mb-3">
-      <label for="sale_code"><i class="fas fa-search me-1"></i> Buscar venta por código</label>
-      <div class="input-group">
-        <input type="text" id="sale_code" class="form-control" placeholder="Ingrese código de venta">
-        <button type="button" id="search_sale_btn" class="btn btn-primary">
-          <i class="fas fa-search me-1"></i> Buscar
-        </button>
-      </div>
-      <small id="sale_search_message" class="text-muted"></small>
+        <!-- Buscar venta por código -->
+        <div class="mb-4">
+          <label for="sale_code" class="form-label fw-semibold">
+            <i class="fas fa-barcode me-2 text-primary"></i> Buscar venta por código
+          </label>
+          <div class="input-group">
+            <input type="text" id="sale_code" class="form-control" placeholder="Ingrese código de venta">
+            <button type="button" id="search_sale_btn" class="btn btn-primary">
+              <i class="fas fa-search me-1"></i> Buscar
+            </button>
+          </div>
+          <small id="sale_search_message" class="text-muted ms-1"></small>
+        </div>
+
+        <%= f.hidden_field :sale_id, id: "sale_id" %>
+
+        <!-- Cliente -->
+        <div class="form-group mb-4">
+          <%= f.label :client_name, "<i class='fas fa-user me-2 text-secondary'></i> Cliente".html_safe, class: "fw-semibold" %>
+          <%= f.text_field :client_name, class: "form-control bg-light", readonly: true, id: "client_name" %>
+        </div>
+
+        <!-- Productos -->
+        <div class="card mb-4 shadow-sm border-0 rounded-3">
+          <div class="card-body">
+            <h5 class="text-secondary fw-semibold mb-3">
+              <i class="fas fa-box-open me-2 text-info"></i> Productos para devolución
+            </h5>
+
+            <table class="table table-hover align-middle text-center">
+              <thead class="table-dark text-white">
+                <tr>
+                  <th>Producto</th>
+                  <th>Precio Unitario ($)</th>
+                  <th>Disponible</th>
+                  <th>Cantidad a Devolver</th>
+                  <th>Subtotal ($)</th>
+                </tr>
+              </thead>
+              <tbody id="products_container">
+                <tr>
+                  <td colspan="5" class="text-muted text-center py-3">Busque una venta primero para ver los productos</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="form-group mb-4">
+          <label class="fw-bold">
+            <i class="fas fa-money-bill-wave me-2 text-success"></i> Total a devolver ($)
+          </label>
+          <input type="text" id="total_devolver" class="form-control fs-5 text-success fw-bold bg-light" value="0.00" readonly>
+        </div>
+
+        <!-- Caja y Cajero -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <%= f.label :caja_id, "<i class='fas fa-cash-register me-1'></i> Caja".html_safe, class: "fw-semibold" %>
+            <%= f.collection_select :caja_id, Caja.all, :id, :nombre, { prompt: "Seleccione la caja" }, { class: "form-control" } %>
+          </div>
+          <div class="col-md-6">
+            <%= f.label :cajero_id, "<i class='fas fa-user-tie me-1'></i> Cajero".html_safe, class: "fw-semibold" %>
+            <%= f.collection_select :cajero_id, Cajero.all, :id, :nombre, { prompt: "Seleccione el cajero" }, { class: "form-control" } %>
+          </div>
+        </div>
+
+        <!-- Fecha y comentarios -->
+        <div class="form-group mb-4">
+          <%= f.label :fecha_devolucion, "<i class='fas fa-calendar-alt me-2 text-info'></i> Fecha de Devolución".html_safe, class: "fw-semibold" %>
+          <%= f.datetime_field :fecha_devolucion, class: "form-control" %>
+        </div>
+
+        <div class="form-group mb-4">
+          <%= f.label :comments_devolucion, "<i class='fas fa-comment-dots me-2 text-secondary'></i> Comentarios".html_safe, class: "fw-semibold" %>
+          <%= f.text_area :comments_devolucion, class: "form-control", rows: 3 %>
+        </div>
+
+        <!-- Botones -->
+        <div class="d-flex justify-content-end">
+          <%= link_to "<i class='fas fa-times-circle me-2'></i> Cancelar".html_safe, admin_devoluciones_path, class: "btn btn-outline-secondary me-2" %>
+          <%= f.submit "Procesar Devolución", class: "btn btn-success px-4 fw-semibold" %>
+        </div>
+      <% end %>
     </div>
-
-    <%= f.hidden_field :sale_id, id: "sale_id" %>
-
-    <div class="form-group mb-3">
-      <%= f.label :client_name, "<i class='fas fa-user me-1'></i> Cliente".html_safe %>
-      <%= f.text_field :client_name, class: "form-control", readonly: true, id: "client_name" %>
-    </div>
-
-    <!-- Productos disponibles a devolver -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title text-secondary mb-3">
-          <i class="fas fa-boxes me-2"></i> Productos para devolución
-        </h5>
-        <table class="table table-striped table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th><i class="fas fa-tag me-1"></i> Producto</th>
-              <th><i class="fas fa-dollar-sign me-1"></i> Precio unitario ($)</th>
-              <th><i class="fas fa-layer-group me-1"></i> Cantidad disponible</th>
-              <th><i class="fas fa-clipboard-list me-1"></i> Cantidad a devolver</th>
-              <th><i class="fas fa-calculator me-1"></i> Subtotal ($)</th>
-            </tr>
-          </thead>
-          <tbody id="products_container">
-            <tr>
-              <td colspan="5" class="text-muted text-center">Busque una venta primero para ver los productos</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Total general -->
-    <div class="form-group mb-4">
-      <label class="form-label fw-bold"><i class="fas fa-coins me-1"></i> Total a devolver ($)</label>
-      <input type="text" id="total_devolver" class="form-control fw-bold fs-5 text-success" value="0" readonly>
-    </div>
-
-    <!-- Caja y Cajero -->
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <%= f.label :caja_id, "<i class='fas fa-cash-register me-1'></i> Caja".html_safe %>
-        <%= f.collection_select :caja_id, Caja.all, :id, :nombre, { prompt: "Seleccione la caja" }, { class: "form-control" } %>
-      </div>
-      <div class="col-md-6">
-        <%= f.label :cajero_id, "<i class='fas fa-user-tie me-1'></i> Cajero".html_safe %>
-        <%= f.collection_select :cajero_id, Cajero.all, :id, :nombre, { prompt: "Seleccione el cajero" }, { class: "form-control" } %>
-      </div>
-    </div>
-
-    <div class="form-group mb-3">
-      <%= f.label :fecha_devolucion, "<i class='fas fa-calendar-alt me-1'></i> Fecha de Devolución".html_safe %>
-      <%= f.datetime_field :fecha_devolucion, class: "form-control" %>
-    </div>
-
-    <div class="form-group mb-3">
-      <%= f.label :comments_devolucion, "<i class='fas fa-comment-dots me-1'></i> Comentarios".html_safe %>
-      <%= f.text_area :comments_devolucion, class: "form-control", rows: 3 %>
-    </div>
-
-    <div class="mt-4 d-flex">
-      <%= f.submit "Procesar Devolución", class: "btn btn-success me-2" %>
-      <%= link_to "<i class='fas fa-times-circle me-1'></i> Cancelar".html_safe, admin_devoluciones_path, class: "btn btn-secondary" %>
-    </div>
-  <% end %>
+  </div>
 </div>
 
 <script>
@@ -130,22 +145,23 @@ document.addEventListener("DOMContentLoaded", () => {
       clientNameField.value = data.client_name;
       message.textContent = "Venta encontrada ✅";
 
+      productsContainer.innerHTML = "";
       data.products.forEach(product => {
         const row = document.createElement("tr");
         row.className = "product-row";
         row.dataset.price = product.price || 0;
         row.innerHTML = `
-          <td>${product.name}</td>
+          <td class="fw-medium">${product.name}</td>
           <td>${product.price.toFixed(2)}</td>
           <td>${product.quantity}</td>
           <td>
-            <input type="number" name="devolucion[sale_devolucion_detalle][][cantidad]" 
-                   class="form-control form-control-sm product-cantidad" 
+            <input type="number" name="devolucion[sale_devolucion_detalle][][cantidad]"
+                   class="form-control form-control-sm text-center product-cantidad"
                    min="0" max="${product.quantity}" value="0" />
             <input type="hidden" name="devolucion[sale_devolucion_detalle][][product_id]" value="${product.id}" />
             <input type="hidden" name="devolucion[sale_devolucion_detalle][][precio_unitario]" value="${product.price}" />
           </td>
-          <td class="subtotal">0.00</td>
+          <td class="subtotal fw-bold">0.00</td>
         `;
         productsContainer.appendChild(row);
       });
@@ -158,9 +174,14 @@ document.addEventListener("DOMContentLoaded", () => {
       message.textContent = "Venta no encontrada o sin productos disponibles.";
       clientNameField.value = "";
       saleIdField.value = "";
-      productsContainer.innerHTML = "<tr><td colspan='5' class='text-danger text-center'>No se encontró la venta.</td></tr>";
+      productsContainer.innerHTML = "<tr><td colspan='5' class='text-danger text-center py-3'>No se encontró la venta.</td></tr>";
       totalField.value = "0";
     }
+  });
+
+  // Escuchar cambios si ya hay filas precargadas
+  productsContainer.querySelectorAll(".product-cantidad").forEach(input => {
+    input.addEventListener("input", actualizarTotales);
   });
 });
 </script>
