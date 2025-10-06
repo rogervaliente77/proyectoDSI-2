@@ -1,0 +1,85 @@
+<div class="container mt-5">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 text-gradient fw-bold" 
+        style="background: linear-gradient(90deg,#0d6efd,#6610f2); -webkit-background-clip: text; color: transparent;">
+      <i class="fas fa-clipboard-list me-2"></i> Detalle del Movimiento
+    </h1>
+    <%= link_to "Volver al Historial", admin_product_histories_path, class: "btn btn-outline-primary fw-bold shadow-sm" %>
+  </div>
+
+  <!-- Card principal -->
+  <div class="card shadow-lg rounded-4 border-0">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p><strong>Producto:</strong> <span class="fw-semibold"><%= @product_history.name %></span></p>
+          <p><strong>Código:</strong> <span class="text-monospace text-muted"><%= @product_history.code.presence || "-" %></span></p>
+          <p><strong>Precio:</strong> <span class="text-primary fw-medium"><%= number_to_currency(@product_history.price) %></span></p>
+          <p><strong>% Descuento:</strong> <span class="text-muted"><%= @product_history.discount %> %</span></p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Cantidad:</strong> 
+            <% if @product_history.movement_type.in?(["Ingreso", "Ingreso inicial"]) %>
+              <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= @product_history.quantity %></span>
+            <% else %>
+              <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= @product_history.quantity %></span>
+            <% end %>
+          </p>
+          <p><strong>Stock antes:</strong> <span class="text-secondary"><%= @product_history.stock_before %></span></p>
+          <p><strong>Stock actual:</strong> <span class="fw-bold text-success"><%= @product_history.current_stock %></span></p>
+          <p><strong>Tipo de movimiento:</strong> 
+            <% if @product_history.sale_id.present? %>
+              <span class="badge bg-success"><i class="fas fa-shopping-cart me-1"></i>Venta</span>
+            <% elsif @product_history.devolucion_id.present? %>
+              <span class="badge bg-warning text-dark"><i class="fas fa-undo me-1"></i>Devolución</span>
+            <% else %>
+              <span class="badge bg-secondary"><i class="fas fa-exchange-alt me-1"></i>Ajuste</span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p><strong>Usuario que realizó el movimiento:</strong> <span class="fw-semibold"><%= @product_history.user&.name || @product_history.user&.username || "Sistema" %></span></p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>Fecha del movimiento:</strong> <span class="text-muted"><%= @product_history.created_at.strftime("%d/%m/%Y %H:%M") %></span></p>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex justify-content-end">
+        <%= link_to "Volver al Historial", admin_product_histories_path, class: "btn btn-secondary fw-bold shadow-sm" %>
+        <%= link_to "#", class: "btn btn-primary fw-bold ms-2 shadow-sm", onclick: "window.print()" do %>
+          <i class="fas fa-print me-1"></i> Imprimir
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Estilos adicionales -->
+<style>
+  .text-gradient {
+    background: linear-gradient(90deg,#0d6efd,#6610f2);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.75em;
+    border-radius: 0.5rem;
+  }
+
+  p {
+    margin-bottom: 0.6rem;
+  }
+
+  @media print {
+    .btn { display: none !important; }
+  }
+</style>
