@@ -1,76 +1,83 @@
 <div class="container-fluid py-4">
+  <h1 class="h3 text-dark fw-bold mb-4">📦 Productos devueltos</h1>
 
-  <!-- Encabezado -->
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 text-dark fw-bold mb-0">📦 Productos devueltos</h1>
-  </div>
-
-
-  <!-- Tabla de inventario -->
   <div class="card shadow-sm rounded">
     <table class="table table-hover table-bordered align-middle mb-0">
-      <thead class="table-dark text-white">
+      <thead class="table-dark text-white text-center">
         <tr>
-          <th class="fw-semibold text-uppercase text-center">Código</th>
-          <th class="fw-semibold text-uppercase">Nombre</th>
-          <th class="fw-semibold text-uppercase">Categoría</th>
-          <th class="fw-semibold text-uppercase">Marca</th>
-          <th class="fw-semibold text-uppercase text-center">Precio</th>
-          <th class="fw-semibold text-uppercase text-center">Descuento</th>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Marca</th>
+          <th>Precio</th>
+          <th>Descuento</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
         </tr>
       </thead>
-      <tbody>
-        <% if @returned_products.present? %>
-
-          <% @returned_products.each do |product| %>
-
-            <tr class="align-middle">
-              <td class="text-muted text-center"><%= product.product.code %></td>
-              <td class="fw-semibold"><%= product.product.name %></td>
-              <td><%= product.product.category&.name || "—" %></td>
-              <td><%= product.product.marca&.name || "—" %></td>
+      <tbody id="returned_products_body">
+        <% if @returned_products.any? %>
+          <% @returned_products.each do |rp| %>
+            <tr>
+              <td class="text-center"><%= rp.product.code %></td>
+              <td class="fw-semibold"><%= rp.product.name %></td>
+              <td><%= rp.product.category&.name || "—" %></td>
+              <td><%= rp.product.marca&.name || "—" %></td>
+              <td class="text-center"><%= number_to_currency(rp.unit_price) %></td>
+              <td class="text-center"><%= rp.discount || 0 %>%</td>
               <td class="text-center">
-                <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
-                  <%= number_to_currency(product.unit_price) %>
-                </span>
+                <input type="number"
+                       class="form-control form-control-sm text-center returned-quantity"
+                       value="<%= rp.quantity %>"
+                       readonly>
               </td>
-              <td class="text-center">
-                <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
-                  <%= product.discount || "0" %>%
-                </span>
-              </td>
+              <td class="text-center subtotal"><%= number_to_currency(rp.unit_price * rp.quantity) %></td>
             </tr>
           <% end %>
-
         <% else %>
           <tr>
-            <td colspan="6" class="text-center text-muted py-4">
-              No hay productos disponibles
+            <td colspan="8" class="text-center text-muted py-4">
+              No hay productos devueltos
             </td>
           </tr>
         <% end %>
       </tbody>
+      <% if @returned_products.any? %>
+        <tfoot class="table-light fw-bold">
+          <tr>
+            <td colspan="6" class="text-end">Totales:</td>
+            <td class="text-center" id="total_cantidad"><%= @total_cantidad %></td>
+            <td class="text-center" id="total_valor"><%= number_to_currency(@total_valor) %></td>
+          </tr>
+        </tfoot>
+      <% end %>
     </table>
   </div>
 </div>
 
-<!-- Toasts para stock bajo -->
-
-
-<!-- Activar los toasts con JavaScript (no se cierran automáticamente, solo al hacer clic) -->
+<!-- Opcional: Script para actualizar totales si alguna cantidad cambia dinámicamente -->
 <script>
-  document.addEventListener("turbo:load", function() {
-    document.querySelectorAll('.toast').forEach(function(toastEl) {
-      // Creamos el toast con autohide desactivado
-      const toast = new bootstrap.Toast(toastEl, { autohide: false });
-
-      // Mostramos el toast
-      toast.show();
-
-      // Vinculamos la X al método hide() del toast
-      toastEl.querySelector('.btn-close').addEventListener('click', function() {
-        toast.hide();
+  document.addEventListener("DOMContentLoaded", function() {
+    function actualizarTotales() {
+      let totalCantidad = 0;
+      let totalValor = 0;
+      document.querySelectorAll("#returned_products_body tr").forEach(row => {
+        const qtyInput = row.querySelector(".returned-quantity");
+        if (!qtyInput) return;
+        const qty = parseFloat(qtyInput.value) || 0;
+        const precio = parseFloat(row.querySelector(".subtotal").textContent.replace(/[^0-9.-]+/g,"")) / qty || 0;
+        const subtotal = qty * precio;
+        row.querySelector(".subtotal").textContent = "$" + subtotal.toFixed(2);
+        totalCantidad += qty;
+        totalValor += subtotal;
       });
+      document.getElementById("total_cantidad").textContent = totalCantidad;
+      document.getElementById("total_valor").textContent = "$" + totalValor.toFixed(2);
+    }
+
+    // Escuchar cambios en cantidad si se quiere permitir edición
+    document.querySelectorAll(".returned-quantity").forEach(input => {
+      input.addEventListener("input", actualizarTotales);
     });
   });
 </script>

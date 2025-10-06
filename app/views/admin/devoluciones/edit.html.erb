@@ -58,24 +58,22 @@
                 </tr>
               </thead>
               <tbody id="products_container">
-                <% if @devolucion.sale && @devolucion.sale.product_sales.any? %>
-                  <% @devolucion.sale.product_sales.each do |ps| %>
-                    <% detalle = @devolucion.sale_devolucion_detalle.find { |d| d["product_id"].to_s == ps.id.to_s } %>
-                    <% cantidad = detalle&.dig("cantidad").to_i %>
-                    <tr class="product-row" data-price="<%= ps.unit_price %>">
-                      <td class="fw-medium"><%= ps.product_name %></td>
-                      <td><%= sprintf('%.2f', ps.unit_price) %></td>
-                      <td><%= ps.quantity %></td>
+                <% if @productos.any? %>
+                  <% @productos.each do |p| %>
+                    <tr class="product-row" data-price="<%= p[:precio_unitario] %>">
+                      <td class="fw-medium"><%= p[:product]&.name || "Producto eliminado" %></td>
+                      <td><%= sprintf('%.2f', p[:precio_unitario]) %></td>
+                      <td><%= p[:product]&.quantity || 0 %></td>
                       <td>
                         <input type="number"
-                              name="devolucion[sale_devolucion_detalle][][cantidad]"
-                              class="form-control form-control-sm text-center product-cantidad"
-                              min="0" max="<%= ps.quantity %>"
-                              value="<%= cantidad %>" />
-                        <input type="hidden" name="devolucion[sale_devolucion_detalle][][product_id]" value="<%= ps.id %>" />
-                        <input type="hidden" name="devolucion[sale_devolucion_detalle][][precio_unitario]" value="<%= ps.unit_price %>" />
+                               name="devolucion[sale_devolucion_detalle][][cantidad]"
+                               class="form-control form-control-sm text-center product-cantidad"
+                               min="0" max="<%= p[:product]&.quantity || 0 %>"
+                               value="<%= p[:cantidad] %>" />
+                        <input type="hidden" name="devolucion[sale_devolucion_detalle][][product_id]" value="<%= p[:product]&.id %>" />
+                        <input type="hidden" name="devolucion[sale_devolucion_detalle][][precio_unitario]" value="<%= p[:precio_unitario] %>" />
                       </td>
-                      <td class="subtotal fw-bold"><%= (ps.unit_price * cantidad).round(2) %></td>
+                      <td class="subtotal fw-bold"><%= (p[:cantidad] * p[:precio_unitario]).round(2) %></td>
                     </tr>
                   <% end %>
                 <% else %>

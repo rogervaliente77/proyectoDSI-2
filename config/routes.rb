@@ -106,11 +106,7 @@ Rails.application.routes.draw do
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
-
-    # Ruta para obtener productos disponibles para devolución de una venta específica
     get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
-
-    # 🔹 Nueva ruta: buscar venta por código (para el formulario de devoluciones)
     get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
 
     # Devoluciones
@@ -119,10 +115,14 @@ Rails.application.routes.draw do
         patch :autorizar_devolucion
       end
     end
-    
-    # marcas
+
+    # Marcas y Roles
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
+
+    # 🔹 ProductHistory (Historial de productos)
+    resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
+
   end
 
   
