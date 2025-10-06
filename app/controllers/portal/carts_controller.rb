@@ -1,6 +1,7 @@
 class Portal::CartsController < ApplicationController
   #before_action :ensure_cliente!
-
+   layout "dashboard", only: [:checkout]
+    before_action :set_current_user
   def show
     session[:cart] ||= []
     @cart = session[:cart]
@@ -60,6 +61,27 @@ class Portal::CartsController < ApplicationController
     render partial: "portal/carts/cart", locals: { cart: session[:cart] }
   end
 
+  def checkout
+    session[:cart] ||= []
+    @cart = session[:cart]
+    
+    
+    @cart_items = @cart.map do |item|
+      product = Product.find(item["product_id"])
+      {
+        product: product,
+        quantity: item["quantity"],
+        subtotal: product.price * item["quantity"]
+      }
+    end
+
+    @subtotal = @cart_items.sum { |item| item[:subtotal] }
+    @shipping_cost = 5.00 # ejemplo
+    @total = @subtotal + @shipping_cost
+
+    render layout: "dashboard"
+  end
+
   private
 
   def ensure_cliente!
@@ -68,4 +90,10 @@ class Portal::CartsController < ApplicationController
       render json: { success: false, error: "Solo los clientes pueden usar el carrito." }, status: :forbidden
     end
   end
+
+  
+  
+  def set_current_user
+  @current_user = User.find_by(id: session[:user_id])
+end
 end

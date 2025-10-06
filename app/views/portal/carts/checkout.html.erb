@@ -1,0 +1,162 @@
+<div class="container-fluid bg-light min-vh-100 py-5">
+
+  <div class="container my-5">
+    <h2 class="mb-4 text-center">Finalizar compra</h2>
+
+    <div class="row g-4">
+      <!-- 🛒 Columna izquierda: listado de productos -->
+      <div class="col-lg-8 col-md-7">
+        <div class="card p-4 shadow-sm mb-4">
+          <h5 class="mb-3">Productos en tu carrito</h5>
+          <% @cart_items.each do |item| %>
+            <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+              <% if item[:product].product_images.any? %>
+                <%= image_tag item[:product].product_images.first.image_url, 
+                              class: "img-thumbnail me-3", 
+                              style: "width: 120px; height: 120px;" %>
+              <% else %>
+                <%= image_tag "placeholder.png", class: "img-thumbnail me-3", style: "width: 120px; height: 120px;" %>
+              <% end %>
+              <div class="flex-grow-1">
+                <strong class="fs-5"><%= item[:product].name %></strong><br>
+                Cantidad: <span class="fw-semibold"><%= item[:quantity] %></span><br>
+                <span class="text-success fw-bold fs-6">$<%= '%.2f' % item[:subtotal] %></span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- 💳 Columna derecha: método de envío + resumen de compra -->
+      <div class="col-lg-4 col-md-5">
+
+      
+
+        <div class="card p-4 shadow-sm mb-4">
+          <h5 class="mb-3">Método de envío</h5>
+          
+          <div class="d-flex gap-2 mb-3">
+            <!-- Envío a domicilio -->
+            <div class="flex-fill shipping-option p-2 border rounded text-center" id="home-option">
+              <input type="radio" name="shipping" id="home" value="home" hidden checked>
+              <label for="home" class="mb-0 fw-medium cursor-pointer">Envío a domicilio</label>
+            </div>
+
+            <!-- Recoger en tienda -->
+            <div class="flex-fill shipping-option p-2 border rounded text-center" id="pickup-option">
+              <input type="radio" name="shipping" id="pickup" value="pickup" hidden>
+              <label for="pickup" class="mb-0 fw-medium cursor-pointer">Recoger en tienda</label>
+            </div>
+          </div>
+
+          <!-- Formulario Envío a domicilio -->
+          <div id="home-fields" class="shipping-fields mb-3">
+            <div class="mb-2">
+              <input type="text" class="form-control" placeholder="Departamento">
+            </div>
+            <div class="mb-2">
+              <input type="text" class="form-control" placeholder="Municipio">
+            </div>
+            <div class="mb-2">
+              <input type="text" class="form-control" placeholder="Distrito">
+            </div>
+            <div class="mb-2">
+              <input type="text" class="form-control" placeholder="Dirección exacta">
+            </div>
+          </div>
+
+          <!-- Formulario Recoger en tienda -->
+          <div id="pickup-fields" class="shipping-fields mb-3" style="display: none;">
+            <select class="form-select mb-2">
+              <option value="">Selecciona tienda</option>
+              <option value="san_salvador">San Salvador</option>
+              <option value="santa_ana">Santa Ana</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Resumen de compra -->
+        <div class="card p-4 shadow-sm sticky-top">
+          <h5 class="mb-3">Resumen de compra</h5>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Subtotal:</span>
+            <span>$<%= '%.2f' % @subtotal %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Envío:</span>
+            <span>$<%= '%.2f' % @shipping_cost %></span>
+          </div>
+          <hr>
+
+          <!-- 🎟️ Cupón -->
+          <div class="mb-3">
+            <label for="coupon" class="form-label fw-medium">¿Tienes un cupón?</label>
+            <div class="input-group">
+              <input type="text" id="coupon" class="form-control" placeholder="Ingresa tu código">
+              <button class="btn btn-outline-primary">Aplicar</button>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+            <span>Total:</span>
+            <span class="text-success">$<%= '%.2f' % @total %></span>
+          </div>
+
+          
+
+          <button class="btn btn-success w-100 btn-lg">Realizar pago</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("turbo:load", () => {
+    const homeOption = document.getElementById('home-option');
+    const pickupOption = document.getElementById('pickup-option');
+    const homeFields = document.getElementById('home-fields');
+    const pickupFields = document.getElementById('pickup-fields');
+
+    function selectShipping(option) {
+      if(option === 'home') {
+        // Animación slide down
+        pickupFields.style.display = 'none';
+        homeFields.style.display = 'block';
+        homeFields.style.maxHeight = '1000px';
+        homeOption.classList.add('border-success', 'bg-light');
+        pickupOption.classList.remove('border-success', 'bg-light');
+        document.getElementById('home').checked = true;
+      } else {
+        homeFields.style.display = 'none';
+        pickupFields.style.display = 'block';
+        pickupFields.style.maxHeight = '500px';
+        pickupOption.classList.add('border-success', 'bg-light');
+        homeOption.classList.remove('border-success', 'bg-light');
+        document.getElementById('pickup').checked = true;
+      }
+    }
+
+    // Inicializar estado según radio seleccionado
+    const initialOption = document.getElementById('home').checked ? 'home' : 'pickup';
+    selectShipping(initialOption);
+
+    // Eventos de click
+    homeOption.addEventListener('click', () => selectShipping('home'));
+    pickupOption.addEventListener('click', () => selectShipping('pickup'));
+  });
+</script>
+
+<style>
+  .shipping-option {
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .shipping-option:hover {
+    background-color: #f8f9fa;
+  }
+  .shipping-option.border-success {
+    border-width: 2px !important;
+  }
+</style>

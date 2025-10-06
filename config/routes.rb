@@ -25,6 +25,8 @@ Rails.application.routes.draw do
     get "/users/edit_password", to: "users#edit_password"
 
     root "landing#index"
+    get "checkout", to: "carts#checkout"
+
 
     #Rutas de manejo para el carrito de compras del cliente
     resource :cart, only: [:show] do
