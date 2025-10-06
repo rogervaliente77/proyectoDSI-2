@@ -24,7 +24,7 @@ Rails.application.routes.draw do
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
 
-    root "landing#index"
+    # root "landing#index"
 
     #Rutas de manejo para el carrito de compras del cliente
     resource :cart, only: [:show] do
@@ -127,8 +127,9 @@ Rails.application.routes.draw do
 
     # 🔹 ProductHistory (Historial de productos)
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
-
   end
 
-  
+  get "up", to: "rails/health#show", as: :rails_health_check
+  get 'landing/index', to: 'landing#index', as: 'landing_index'
+  root "landing#index"
 end
