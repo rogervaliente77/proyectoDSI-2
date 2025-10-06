@@ -1,12 +1,48 @@
+# app/controllers/admin/devoluciones_controller.rb
 module Admin
   class DevolucionesController < ApplicationController
     before_action :set_devolucion, only: %i[edit update destroy]
     layout 'dashboard'
 
+    # Listado de devoluciones con filtros por fecha
     def index
       @devoluciones = Devolucion.all.order_by(created_at: :desc)
+
+      #  Filtro por rango de fechas
+      if params[:start_date].present? && params[:end_date].present?
+        start_date = DateTime.parse(params[:start_date]).beginning_of_day
+        end_date   = DateTime.parse(params[:end_date]).end_of_day
+        @devoluciones = @devoluciones.where(:fecha_devolucion.gte => start_date, :fecha_devolucion.lte => end_date)
+      end
     end
 
+    #  Nueva acción: generar reporte PDF de devoluciones
+    def generate_report
+      start_date = params[:start_date].present? ? DateTime.parse(params[:start_date]).beginning_of_day : nil
+      end_date   = params[:end_date].present? ? DateTime.parse(params[:end_date]).end_of_day : nil
+
+      devoluciones = Devolucion.all
+      devoluciones = devoluciones.where(:fecha_devolucion.gte => start_date, :fecha_devolucion.lte => end_date) if start_date && end_date
+
+      pdf = DevolucionesReportPdf.new(devoluciones, start_date, end_date).generate
+
+      send_data pdf,
+                filename: "reporte_devoluciones_#{Time.now.strftime('%Y%m%d')}.pdf",
+                type: "application/pdf",
+                disposition: "inline"
+    end
+
+# Nueva acción: generar PDF de un comprobante individual
+    def generate_pdf
+      @devolucion = Devolucion.find(params[:id])
+      pdf = DevolucionPdf.new(@devolucion).generate
+
+      send_data pdf,
+                filename: "devolucion_#{@devolucion.id}.pdf",
+                type: 'application/pdf',
+                disposition: 'inline'
+    end
+    
     def new
       @devolucion = Devolucion.new
     end
@@ -44,47 +80,38 @@ module Admin
       end
     end
 
+    # Autorizar/desautorizar devolución y generar ReturnedProduct
     def autorizar_devolucion
       @devolucion = Devolucion.find(params[:id])
-    
 
-      # Si se está autorizando (no desautorizando)
       if !@devolucion.is_authorized
-        # Guardamos la fecha de autorización
         @devolucion.authorized_at = Time.current
-    
-        # Por cada producto en el detalle, creamos un registro en ReturnedProduct
+
         @devolucion.sale_devolucion_detalle.each do |detalle|
-          # Saltar productos con cantidad 0 o vacía
           next if detalle["cantidad"].to_f <= 0
-        
           begin
             product = Product.find(BSON::ObjectId.from_string(detalle["product_id"]))
           rescue Mongoid::Errors::DocumentNotFound
             next
           end
-        
-          # Aquí ya puedes crear el ReturnedProduct
+
           ReturnedProduct.create!(
             product: product,
             sale: @devolucion.sale,
             devolucion: @devolucion,
             quantity: detalle["cantidad"].to_i,
             unit_price: detalle["precio_unitario"].to_f,
-            discount: 0,  # si quieres traerlo de otro lado, puedes agregarlo
+            discount: 0,
             returned_at: Time.current
           )
-        end        
+        end
       else
-        # Si se desautoriza, limpiamos la fecha
         @devolucion.authorized_at = nil
       end
-    
-      # Finalmente, actualizamos el estado de autorización
+
       @devolucion.update(is_authorized: !@devolucion.is_authorized, authorized_at: @devolucion.authorized_at)
-    
       redirect_to admin_devoluciones_path, notice: "Devolución actualizada exitosamente", status: :see_other
-    end      
+    end
 
     private
 
