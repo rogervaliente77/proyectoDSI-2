@@ -69,6 +69,7 @@ Rails.application.routes.draw do
 
     # 🔹 Inventario
     get "/productos/inventario", to: "products#inventory", as: :inventory_admin_products
+    get "/productos/devueltos", to: "products#devueltos", as: :admin_returned_products
 
     get "/cajas", to: "cajas#index"
     get "/cajas/new", to: "cajas#new"

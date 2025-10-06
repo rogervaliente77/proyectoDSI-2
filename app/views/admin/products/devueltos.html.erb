@@ -1,0 +1,76 @@
+<div class="container-fluid py-4">
+
+  <!-- Encabezado -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 text-dark fw-bold mb-0">📦 Productos devueltos</h1>
+  </div>
+
+
+  <!-- Tabla de inventario -->
+  <div class="card shadow-sm rounded">
+    <table class="table table-hover table-bordered align-middle mb-0">
+      <thead class="table-dark text-white">
+        <tr>
+          <th class="fw-semibold text-uppercase text-center">Código</th>
+          <th class="fw-semibold text-uppercase">Nombre</th>
+          <th class="fw-semibold text-uppercase">Categoría</th>
+          <th class="fw-semibold text-uppercase">Marca</th>
+          <th class="fw-semibold text-uppercase text-center">Precio</th>
+          <th class="fw-semibold text-uppercase text-center">Descuento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @returned_products.present? %>
+
+          <% @returned_products.each do |product| %>
+
+            <tr class="align-middle">
+              <td class="text-muted text-center"><%= product.product.code %></td>
+              <td class="fw-semibold"><%= product.product.name %></td>
+              <td><%= product.product.category&.name || "—" %></td>
+              <td><%= product.product.marca&.name || "—" %></td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
+                  <%= number_to_currency(product.unit_price) %>
+                </span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
+                  <%= product.discount || "0" %>%
+                </span>
+              </td>
+            </tr>
+          <% end %>
+
+        <% else %>
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              No hay productos disponibles
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Toasts para stock bajo -->
+
+
+<!-- Activar los toasts con JavaScript (no se cierran automáticamente, solo al hacer clic) -->
+<script>
+  document.addEventListener("turbo:load", function() {
+    document.querySelectorAll('.toast').forEach(function(toastEl) {
+      // Creamos el toast con autohide desactivado
+      const toast = new bootstrap.Toast(toastEl, { autohide: false });
+
+      // Mostramos el toast
+      toast.show();
+
+      // Vinculamos la X al método hide() del toast
+      toastEl.querySelector('.btn-close').addEventListener('click', function() {
+        toast.hide();
+      });
+    });
+  });
+</script>

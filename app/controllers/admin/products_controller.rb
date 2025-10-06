@@ -80,6 +80,10 @@ module Admin
       render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price, discount: p.discount } }
     end
 
+    def devueltos
+      @returned_products = ReturnedProduct.all
+    end
+
     private
 
     def set_product

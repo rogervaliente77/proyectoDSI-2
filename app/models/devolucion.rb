@@ -11,6 +11,7 @@ class Devolucion
   field :comments_devolucion, type: String
   field :total_a_devolver, type: Float, default: 0.0
   field :is_authorized, type: Boolean, default: false
+  field :authorized_at, type: DateTime
 
   belongs_to :caja, class_name: "Caja", inverse_of: :sales
   belongs_to :cajero, class_name: "Cajero", inverse_of: :sales
