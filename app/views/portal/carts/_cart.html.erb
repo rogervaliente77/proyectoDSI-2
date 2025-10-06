@@ -1,0 +1,49 @@
+<% if cart.blank? || cart.empty? %>
+  <p class="text-center text-muted mt-3">Tu carrito está vacío</p>
+<% else %>
+  <% total = 0 %>
+
+  <% cart.each do |item| %>
+    <% product = Product.find_by(id: item["product_id"]) %>
+    <% next unless product %>
+
+    <% quantity = item["quantity"].to_i %>
+    <% price = product.discounted_price || product.price %>
+    <% subtotal = price * quantity %>
+    <% total += subtotal %>
+
+    <div class="card mb-3 shadow-sm border-0 rounded-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="mb-1 fw-bold text-dark"><%= product.name %></h6>
+            <p class="text-muted small mb-1">Precio: <%= number_to_currency(price) %></p>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger rounded-circle cart-btn"
+                  data-action="remove" data-id="<%= product.id %>">
+            🗑️
+          </button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-warning btn-sm rounded-circle cart-btn"
+                    data-action="decrease" data-id="<%= product.id %>">−</button>
+
+            <span class="fw-bold"><%= quantity %></span>
+
+            <button type="button" class="btn btn-outline-success btn-sm rounded-circle cart-btn"
+                    data-action="increase" data-id="<%= product.id %>">+</button>
+          </div>
+
+          <p class="fw-bold mb-0 text-success"><%= number_to_currency(subtotal) %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="border-top pt-3 mt-3 text-end">
+    <h5>Total: <span class="text-success"><%= number_to_currency(total) %></span></h5>
+    <button class="btn btn-primary mt-2 w-100 rounded-pill" disabled>Finalizar compra</button>
+  </div>
+<% end %>
