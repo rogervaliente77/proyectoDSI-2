@@ -113,6 +113,11 @@ Rails.application.routes.draw do
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
       member do
         patch :autorizar_devolucion
+        get :generate_pdf
+      end
+
+      collection do
+        get :generate_report
       end
     end
 

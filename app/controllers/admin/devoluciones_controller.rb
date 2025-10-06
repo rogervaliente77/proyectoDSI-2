@@ -1,12 +1,48 @@
+# app/controllers/admin/devoluciones_controller.rb
 module Admin
   class DevolucionesController < ApplicationController
     before_action :set_devolucion, only: %i[edit update destroy]
     layout 'dashboard'
 
+    # Listado de devoluciones con filtros por fecha
     def index
       @devoluciones = Devolucion.all.order_by(created_at: :desc)
+
+      #  Filtro por rango de fechas
+      if params[:start_date].present? && params[:end_date].present?
+        start_date = DateTime.parse(params[:start_date]).beginning_of_day
+        end_date   = DateTime.parse(params[:end_date]).end_of_day
+        @devoluciones = @devoluciones.where(:fecha_devolucion.gte => start_date, :fecha_devolucion.lte => end_date)
+      end
     end
 
+    #  Nueva acción: generar reporte PDF de devoluciones
+    def generate_report
+      start_date = params[:start_date].present? ? DateTime.parse(params[:start_date]).beginning_of_day : nil
+      end_date   = params[:end_date].present? ? DateTime.parse(params[:end_date]).end_of_day : nil
+
+      devoluciones = Devolucion.all
+      devoluciones = devoluciones.where(:fecha_devolucion.gte => start_date, :fecha_devolucion.lte => end_date) if start_date && end_date
+
+      pdf = DevolucionesReportPdf.new(devoluciones, start_date, end_date).generate
+
+      send_data pdf,
+                filename: "reporte_devoluciones_#{Time.now.strftime('%Y%m%d')}.pdf",
+                type: "application/pdf",
+                disposition: "inline"
+    end
+
+# Nueva acción: generar PDF de un comprobante individual
+    def generate_pdf
+      @devolucion = Devolucion.find(params[:id])
+      pdf = DevolucionPdf.new(@devolucion).generate
+
+      send_data pdf,
+                filename: "devolucion_#{@devolucion.id}.pdf",
+                type: 'application/pdf',
+                disposition: 'inline'
+    end
+    
     def new
       @devolucion = Devolucion.new
     end
@@ -91,16 +127,20 @@ module Admin
       end
     end
 
+    # Autorizar/desautorizar devolución y generar ReturnedProduct
     def autorizar_devolucion
       @devolucion = Devolucion.find(params[:id])
 
       if !@devolucion.is_authorized
         @devolucion.authorized_at = Time.current
 
-        (@devolucion.sale_devolucion_detalle || []).each do |detalle|
+        @devolucion.sale_devolucion_detalle.each do |detalle|
           next if detalle["cantidad"].to_f <= 0
-          product = Product.find_by(id: detalle["product_id"])
-          next unless product
+          begin
+            product = Product.find(BSON::ObjectId.from_string(detalle["product_id"]))
+          rescue Mongoid::Errors::DocumentNotFound
+            next
+          end
 
           ReturnedProduct.create!(
             product: product,
