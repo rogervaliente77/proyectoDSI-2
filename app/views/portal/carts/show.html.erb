@@ -1,0 +1,38 @@
+<div class="container-fluid bg-light min-vh-100 py-5">
+
+  <!-- Cabecera Profesional -->
+  <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between mb-4 p-4 rounded" style="background-color: #cfe2ff; gap: 1.5rem;">
+    
+    <!-- Título y descripción -->
+    <div class="flex-grow-1 text-center">
+      <h1 class="h2 text-dark fw-bold mb-2">Catálogo de Productos</h1>
+      <p class="text-muted mb-0 fs-6">Descubra nuestras mejores opciones y adquiera sus productos.</p>
+    </div>
+
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
+
+    <h1>Mi Carrito</h1>
+
+    <% if @cart.present? %>
+    <ul>
+        <% @cart.each do |product_id| %>
+        <% product = Product.find_by(id: product_id) %>
+        <% if product %>
+            <li>
+            <%= product.name %> - $<%= product.price %>
+            <%= button_to "Eliminar", portal_cart_remove_path(product.id), 
+                            method: :delete, class: "btn btn-danger btn-sm" %>
+            </li>
+        <% end %>
+        <% end %>
+    </ul>
+    <% else %>
+    <p>Tu carrito está vacío 🛒</p>
+    <% end %>
+</div>

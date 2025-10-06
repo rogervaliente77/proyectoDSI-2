@@ -23,6 +23,23 @@ Rails.application.routes.draw do
 
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
+
+    root "landing#index"
+
+    #Rutas de manejo para el carrito de compras del cliente
+    resource :cart, only: [:show] do
+      post 'add/:id', to: 'carts#add', as: 'add'
+      post 'increase/:id', to: 'carts#increase', as: 'increase'
+      post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
+      delete 'remove/:id', to: 'carts#remove', as: 'remove'
+    end
+
+
+    #get 'cart', to: 'carts#show', as: :cart
+    #post 'cart/add/:id', to: 'carts#add', as: :add_cart
+    #post 'increase/:product_id', to: 'carts#increase', as: 'increase'
+    #post 'decrease/:product_id', to: 'carts#decrease', as: 'decrease'
+    #delete 'remove/:product_id', to: 'carts#remove', as: 'remove'
   end
 
   # Namespace para Admin
@@ -89,11 +106,7 @@ Rails.application.routes.draw do
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
-
-    # Ruta para obtener productos disponibles para devolución de una venta específica
     get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
-
-    # 🔹 Nueva ruta: buscar venta por código (para el formulario de devoluciones)
     get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
 
     # Devoluciones
@@ -108,13 +121,14 @@ Rails.application.routes.draw do
       end
     end
 
-    # marcas
+    # Marcas y Roles
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
+
+    # 🔹 ProductHistory (Historial de productos)
+    resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
+
   end
 
-  resources :pruebas
-  get "up", to: "rails/health#show", as: :rails_health_check
-  get 'landing/index', to: 'landing#index', as: 'landing_index'
-  root "landing#index"
+  
 end

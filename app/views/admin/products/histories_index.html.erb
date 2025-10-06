@@ -1,0 +1,135 @@
+<div class="container-fluid mt-5">
+  <!-- 🔹 Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 text-gradient fw-bold" style="background: linear-gradient(90deg,#0d6efd,#6610f2); -webkit-background-clip: text; color: transparent;">
+      <i class="fas fa-warehouse me-2"></i> Movimiento de Inventario
+    </h1>
+    <%= link_to "Volver a Productos", admin_productos_path, class: "btn btn-outline-primary fw-bold shadow-sm" %>
+  </div>
+
+  <!-- 🔹 Botones de imprimir y exportar -->
+  <div class="d-flex justify-content-end mb-3 no-print">
+    <button class="btn btn-primary me-2" onclick="window.print()">
+      <i class="fas fa-print me-1"></i> Imprimir
+    </button>
+    <button class="btn btn-success" id="exportExcel">
+      <i class="fas fa-file-excel me-1"></i> Exportar a Excel
+    </button>
+  </div>
+
+  <!-- 🔹 Card principal -->
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover table-borderless align-middle mb-0" style="min-width: 1200px;">
+          <thead class="bg-gradient text-white text-uppercase small">
+            <tr>
+              <th>Producto</th>
+              <th>Código</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>% Descuento</th>
+              <th>Stock antes</th>
+              <th>Stock actual</th>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @product_histories.each do |history| %>
+              <tr class="align-middle" style="transition: background 0.2s, transform 0.2s;">
+                <td class="fw-semibold"><%= history.name %></td>
+                <td class="text-monospace text-muted"><%= history.code.presence || '-' %></td>
+                <td>
+                  <% if history.movement_type == "Ingreso" || history.movement_type == "Ingreso inicial" %>
+                    <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= history.quantity %></span>
+                  <% else %>
+                    <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= history.quantity %></span>
+                  <% end %>
+                </td>
+                <td><span class="fw-medium text-primary"><%= number_to_currency(history.price) %></span></td>
+                <td><span class="text-muted"><%= history.discount %> %</span></td>
+                <td><span class="text-secondary"><%= history.stock_before %></span></td>
+                <td><span class="fw-bold text-success"><%= history.current_stock %></span></td>
+                <td>
+                  <% if history.sale_id.present? %>
+                    <span class="badge bg-success"><i class="fas fa-shopping-cart me-1"></i>Venta</span>
+                  <% elsif history.devolucion_id.present? %>
+                    <span class="badge bg-warning text-dark"><i class="fas fa-undo me-1"></i>Devolución</span>
+                  <% else %>
+                    <span class="badge bg-secondary"><i class="fas fa-exchange-alt me-1"></i>Ajuste</span>
+                  <% end %>
+                </td>
+                <td><span class="text-muted"><%= history.created_at.strftime("%d/%m/%Y %H:%M") %></span></td>
+                <td class="text-center no-print">
+                  <%= link_to admin_product_history_path(history), class: "btn btn-sm btn-info rounded-circle shadow-sm", title: "Ver detalle" do %>
+                    <i class="fas fa-eye"></i>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 Estilos adicionales -->
+<style>
+  table.table-hover tbody tr:hover {
+    background-color: #e9f2ff;
+    transform: translateX(2px);
+  }
+
+  thead.bg-gradient {
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
+  }
+
+  .badge {
+    font-size: 0.85rem;
+    padding: 0.45em 0.7em;
+    border-radius: 0.5rem;
+  }
+
+  td.text-monospace {
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  .card {
+    border: 1px solid #e3e6f0;
+  }
+
+  /* 🔹 Estilos para impresión tamaño carta vertical */
+  @media print {
+    .btn, .no-print { display: none !important; }
+    .shadow-sm, .shadow-lg { box-shadow: none !important; }
+    .card { border: none !important; }
+    .container-fluid { padding: 0 !important; width: 100%; }
+    table {
+      width: 100% !important;
+      font-size: 12px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+    }
+    tr { page-break-inside: avoid; }
+    @page {
+      size: letter portrait;
+      margin: 1cm;
+    }
+  }
+</style>
+
+<!-- 🔹 Script para exportar Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+  document.getElementById("exportExcel").addEventListener("click", function() {
+    var table = document.querySelector("table");
+    var wb = XLSX.utils.table_to_book(table, {sheet:"Movimiento de Inventario"});
+    XLSX.writeFile(wb, "movimiento_inventario.xlsx");
+  });
+</script>
