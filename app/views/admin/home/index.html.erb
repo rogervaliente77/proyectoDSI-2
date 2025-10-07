@@ -38,6 +38,32 @@
                     <% elsif flash[:alert] %>
                     <div class="alert alert-danger"><%= flash[:alert] %></div>
                     <% end %>
+
+                
+                    <%# TOAST DE DEVOLUCIONES PENDIENTES %>
+                    <% if @pending_devoluciones_count.to_i > 0 %>
+                      <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+                        <div id="pendingDevolucionesToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                          <div class="d-flex">
+                            <div class="toast-body">
+                              Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
+
+                    <script>
+                      document.addEventListener("DOMContentLoaded", function() {
+                        var toastEl = document.getElementById('pendingDevolucionesToast');
+                        if(toastEl){
+                          var toast = new bootstrap.Toast(toastEl, { delay: 5000 }); // 5 segundos
+                          toast.show();
+                        }
+                      });
+                    </script>
+                    
                                         
                     <h1>Bienvenido al admin home</h1>
 
