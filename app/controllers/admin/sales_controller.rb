@@ -3,6 +3,9 @@ module Admin
   class SalesController < Admin::ApplicationController
     layout 'dashboard'
 
+     # PD1-42: alerta de devoluciones pendientes
+    before_action :check_pending_devoluciones
+
     def index
       @sales = Sale.all
     
@@ -107,5 +110,15 @@ module Admin
         product_sales_attributes: [:product_id, :quantity, :unit_price, :discount]
       )
     end
+    
+    # PD1-42: verificar devoluciones pendientes
+    def check_pending_devoluciones
+      if current_user && current_user.role && ["admin", "super_admin"].include?(current_user.role.name)
+        @pending_devoluciones_count = Devolucion.where(is_authorized: false).count
+      else
+        @pending_devoluciones_count = 0
+      end
+    end
+
   end
 end

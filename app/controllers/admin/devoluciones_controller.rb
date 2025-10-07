@@ -1,6 +1,7 @@
 module Admin
   class DevolucionesController < ApplicationController
     before_action :set_devolucion, only: %i[edit update destroy]
+    before_action :check_pending_devoluciones
     layout 'dashboard'
 
     def index
@@ -63,5 +64,15 @@ module Admin
         sale_devolucion_detalle: [:product_id, :cantidad, :precio_unitario]
       )
     end
+
+    #PD1-42
+    def check_pending_devoluciones
+      if current_user && current_user.role && ["admin", "super_admin"].include?(current_user.role.name)
+        @pending_devoluciones_count = Devolucion.where(is_authorized: false).count
+      else
+        @pending_devoluciones_count = 0
+      end
+    end
+
   end
 end
