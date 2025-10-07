@@ -1,14 +1,12 @@
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background-color: #2C3E50;">
 
   <!-- Sidebar - Brand -->
-  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" %>
+  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
     <a class="sidebar-brand d-flex align-items-center justify-content-center py-3" href="<%= admin_home_path %>" data-turbo="false">
       <div class="sidebar-brand-icon d-flex align-items-center justify-content-center" 
            style="width: 70px; height: 70px; background-color: #FFFFFF; border-radius: 50%; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
         <img src="https://i.ibb.co/B2QsNGLm/20250913-1732-Logo-Herramientas-Ferre-Pro-remix-01k52pmwf5ewavwk0cjb9g6k1z-1.png"
-             alt="Logo" 
-             class="img-fluid"
-             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+             alt="Logo" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;">
       </div>
       <div class="sidebar-brand-text mx-2 text-white" style="font-size: 0.9rem;">Admin</div>
     </a>
@@ -17,9 +15,7 @@
       <div class="sidebar-brand-icon d-flex align-items-center justify-content-center" 
            style="width: 70px; height: 70px; background-color: #FFFFFF; border-radius: 50%; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
         <img src="https://i.ibb.co/B2QsNGLm/20250913-1732-Logo-Herramientas-Ferre-Pro-remix-01k52pmwf5ewavwk0cjb9g6k1z-1.png"
-             alt="Logo" 
-             class="img-fluid"
-             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+             alt="Logo" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;">
       </div>
       <div class="sidebar-brand-text mx-2 text-white" style="font-size: 0.9rem;">Portal de cliente</div>
     </a>
@@ -29,7 +25,7 @@
 
   <!-- Nav Item - Dashboard -->
   <li class="nav-item active">
-    <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" %>
+    <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
       <%= link_to admin_home_path, data: { turbo: false }, class: "nav-link" do %>
         <i class="fas fa-fw fa-tachometer-alt"></i>
         <span>Dashboard</span>
@@ -56,7 +52,7 @@
     <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
       <div class="bg-white py-2 collapse-inner rounded">
         <h6 class="collapse-header">Custom Components:</h6>
-        <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" %>
+        <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
           <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
         <% else %>
           <a class="collapse-item" href="<%= portal_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
@@ -65,7 +61,7 @@
     </div>
   </li>
 
-  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" %>
+  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
     <!-- Productos -->
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProductos"
@@ -80,6 +76,7 @@
           <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
           <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias</a>
           <a class="collapse-item" href="<%= admin_inventory_admin_products_path %>" data-turbo="false">Inventario</a>
+          <a class="collapse-item" href="<%= admin_product_histories_path %>" data-turbo="false">Movimientos de Inventario</a>
         </div>
       </div>
     </li>
@@ -121,7 +118,7 @@
   <% end %>
 
   <!-- Cajas y Cajeros -->
-  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" %>
+  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
          aria-expanded="true" aria-controls="collapseCajas">
@@ -154,7 +151,7 @@
   <% end %>
 
   <!-- Ventas -->
-  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" %>
+  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales"
          aria-expanded="true" aria-controls="collapseSales">
@@ -171,8 +168,8 @@
     </li>
   <% end %>
 
-    <!-- Devoluciones -->
-  <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" %>
+  <!-- Devoluciones -->
+  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDevoluciones"
          aria-expanded="true" aria-controls="collapseDevoluciones">
@@ -184,12 +181,11 @@
           <h6 class="collapse-header">Gestión de Devoluciones:</h6>
           <a class="collapse-item" href="<%= admin_devoluciones_path %>" data-turbo="false">Ver Devoluciones</a>
           <a class="collapse-item" href="<%= new_admin_devolucione_path %>" data-turbo="false">Crear Nueva Devolución</a>
+          <a class="collapse-item" href="<%= admin_admin_returned_products_path %>" data-turbo="false">Productos devueltos</a>
         </div>
       </div>
     </li>
   <% end %>
-
-
 
   <hr class="sidebar-divider d-none d-md-block">
 

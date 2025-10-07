@@ -87,7 +87,7 @@ module Admin
           client_name: sale.client_name,
           products: sale.products_available_for_return.map do |ps|
             {
-              id: ps.id.to_s,
+              id: ps.product_id.to_s,
               name: ps.product_name,
               quantity: ps.quantity,
               price: ps.unit_price - (ps.discount || 0) # precio unitario con descuento

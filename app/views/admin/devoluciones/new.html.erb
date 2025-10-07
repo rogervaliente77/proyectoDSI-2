@@ -86,8 +86,10 @@
     </div>
 
     <div class="mt-4 d-flex">
-      <%= f.submit "Procesar Devolución", class: "btn btn-success me-2" %>
-      <%= link_to "<i class='fas fa-times-circle me-1'></i> Cancelar".html_safe, admin_devoluciones_path, class: "btn btn-secondary" %>
+      <% if @current_user.role.name == "cajero"%>
+        <%= f.submit "Procesar Devolución", class: "btn btn-success me-2" %>
+      <% end %>
+      <%= link_to "Cancelar", admin_devoluciones_path, class: "btn btn-secondary" %>
     </div>
   <% end %>
 </div>

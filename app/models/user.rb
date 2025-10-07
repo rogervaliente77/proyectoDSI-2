@@ -15,6 +15,7 @@ class User
   field :session_token_id, type: String
   field :otp_code,         type: Integer
   field :is_admin,         type: Mongoid::Boolean, default: false
+
   # field :role,             type: String, default: "cliente"
 
   # Relacionamientos (ajústalos a tus modelos Mongoid)
