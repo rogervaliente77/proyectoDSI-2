@@ -1,19 +1,16 @@
 <div class="container-fluid bg-light min-vh-100 py-5">
-
   <div class="container my-5">
     <h2 class="mb-4 text-center">Finalizar compra</h2>
 
     <div class="row g-4">
-      <!-- 🛒 Columna izquierda: listado de productos -->
+      <!-- Columna izquierda: listado de productos -->
       <div class="col-lg-8 col-md-7">
         <div class="card p-4 shadow-sm mb-4">
           <h5 class="mb-3">Productos en tu carrito</h5>
           <% @cart_items.each do |item| %>
             <div class="d-flex align-items-center mb-3 border-bottom pb-2">
               <% if item[:product].product_images.any? %>
-                <%= image_tag item[:product].product_images.first.image_url, 
-                              class: "img-thumbnail me-3", 
-                              style: "width: 120px; height: 120px;" %>
+                <%= image_tag item[:product].product_images.first.image_url, class: "img-thumbnail me-3", style: "width: 120px; height: 120px;" %>
               <% else %>
                 <%= image_tag "placeholder.png", class: "img-thumbnail me-3", style: "width: 120px; height: 120px;" %>
               <% end %>
@@ -27,75 +24,43 @@
         </div>
       </div>
 
-      <!-- 💳 Columna derecha: método de envío + resumen de compra -->
+      <!-- Columna derecha: método de envío + resumen de compra -->
       <div class="col-lg-4 col-md-5">
-
-      
-
         <div class="card p-4 shadow-sm mb-4">
           <h5 class="mb-3">Método de envío</h5>
-          
-          <div class="d-flex gap-2 mb-3">
-            <!-- Envío a domicilio -->
-            <div class="flex-fill shipping-option p-2 border rounded text-center" id="home-option">
-              <input type="radio" name="shipping" id="home" value="home" hidden checked>
-              <label for="home" class="mb-0 fw-medium cursor-pointer">Envío a domicilio</label>
-            </div>
 
-            <!-- Recoger en tienda -->
-            <div class="flex-fill shipping-option p-2 border rounded text-center" id="pickup-option">
-              <input type="radio" name="shipping" id="pickup" value="pickup" hidden>
-              <label for="pickup" class="mb-0 fw-medium cursor-pointer">Recoger en tienda</label>
-            </div>
+          <!-- Recoger en tienda -->
+          <div class="p-2 border rounded text-center mb-2">
+            <input type="radio" name="shipping" id="pickup" value="pickup" hidden checked>
+            <label for="pickup" class="mb-0 fw-medium cursor-pointer">Recoger en tienda</label>
           </div>
+          <p class="text-muted mt-2">El pago se realizará al momento de recoger el producto.</p>
 
-          <!-- Formulario Envío a domicilio -->
-          <div id="home-fields" class="shipping-fields mb-3">
-            <div class="mb-2">
-              <input type="text" class="form-control" placeholder="Departamento">
-            </div>
-            <div class="mb-2">
-              <input type="text" class="form-control" placeholder="Municipio">
-            </div>
-            <div class="mb-2">
-              <input type="text" class="form-control" placeholder="Distrito">
-            </div>
-            <div class="mb-2">
-              <input type="text" class="form-control" placeholder="Dirección exacta">
-            </div>
-          </div>
-
-          <!-- Formulario Recoger en tienda -->
-          <div id="pickup-fields" class="shipping-fields mb-3" style="display: none;">
-            <select class="form-select mb-2">
+          <!-- Selección de tienda -->
+          <div class="mb-3">
+            <select class="form-select">
               <option value="">Selecciona tienda</option>
               <option value="san_salvador">San Salvador</option>
               <option value="santa_ana">Santa Ana</option>
             </select>
           </div>
-
         </div>
 
         <!-- Resumen de compra -->
-        <div class="card p-4 shadow-sm sticky-top">
+        <div class="card p-4 shadow-sm mb-4">
           <h5 class="mb-3">Resumen de compra</h5>
           <div class="d-flex justify-content-between mb-2">
             <span>Subtotal:</span>
             <span>$<%= '%.2f' % @subtotal %></span>
           </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span>Envío:</span>
-            <span>$<%= '%.2f' % @shipping_cost %></span>
-          </div>
           <hr>
 
-          <!-- 🎟️ Cupón -->
-          <div class="mb-3">
+          <!-- 🎟️ Cupón --> 
+          <div class="mb-3"> 
             <label for="coupon" class="form-label fw-medium">¿Tienes un cupón?</label>
-            <div class="input-group">
-              <input type="text" id="coupon" class="form-control" placeholder="Ingresa tu código">
-              <button class="btn btn-outline-primary">Aplicar</button>
-            </div>
+            <div class="input-group"> <input type="text" id="coupon" class="form-control" placeholder="Ingresa tu código"> 
+                <button class="btn btn-outline-primary">Aplicar</button> 
+            </div> 
           </div>
           
           <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
@@ -103,9 +68,13 @@
             <span class="text-success">$<%= '%.2f' % @total %></span>
           </div>
 
-          
-
-          <button class="btn btn-success w-100 btn-lg">Realizar pago</button>
+          <%= form_with url: portal_create_purchase_portal_carts_path, method: :post, local: true do %>
+            <div class="mt-4 text-center">
+              <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-check-circle"></i> Confirmar compra
+              </button>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>

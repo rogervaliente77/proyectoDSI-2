@@ -1,0 +1,26 @@
+<h1>Mis Compras</h1>
+
+<% if @purchases.any? %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Fecha</th>
+        <th>Total</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @purchases.each do |sale| %>
+        <tr>
+          <td><%= sale.code %></td>
+          <td><%= sale.sold_at.strftime("%d/%m/%Y %H:%M") %></td>
+          <td>$<%= '%.2f' % sale.total_amount %></td>
+          <td><%= sale.status %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>No has realizado compras todavía.</p>
+<% end %>
