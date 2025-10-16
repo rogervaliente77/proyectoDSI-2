@@ -11,6 +11,7 @@ class Product
   field :discount,         type: Integer, default: 0
   field :offer_type,       type: String # "descuento", "2x1", "mayoreo"
   field :offer_expires_at, type: DateTime
+  field :wholesale_quantity, type: Integer
 
   # -------- RELACIONES --------
   has_many :product_sales, dependent: :destroy

@@ -31,13 +31,17 @@
       <div class="col-md-4">
         <label class="form-label fw-bold">Tipo de oferta</label>
         <%= form.select :offer_type,
-          options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["Mayoreo", "mayoreo"]], @product.offer_type),
+          options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], @product.offer_type),
           { include_blank: "Selecciona tipo de oferta" },
           class: "form-select" %>
       </div>
       <div class="col-md-3">
         <label class="form-label fw-bold">Fecha de expiración</label>
         <%= form.date_field :offer_expires_at, class: "form-control" %>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Cantidad mayoreo</label>
+        <%= form.number_field :wholesale_quantity, min: 0, max: 100, step: 1, class: "form-control" %>
       </div>
     </div>
 

@@ -52,7 +52,7 @@
       <!-- Filtro de ofertas -->
       <div class="col-12 col-md-2">
         <label class="form-label small text-secondary"><i class="fas fa-tags me-1"></i> Oferta</label>
-        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-md filter-select" %>
+        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-md filter-select" %>
       </div>
 
       <!-- Botones -->
@@ -117,13 +117,20 @@
             <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
 
             <!-- Precio y descuento -->
+            <% if product&.discount&.to_i > 0 && product&.offer_type&.present? && product&.offer_type == "mayoreo" %>
+              <p class="text small"><strong>Precio mayoreo a partir de <%= product.wholesale_quantity %></strong></p>
+            <%end%>
+
             <p class="mb-2">
               <% if product.discount.to_i > 0 %>
-                <span class="text-muted text-decoration-line-through">
-                  <%= number_to_currency(product.price) %>
-                </span>
-                <span class="badge bg-success ms-2"><%= product.discount %>% OFF</span>
-                <br>
+                <% if !product.offer_type == "2x1" ||  !product.offer_type == "3x1"%>
+                  <span class="text-muted text-decoration-line-through">
+                    <%= number_to_currency(product.price) %>
+                  </span>
+                  
+                  <span class="badge bg-success ms-2"><%= product.discount %>% OFF</span>
+                  <br>
+                <%end%>
                 <span class="fw-bold text-success fs-5">
                   <%= number_to_currency(product.discounted_price.round(2)) %>
                 </span>
