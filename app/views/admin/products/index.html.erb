@@ -110,8 +110,10 @@
             <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
             <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
 
-            <% if product&.discount&.to_i > 0 && product&.offer_type == "mayoreo" %>
-              <p class="small mb-1"><strong>Precio mayoreo a partir de <%= product.wholesale_quantity %></strong></p>
+            <% if product&.offer_type == "mayoreo" && product.discount.to_f > 0 %>
+              <p class="small mb-1">
+                <strong>Precio mayoreo a partir de <%= product.wholesale_quantity %></strong>
+              </p>
             <% end %>
 
             <p class="mb-2">

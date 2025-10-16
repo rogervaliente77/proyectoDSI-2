@@ -102,9 +102,9 @@
                   <td><%= index + 1 %></td>
                   <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
                   <td><strong><%= sale&.code %></strong></td>
-                  <td><%= sale.client_name %></td>
-                  <td><%= sale.caja.nombre %></td>
-                  <td><%= sale.cajero.nombre %></td>
+                  <td><%= sale.cajero&.nombre || "Sin cajero" %></td>
+                  <td><%= sale.caja&.nombre || "Sin caja" %></td>
+                  <td><%= sale.client_name || "Sin cliente" %></td>
                   <td>$<%= sale.total_amount || "0.00" %></td>
                   <td class="text-center">
                     <% if sale&.devoluciones.any? %>
