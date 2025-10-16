@@ -1,83 +1,102 @@
 <!-- app/views/admin/products/_form_fields.html.erb -->
-<!-- Datos básicos -->
-<div class="row mb-3">
-  <div class="col-sm-4">
-    <%= form.input :name, required: true, input_html: { class: "form-control" } %>
-  </div>
-  <div class="col-sm-2">
-    <%= form.input :quantity, required: true, input_html: { class: "form-control" } %>
-  </div>
-  <div class="col-sm-2">
-    <%= form.input :price, required: true, input_html: { class: "form-control" } %>
-  </div>
-  <div class="col-sm-2">
-  <%= form.label :discount, "Descuento (%)", class: "form-label" %>
-  <div class="input-group">
-    <%= form.number_field :discount, min: 0, max: 100, step: 1, class: "form-control" %>
-    <span class="input-group-text">%</span>
-  </div>
-</div>
 
-</div>
-
-<div class="row mb-3">
-  <div class="col">
-    <%= form.input :description, as: :text, required: true, input_html: { class: "form-control", rows: 2 } %>
+<!-- Información del producto -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-primary text-white">
+    Información del producto
   </div>
-</div>
-
-<div class="row mb-3">
-  <div class="col">
-    <%= form.input :category_id,
-      collection: Category.all.map { |c| [c.name, c.id] },
-      include_blank: "Selecciona una categoría",
-      input_html: { class: "form-select" } %>
-  </div>
-</div>
-
-<div class="row mb-3"> 
-  <div class="col">
-    <%= form.input :marca_id,
-      collection: Marca.all.map { |m| [m.name, m.id] },
-      include_blank: "Selecciona una marca",
-      input_html: { class: "form-select" } %>
-  </div>
-</div>
-
-<!-- Imágenes múltiples -->
-<h5 class="mt-4">Imágenes del producto</h5>
-<div id="product-images-container">
-  <%= form.simple_fields_for :product_images do |img_form| %>
-    <div class="row mb-2 image-item">
-      <div class="col-sm-4">
-        <%= img_form.input :title, input_html: { class: "form-control" } %>
+  <div class="card-body">
+    <!-- Fila 1: Nombre, Cantidad, Precio -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <%= form.input :name, required: true, label: "Nombre del producto", input_html: { class: "form-control" } %>
       </div>
-      <div class="col-sm-4">
-        <%= img_form.input :image_url, input_html: { class: "form-control" } %>
-        <% if img_form.object.image_url.present? %>
-          <%= image_tag(img_form.object.image_url, class: "img-fluid mt-1", style: "max-height:100px; object-fit:cover;") %>
-        <% end %>
+      <div class="col-md-3">
+        <%= form.input :quantity, required: true, label: "Cantidad", input_html: { class: "form-control" } %>
       </div>
-      <div class="col-sm-2">
-        <%= img_form.input :image_index, 
-              as: :integer,
-              error: false,
-              input_html: { 
-                class: "form-control", 
-                min: 0, 
-                step: 1, 
-                oninput: "this.value=this.value.replace(/[^0-9]/g,'');" 
-              } %>
-      </div>
-      <div class="col-sm-2 d-flex align-items-end">
-        <%= img_form.hidden_field :_destroy %>
-        <button type="button" class="btn btn-danger btn-sm remove-image">Eliminar</button>
+      <div class="col-md-3">
+        <%= form.input :price, required: true, label: "Precio ($)", input_html: { class: "form-control" } %>
       </div>
     </div>
-  <% end %>
+
+    <!-- Fila 2: Descuento, Tipo de Oferta, Fecha de Expiración -->
+    <div class="row g-3 mb-3 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label fw-bold">Descuento (%)</label>
+        <div class="input-group">
+          <%= form.number_field :discount, min: 0, max: 100, step: 1, class: "form-control" %>
+          <span class="input-group-text">%</span>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-bold">Tipo de oferta</label>
+        <%= form.select :offer_type,
+          options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["Mayoreo", "mayoreo"]], @product.offer_type),
+          { include_blank: "Selecciona tipo de oferta" },
+          class: "form-select" %>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold">Fecha de expiración</label>
+        <%= form.date_field :offer_expires_at, class: "form-control" %>
+      </div>
+    </div>
+
+    <!-- Fila 3: Categoría y Marca -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <%= form.input :category_id,
+          collection: Category.all.map { |c| [c.name, c.id] },
+          include_blank: "Selecciona categoría",
+          label: "Categoría",
+          input_html: { class: "form-select" } %>
+      </div>
+      <div class="col-md-6">
+        <%= form.input :marca_id,
+          collection: Marca.all.map { |m| [m.name, m.id] },
+          include_blank: "Selecciona marca",
+          label: "Marca",
+          input_html: { class: "form-select" } %>
+      </div>
+    </div>
+
+    <!-- Fila 4: Descripción -->
+    <div class="row g-3 mb-3">
+      <div class="col">
+        <%= form.input :description, as: :text, required: true, label: "Descripción", input_html: { class: "form-control", rows: 4 } %>
+      </div>
+    </div>
+  </div>
 </div>
 
-<button type="button" class="btn btn-secondary btn-sm mb-3" id="add-image">Agregar Imagen</button>
+<!-- Imágenes del producto -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-header bg-secondary text-white">
+    Imágenes del producto
+  </div>
+  <div class="card-body">
+    <div class="row g-3" id="product-images-container">
+      <%= form.simple_fields_for :product_images do |img_form| %>
+        <div class="col-md-4 image-item">
+          <div class="card h-100">
+            <div class="card-body d-flex flex-column">
+              <%= img_form.input :title, label: "Título", input_html: { class: "form-control mb-2" } %>
+              <%= img_form.input :image_url, label: "URL de la imagen", input_html: { class: "form-control mb-2" } %>
+              <% if img_form.object.image_url.present? %>
+                <div class="text-center mb-2">
+                  <%= image_tag(img_form.object.image_url, class: "img-fluid", style: "max-height:150px; object-fit:cover;") %>
+                </div>
+              <% end %>
+              <%= img_form.input :image_index, label: "Orden", as: :integer, input_html: { class: "form-control mb-2", min: 0, step: 1 } %>
+              <%= img_form.hidden_field :_destroy %>
+              <button type="button" class="btn btn-danger btn-sm mt-auto remove-image">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add-image">Agregar Imagen</button>
+  </div>
+</div>
 
 <!-- Script para agregar/eliminar imágenes dinámicamente -->
 <script>
@@ -88,20 +107,16 @@ document.addEventListener("DOMContentLoaded", function() {
   addBtn.addEventListener("click", function() {
     const index = container.querySelectorAll(".image-item").length;
     const newItem = document.createElement("div");
-    newItem.classList.add("row", "mb-2", "image-item");
+    newItem.classList.add("col-md-4", "image-item");
     newItem.innerHTML = `
-      <div class="col-sm-4">
-        <input class="form-control" name="product[product_images_attributes][${index}][title]" type="text" placeholder="Título de la imagen">
-      </div>
-      <div class="col-sm-4">
-        <input class="form-control" name="product[product_images_attributes][${index}][image_url]" type="text" placeholder="URL de la imagen">
-      </div>
-      <div class="col-sm-2">
-        <input class="form-control" name="product[product_images_attributes][${index}][image_index]" type="number" placeholder="Orden">
-      </div>
-      <div class="col-sm-2 d-flex align-items-end">
-        <input type="hidden" name="product[product_images_attributes][${index}][_destroy]" value="false">
-        <button type="button" class="btn btn-danger btn-sm remove-image">Eliminar</button>
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column">
+          <input class="form-control mb-2" name="product[product_images_attributes][${index}][title]" type="text" placeholder="Título">
+          <input class="form-control mb-2" name="product[product_images_attributes][${index}][image_url]" type="text" placeholder="URL de la imagen">
+          <input class="form-control mb-2" name="product[product_images_attributes][${index}][image_index]" type="number" placeholder="Orden" min="0" step="1">
+          <input type="hidden" name="product[product_images_attributes][${index}][_destroy]" value="false">
+          <button type="button" class="btn btn-danger btn-sm mt-auto remove-image">Eliminar</button>
+        </div>
       </div>
     `;
     container.appendChild(newItem);

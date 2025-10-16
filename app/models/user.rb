@@ -16,6 +16,7 @@ class User
   field :otp_code,         type: Integer
   field :is_admin,         type: Mongoid::Boolean, default: false
   # field :role,             type: String, default: "cliente"
+  field :allow_notifications, type: Mongoid::Boolean, default: false # NUEVO CAMPO
 
   # Relacionamientos (ajústalos a tus modelos Mongoid)
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
