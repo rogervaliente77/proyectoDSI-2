@@ -28,7 +28,7 @@ Rails.application.routes.draw do
     get "checkout", to: "carts#checkout"
     post "checkout", to: "carts#create_purchase"
 
-    resources :purchases, only: [:index]
+    resources :purchases, only: [:index,:show]
     post "create_purchase", to: "carts#create_purchase", as: :create_purchase_portal_carts
 
 
