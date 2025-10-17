@@ -44,7 +44,12 @@
 
       <div class="row g-3">
         <div class="col-md-6">
-          <p><strong>Usuario que realizó el movimiento:</strong> <span class="fw-semibold"><%= @product_history.user&.name || @product_history.user&.username || "Sistema" %></span></p>
+          <% user = @product_history.user %>
+          <p><strong>Usuario que realizó el movimiento:</strong> 
+            <span class="fw-semibold">
+              <%= user&.first_name || user&.username || "Sistema" %>
+            </span>
+          </p>
         </div>
         <div class="col-md-6">
           <p><strong>Fecha del movimiento:</strong> <span class="text-muted"><%= @product_history.created_at.strftime("%d/%m/%Y %H:%M") %></span></p>
