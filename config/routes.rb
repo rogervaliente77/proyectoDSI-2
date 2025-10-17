@@ -125,7 +125,13 @@ Rails.application.routes.draw do
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
 
-    # 🔹 ProductHistory (Historial de productos)
+   #  Discount Codes
+    resources :discount_codes
+
+  #  Productos (para autocomplete en DiscountCode)
+    get 'products/search', to: 'products#search'
+
+  # ProductHistory (Historial de productos)
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
   end
 
