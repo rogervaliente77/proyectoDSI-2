@@ -16,6 +16,19 @@ module Portal
       @products = @products.where(:price.gte => params[:min_price].to_f) if params[:min_price].present?
       @products = @products.where(:price.lte => params[:max_price].to_f) if params[:max_price].present?
 
+      if params[:offer].present? && params[:offer] != "todas"
+        case params[:offer]
+        when "descuento"
+          @products = @products.where(:discount.gt => 0, offer_type: "descuento")
+        when "2x1"
+          @products = @products.where(offer_type: "2x1")
+        when "3x1"
+          @products = @products.where(offer_type: "3x1")
+        when "mayoreo"
+          @products = @products.where(offer_type: "mayoreo")
+        end
+      end
+
       # ----------------- OFERTAS -----------------
       if @current_user&.role&.name == 'cliente' && !@current_user.allow_notifications
         # Solo productos con descuento u oferta vigente

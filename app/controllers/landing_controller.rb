@@ -22,6 +22,19 @@ class LandingController < ApplicationController
       @products = @products.where(:price.lte => max_price)
     end
 
+    if params[:offer].present? && params[:offer] != "todas"
+      case params[:offer]
+      when "descuento"
+        @products = @products.where(:discount.gt => 0, offer_type: "descuento")
+      when "2x1"
+        @products = @products.where(offer_type: "2x1")
+      when "3x1"
+        @products = @products.where(offer_type: "3x1")
+      when "mayoreo"
+        @products = @products.where(offer_type: "mayoreo")
+      end
+    end
+
     # ----------------- OFERTAS -----------------
     # Solo para clientes que aún no aceptan notificaciones
     if @current_user&.role&.name == 'cliente' && !@current_user.allow_notifications

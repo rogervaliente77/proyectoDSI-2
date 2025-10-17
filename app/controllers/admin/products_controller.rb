@@ -22,11 +22,15 @@ module Admin
       if params[:offer].present? && params[:offer] != "todas"
         case params[:offer]
         when "descuento"
-          @products = @products.where(:discount.gt => 0)
-        when "2x1", "mayoreo"
-          @products = @products.where(:offer_type.in => ["2x1", "mayoreo"])
+          @products = @products.where(:discount.gt => 0, offer_type: "descuento")
+        when "2x1"
+          @products = @products.where(offer_type: "2x1")
+        when "3x1"
+          @products = @products.where(offer_type: "3x1")
+        when "mayoreo"
+          @products = @products.where(offer_type: "mayoreo")
         end
-      end
+      end      
 
       # Ordenar por nombre
       @products = @products.asc(:name)

@@ -25,10 +25,16 @@
         <label class="form-label small text-secondary">Categoría</label>
         <%= select_tag :category_id, options_from_collection_for_select(@categories || [], :id, :name, params[:category_id]), prompt: "Todas las categorías", class: "form-select form-select-md" %>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label small text-secondary">Marca</label>
         <%= select_tag :marca_id, options_from_collection_for_select(@marcas || [], :id, :name, params[:marca_id]), prompt: "Todas las marcas", class: "form-select form-select-md" %>
       </div>
+
+      <div class="col-md-1">
+        <label class="form-label small text-secondary"><i class="fas fa-tags me-1"></i> Oferta</label>
+        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-md filter-select" %>
+      </div>
+
       <div class="col-md-3">
         <label class="form-label small text-secondary">Precio ($)</label>
         <div class="d-flex gap-2 align-items-center">
