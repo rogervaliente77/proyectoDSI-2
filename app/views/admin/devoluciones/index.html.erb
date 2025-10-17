@@ -1,15 +1,79 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 fw-bold">Listado de Devoluciones</h1>
-    <%= link_to new_admin_devolucione_path, class: "btn btn-primary shadow-sm", data: { turbo: false } do %>
-      <i class="fas fa-plus-circle me-2"></i> Nueva Devolución
+    <%= link_to new_admin_devolucione_path, class: "btn btn-primary shadow-sm", data: { turbo: false }, title: "Nueva Devolución", data: { bs_toggle: "tooltip" } do %>
+      <i class="fas fa-plus-circle"></i>
     <% end %>
   </div>
+      <%# TOAST DE DEVOLUCIONES PENDIENTES %>
+  <% if @pending_devoluciones_count.to_i > 0 %>
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+      <div id="pendingDevolucionesToast"
+           class="toast align-items-center text-bg-warning border-0 shadow"
+           role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            🔔 Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                  data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
+    <%= javascript_tag do %>
+      document.addEventListener("DOMContentLoaded", function() {
+        var toastEl = document.getElementById("pendingDevolucionesToast");
+        if (toastEl) {
+          var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+          toast.show();
+        }
+      });
+    <% end %>
+  <% end %>
+
+
+
+
+
+  <!-- FILTROS DE FECHA Y BOTÓN DE REPORTE -->
+  <div class="card mb-4 shadow-sm border-0">
+    <div class="card-body">
+      <%= form_with url: admin_devoluciones_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
+        <div class="col-md-4">
+          <%= label_tag :start_date, "Desde", class: "form-label fw-semibold" %>
+          <%= date_field_tag :start_date, params[:start_date], class: "form-control" %>
+        </div>
+        <div class="col-md-4">
+          <%= label_tag :end_date, "Hasta", class: "form-label fw-semibold" %>
+          <%= date_field_tag :end_date, params[:end_date], class: "form-control" %>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+          <!-- Botón Filtrar solo icono -->
+          <%= button_tag type: "submit", class: "btn btn-outline-primary flex-fill", title: "Filtrar", data: { bs_toggle: "tooltip" } do %>
+          <i class="fas fa-filter"></i>
+          <% end %>
+          
+          <!-- Botón de descarga del reporte solo icono -->
+          <%= link_to generate_report_admin_devoluciones_path(
+                start_date: params[:start_date],
+                end_date: params[:end_date]
+              ),
+              target: "_blank",
+              class: "btn btn-danger flex-fill fas fa-file-pdf",
+              data: { turbo: false, bs_toggle: "tooltip" },
+              title: "Descargar reporte" do %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <!-- FIN DE FILTROS -->
 
   <% if flash[:notice] %>
-  <div class="alert alert-success"><%= flash[:notice] %></div>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
   <% elsif flash[:alert] %>
-  <div class="alert alert-danger"><%= flash[:alert] %></div>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
   <% end %>
 
   <% if @devoluciones.any? %>
@@ -36,40 +100,50 @@
               <td class="text-center"><%= devolucion.caja&.nombre || "—" %></td>
               <td class="text-center"><%= devolucion.cajero&.nombre || "—" %></td>
               <td class="text-center"><%= devolucion.sale&.code || "—" %></td>
+              
+              <!-- Columna Autorizada -->
               <td class="text-center align-middle">
                 <% if devolucion.is_authorized %>
-                  <button class="btn btn-success btn-sm" disabled>
-                    <i class="fas fa-check-circle"></i> Autorizada
-                  </button>
+                  <button class="btn btn-success btn-sm fas fa-check-circle" disabled title="Autorizada" data-bs-toggle="tooltip"></button>
                 <% else %>
                   <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
                     <%= button_to autorizar_devolucion_admin_devolucione_path(devolucion),
                           method: :patch,
-                          class: "btn btn-warning btn-sm",
-                          data: { turbo: false, confirm: "¿Autorizar esta devolución?" } do %>
-                      <i class="fas fa-check"></i> Autorizar
+                          class: "btn btn-warning btn-sm fas fa-check",
+                          data: { turbo: false, confirm: "¿Autorizar esta devolución?", bs_toggle: "tooltip" },
+                          title: "Autorizar" do %>
                     <% end %>
                   <% else %>
-                    <button class="btn btn-secondary btn-sm" disabled>
-                      <i class="fas fa-lock"></i> No autorizado
-                    </button>
+                    <button class="btn btn-secondary btn-sm fas fa-lock" disabled title="No autorizado" data-bs-toggle="tooltip"></button>
                   <% end %>
                 <% end %>
               </td>
+
+              <!-- Columna Acciones -->
               <td class="text-center">
                 <div class="d-flex justify-content-center gap-2">
-                  <!-- Editar -->
-                  <%= link_to edit_admin_devolucione_path(devolucion), class: "btn btn-outline-warning btn-sm", title: "Editar", data: { bs_toggle: "tooltip", bs_placement: "top" } do %>
-                    <i class="fas fa-edit"></i>
+                  <!-- Editar solo icono -->
+                  <%= link_to edit_admin_devolucione_path(devolucion),
+                        class: "btn btn-outline-warning btn-sm fas fa-edit",
+                        title: "Editar",
+                        data: { bs_toggle: "tooltip", bs_placement: "top" } do %>
                   <% end %>
 
-                  <!-- Eliminar -->
+                  <!-- Eliminar solo icono -->
                   <%= button_to admin_devolucione_path(devolucion),
                         method: :delete,
                         form: { class: "d-inline" },
+                        class: "btn btn-outline-danger btn-sm fas fa-trash-alt",
                         data: { turbo_confirm: "¿Seguro que deseas eliminar esta devolución?", bs_toggle: "tooltip", bs_placement: "top" },
-                        class: "btn btn-outline-danger btn-sm" do %>
-                    <i class="fas fa-trash-alt"></i>
+                        title: "Eliminar" do %>
+                  <% end %>
+
+                  <!-- Comprobante PDF solo icono -->
+                  <%= link_to generate_pdf_admin_devolucione_path(devolucion),
+                        target: "_blank",
+                        class: "btn btn-danger btn-sm fas fa-download",
+                        data: { turbo: false, bs_toggle: "tooltip" },
+                        title: "Comprobante" do %>
                   <% end %>
                 </div>
               </td>

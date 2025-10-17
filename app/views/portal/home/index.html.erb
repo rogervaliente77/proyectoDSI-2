@@ -117,10 +117,23 @@
                   <span class="fw-bold fs-5">
                     <%= number_to_currency(product.price) %>
                   </span>
+                  
                 <% end %>
               </p>
               <p class="mb-0 fs-7"><strong>Categoría:</strong> <span class="text-muted"><%= product.category.name if product.category %></span></p>
               <p class="mb-0 fs-7"><strong>Marca:</strong> <span class="text-muted"><%= product.marca.name if product.marca %></span></p>
+
+
+                <div class="d-flex align-items-center">
+                    <input type="number" name="quantity" value="1" min="1" 
+                          class="form-control me-2 quantity-input" style="width: 80px;">
+                    
+                    <button type="button" class="btn btn-success add-to-cart-btn" 
+                            data-product-id="<%= product.id %>" 
+                            data-product-name="<%= product.name %>">
+                      Agregar al carrito
+                    </button>
+                </div>
             </div>
 
           </div>
@@ -132,6 +145,33 @@
       </div>
     <% end %>
   </div>
+
+  <button class="btn btn-primary btn-lg rounded-circle position-fixed"
+        style="bottom: 20px; right: 20px; z-index: 1000;"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#cartOffcanvas"
+        aria-controls="cartOffcanvas">
+  🛒
+  </button>
+
+  
+<!-- 🛒 Panel lateral del carrito -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="cartOffcanvasLabel">🛍️ Tu carrito</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div id="cart-content">
+      <%= render partial: "portal/carts/cart", locals: { cart: session[:cart] || [] } %>
+    </div>
+  </div>
+</div>
+
+
+<!-- Contenedor para toasts -->
+<div id="toast-container" aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;"></div>
 
 </div>
 
@@ -165,6 +205,9 @@
 </style>
 
 <script>
+// ==========================
+// 🎠 Carousel (sin cambios)
+// ==========================
 function showSlide(carousel, index) {
   const slides = carousel.querySelectorAll('.carousel-image');
   slides.forEach((s, i) => s.classList.toggle('active', i === index));
@@ -206,6 +249,133 @@ document.addEventListener("DOMContentLoaded", function() {
     const toast = new bootstrap.Toast(toastEl, { autohide: false });
     toast.show();
     toastEl.querySelector('.btn-close').addEventListener('click', function() { toast.hide(); });
+  });
+});
+
+
+// ==========================
+// 🛒 AGREGAR PRODUCTO
+// ==========================
+document.addEventListener("click", function(e) {
+  if (e.target.classList.contains("add-to-cart-btn")) {
+    const btn = e.target;
+    const productId = btn.dataset.productId;
+    const productName = btn.dataset.productName;
+    const quantity = btn.closest('div').querySelector('.quantity-input')?.value || 1;
+
+    fetch(`/portal/cart/add/${productId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({ quantity: quantity })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(`✅ ${productName} se agregó al carrito`, 'success');
+
+        // 🔄 Si el carrito está abierto, recargar su contenido
+        const offcanvas = document.querySelector(".offcanvas.show");
+        if (offcanvas) {
+          fetch("/portal/cart")
+            .then(r => r.text())
+            .then(html => document.getElementById("cart-content").innerHTML = html);
+        }
+      } else {
+        showToast(`⚠️ ${data.error || "No se pudo agregar el producto"}`, 'danger');
+      }
+    });
+  }
+});
+
+
+// ==========================
+// 🔔 TOAST DE NOTIFICACIÓN
+// ==========================
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toastEl = document.createElement('div');
+  toastEl.className = `toast align-items-center text-white bg-${type} border-0 mb-2`;
+  toastEl.setAttribute('role', 'alert');
+  toastEl.setAttribute('aria-live', 'assertive');
+  toastEl.setAttribute('aria-atomic', 'true');
+
+  toastEl.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
+    </div>
+  `;
+
+  container.appendChild(toastEl);
+  const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
+  toast.show();
+
+  toastEl.querySelector('.btn-close').addEventListener('click', () => toast.hide());
+}
+
+
+// ==========================
+// 🧩 CARGAR CARRITO AL ABRIR
+// ==========================
+document.addEventListener("DOMContentLoaded", () => {
+  const cartOffcanvas = document.getElementById("cartOffcanvas");
+  if (cartOffcanvas) {
+    cartOffcanvas.addEventListener("show.bs.offcanvas", () => {
+      fetch("/portal/cart")
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById("cart-content").innerHTML = html;
+        })
+        .catch(() => {
+          document.getElementById("cart-content").innerHTML = "<p>Error al cargar el carrito.</p>";
+        });
+    });
+  }
+});
+
+
+// ==========================
+// ⚙️ BOTONES DEL CARRITO
+// ==========================
+document.addEventListener("DOMContentLoaded", function() {
+
+  function updateCartHTML(html) {
+    document.getElementById("cart-content").innerHTML = html;
+  }
+
+  // Escucha los botones +, − y 🗑️ dentro del carrito
+  document.addEventListener("click", function(e) {
+    const btn = e.target.closest(".cart-btn");
+    if (!btn) return;
+
+    const productId = btn.dataset.id;
+    const action = btn.dataset.action;
+
+    if (!productId || !action) return;
+
+    let url = `/portal/cart/${action}/${productId}`;
+    let method = "POST";
+
+    if (action === "remove") {
+      method = "DELETE";
+    }
+
+    fetch(url, {
+      method: method,
+      headers: {
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
+    })
+    .then(resp => resp.text())
+    .then(html => updateCartHTML(html))
+    .catch(err => console.error("Error actualizando carrito:", err));
+
+    if (action === "remove") {
+      showToast("🗑️ Producto eliminado del carrito", "danger");
+    }
   });
 });
 </script>

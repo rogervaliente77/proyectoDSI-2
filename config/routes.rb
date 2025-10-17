@@ -23,6 +23,23 @@ Rails.application.routes.draw do
 
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
+
+    # root "landing#index"
+
+    #Rutas de manejo para el carrito de compras del cliente
+    resource :cart, only: [:show] do
+      post 'add/:id', to: 'carts#add', as: 'add'
+      post 'increase/:id', to: 'carts#increase', as: 'increase'
+      post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
+      delete 'remove/:id', to: 'carts#remove', as: 'remove'
+    end
+
+
+    #get 'cart', to: 'carts#show', as: :cart
+    #post 'cart/add/:id', to: 'carts#add', as: :add_cart
+    #post 'increase/:product_id', to: 'carts#increase', as: 'increase'
+    #post 'decrease/:product_id', to: 'carts#decrease', as: 'decrease'
+    #delete 'remove/:product_id', to: 'carts#remove', as: 'remove'
   end
 
   # Namespace para Admin
@@ -96,6 +113,11 @@ Rails.application.routes.draw do
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
       member do
         patch :autorizar_devolucion
+        get :generate_pdf
+      end
+
+      collection do
+        get :generate_report
       end
     end
 
@@ -105,10 +127,8 @@ Rails.application.routes.draw do
 
     # 🔹 ProductHistory (Historial de productos)
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
-
   end
 
-  resources :pruebas
   get "up", to: "rails/health#show", as: :rails_health_check
   get 'landing/index', to: 'landing#index', as: 'landing_index'
   root "landing#index"
