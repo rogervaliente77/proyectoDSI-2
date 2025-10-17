@@ -1,29 +1,16 @@
 class LandingController < ApplicationController
+  before_action :set_current_user
+
   def index
-    # Traer todas las categorías y marcas para los filtros
     @categories = Category.all
     @marcas = Marca.all
-
-    # Iniciamos con todos los productos
     @products = Product.includes(:category, :marca).all
 
-    # Filtrar por nombre
-    if params[:query].present?
-      regex = /#{Regexp.escape(params[:query])}/i
-      @products = @products.where(name: regex)
-    end
+    # ----------------- FILTROS -----------------
+    @products = @products.where(name: /#{Regexp.escape(params[:query])}/i) if params[:query].present?
+    @products = @products.where(category_id: params[:category_id]) if params[:category_id].present?
+    @products = @products.where(marca_id: params[:marca_id]) if params[:marca_id].present?
 
-    # Filtrar por categoría
-    if params[:category_id].present? && params[:category_id] != ""
-      @products = @products.where(category_id: params[:category_id])
-    end
-
-    # Filtrar por marca
-    if params[:marca_id].present? && params[:marca_id] != ""
-      @products = @products.where(marca_id: params[:marca_id])
-    end
-
-    # Filtrar por precio mínimo y máximo
     min_price = params[:min_price].present? ? params[:min_price].to_f : nil
     max_price = params[:max_price].present? ? params[:max_price].to_f : nil
 
@@ -34,5 +21,31 @@ class LandingController < ApplicationController
     elsif max_price
       @products = @products.where(:price.lte => max_price)
     end
+
+    # ----------------- OFERTAS -----------------
+    # Solo para clientes que aún no aceptan notificaciones
+    if @current_user&.role&.name == 'cliente' && !@current_user.allow_notifications
+      @offer_products = @products.select(&:on_offer?)
+      @show_notification_toast = true
+    else
+      @offer_products = []
+      @show_notification_toast = false
+    end
+  end
+
+  # Acción para aceptar notificaciones
+  def accept_notifications
+    if current_user
+      current_user.update(allow_notifications: true)
+      head :ok
+    else
+      head :unauthorized
+    end
+  end
+
+  private
+
+  def set_current_user
+    @current_user = current_user
   end
 end
