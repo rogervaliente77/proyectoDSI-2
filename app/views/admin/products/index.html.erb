@@ -123,7 +123,7 @@
 
             <p class="mb-2">
               <% if product.discount.to_i > 0 %>
-                <% if !product.offer_type == "2x1" ||  !product.offer_type == "3x1"%>
+                <% if product.offer_type == "descuento"%>
                   <span class="text-muted text-decoration-line-through">
                     <%= number_to_currency(product.price) %>
                   </span>
