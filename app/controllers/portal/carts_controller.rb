@@ -62,27 +62,43 @@ class Portal::CartsController < ApplicationController
   end
 
   def checkout
-    session[:cart] ||= []
-    @cart = session[:cart]
-    
-    
-    @cart_items = @cart.map do |item|
-      product = Product.find(item["product_id"])
-      {
-        product: product,
-        quantity: item["quantity"],
-        subtotal: product.price * item["quantity"]
-      }
+  session[:cart] ||= []
+  @cart = session[:cart]
+
+  @cart_items = @cart.map do |item|
+    product = Product.find(item["product_id"])
+    quantity = item["quantity"].to_i
+
+    # Aplicar descuento si existe
+    if product.discount.present? && product.discount > 0
+      discounted_price = product.price - (product.price * product.discount / 100.0)
+    else
+      discounted_price = product.price
     end
 
-    @subtotal = @cart_items.sum { |item| item[:subtotal] }
-    @total = @subtotal #Aquí se puede agregar e metodo de descuento
+    subtotal = discounted_price * quantity
 
-    render layout: "dashboard"
+    {
+      product: product,
+      quantity: quantity,
+      unit_price: discounted_price, # puedes mostrarlo o guardarlo luego
+      subtotal: subtotal,
+      discount: product.discount # para mostrarlo en la vista si quieres
+    }
   end
 
+  # Sumar los subtotales de los productos (ya con descuento aplicado)
+  @subtotal = @cart_items.sum { |item| item[:subtotal] }
+
+  # Si en el futuro agregas envío o impuestos, puedes sumarlos aquí
+  @total = @subtotal
+
+  render layout: "dashboard"
+end
+
+
   def create_purchase
-  session[:cart] ||= []
+   session[:cart] ||= []
   @cart = session[:cart]
   return redirect_to portal_home_path, alert: "Tu carrito está vacío" if @cart.empty?
 
@@ -97,18 +113,27 @@ class Portal::CartsController < ApplicationController
     return redirect_to portal_cart_path, alert: "No se pudo asignar cajero o caja."
   end
 
-  # Calcular totales del carrito
+  # Calcular totales del carrito incluyendo descuento
   @cart_items = @cart.map do |item|
     product = Product.find(item["product_id"])
+    quantity = item["quantity"].to_i
+    discount = product.discount || 0
+    discounted_price = product.price - (product.price * discount / 100.0)
+    subtotal = discounted_price * quantity
+
+    # Devolver la estructura de item con subtotal ya descontado
     {
       product: product,
-      quantity: item["quantity"].to_i,
-      subtotal: product.price * item["quantity"].to_i
+      quantity: quantity,
+      unit_price: product.price,
+      discount: discount,
+      subtotal: subtotal
     }
   end
 
+  # Total de la venta sumando los subtotales con descuento
   subtotal = @cart_items.sum { |i| i[:subtotal] }
-  total = subtotal #Aquí se puede agregar el descuento cuando se implemente
+  total = subtotal
 
   # Crear la venta asociando cajero y caja
   sale = Sale.new(
@@ -126,10 +151,26 @@ class Portal::CartsController < ApplicationController
     sale.product_sales.build(
       product_id: item[:product].id,
       quantity: item[:quantity],
-      price: item[:product].price,
+      unit_price: item[:unit_price],
+      discount: item[:discount],
       subtotal: item[:subtotal]
     )
+
   end
+
+  def update_quantity
+  product_id = params[:product_id].to_s
+  quantity = params[:quantity].to_i
+
+  session[:cart].each do |item|
+    if item["product_id"].to_s == product_id
+      item["quantity"] = quantity
+      break
+    end
+  end
+
+  head :ok
+end
 
   # Guardar venta
   if sale.save

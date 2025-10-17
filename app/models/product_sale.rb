@@ -5,7 +5,6 @@ class ProductSale
   field :quantity, type: Integer
   field :unit_price, type: Float
   field :discount, type: Float
-  field :price, type: Float   
   field :subtotal, type: Float
 
 

@@ -32,13 +32,16 @@ Rails.application.routes.draw do
     post "create_purchase", to: "carts#create_purchase", as: :create_purchase_portal_carts
 
 
-
+    resource :carts, only: [] do
+      patch :update_quantity, to: "carts#update_quantity", as: :update_quantity
+    end
     #Rutas de manejo para el carrito de compras del cliente
     resource :cart, only: [:show] do
       post 'add/:id', to: 'carts#add', as: 'add'
       post 'increase/:id', to: 'carts#increase', as: 'increase'
       post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
       delete 'remove/:id', to: 'carts#remove', as: 'remove'
+      
     end
 
 
