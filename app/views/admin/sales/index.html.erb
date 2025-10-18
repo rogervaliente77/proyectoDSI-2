@@ -33,17 +33,66 @@
         </div>
         <!-- Card Body -->
         <div class="card-body">
-          <h1 class="h3 mb-4 text-gray-800"></h1>
+
+            <%# TOAST DE DEVOLUCIONES PENDIENTES %>
+            <% if @pending_devoluciones_count.to_i > 0 %>
+              <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+                <div id="pendingDevolucionesToast"
+                    class="toast align-items-center text-bg-warning border-0 shadow"
+                    role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      🔔 Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                            data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+              </div>
+
+              <%= javascript_tag do %>
+                document.addEventListener("DOMContentLoaded", function() {
+                  var toastEl = document.getElementById("pendingDevolucionesToast");
+                  if (toastEl) {
+                    var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                    toast.show();
+                  }
+                });
+              <% end %>
+            <% end %>      
+          <div class="mb-3">
+            <%= form_with url: admin_sales_path, method: :get, local: true, class: "form-inline" do |f| %>
+              <div class="form-group mr-2">
+                <%= f.label :code, "Código", class: "mr-1" %>
+                <%= f.text_field :code, value: params[:code], class: "form-control" %>
+              </div>
+
+              <div class="form-group mr-2">
+                <%= f.label :start_date, "Desde", class: "mr-1" %>
+                <%= f.date_field :start_date, value: params[:start_date], class: "form-control" %>
+              </div>
+
+              <div class="form-group mr-2">
+                <%= f.label :end_date, "Hasta", class: "mr-1" %>
+                <%= f.date_field :end_date, value: params[:end_date], class: "form-control" %>
+              </div>
+
+              <%= f.submit "Buscar", class: "btn btn-primary" %>
+              <%= link_to "Limpiar", admin_sales_path, class: "btn btn-secondary ml-2" %>
+            <% end %>
+          </div><br>
 
           <table class="table table-bordered" id="usersTable">
             <thead class="thead-light">
               <tr>
                 <th>#</th>
                 <th>F. venta</th>
+                <th>Comp. venta</th>
                 <th>Cliente</th>
                 <th>Caja</th>
                 <th>Cajero</th>
                 <th>Monto</th>
+                <th>Tiene devoluciones?</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -51,11 +100,20 @@
               <% @sales.each_with_index do |sale, index| %>
                 <tr>
                   <td><%= index + 1 %></td>
-                  <td><%= sale.sold_at %></td>
+                  <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
+                  <td><strong><%= sale&.code %></strong></td>
                   <td><%= sale.client_name %></td>
                   <td><%= sale.caja.nombre %></td>
                   <td><%= sale.cajero.nombre %></td>
-                  <td><%= sale.total_amount %></td>
+                  <td>$<%= sale.total_amount || "0.00" %></td>
+                  <td class="text-center">
+                    <% if sale&.devoluciones.any? %>
+                      <button type="button" class="btn btn-success">SI</button>
+                    <% else %>
+                      <button type="button" class="btn btn-primary">NO</button>
+                    <% end %>
+                  </td>
+                 
                   <td>
                       <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-primary btn-sm" do %>
                         <span>Ver detalle</span>

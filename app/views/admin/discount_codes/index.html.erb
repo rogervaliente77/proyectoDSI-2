@@ -1,0 +1,90 @@
+<div class="container mt-4">
+  <h1 class="mb-3">Códigos de Descuento</h1>
+
+  <div class="mb-3">
+    <%= link_to "Nuevo Código", new_admin_discount_code_path, class: "btn btn-primary" %>
+  </div>
+
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead class="bg-gradient text-white text-uppercase small">
+            <tr>
+              <th>Código</th>
+              <th>Descuento</th>
+              <th>Fecha de Vencimiento</th>
+              <th>Producto</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @discount_codes.each do |code| %>
+              <tr>
+                <td class="text-monospace"><%= code.value %></td>
+                <td>
+                  <span class="badge bg-success text-white"><%= code.discount %>%</span>
+                </td>
+                <td>
+                  <% if code.due_date.present? && code.due_date < Date.today %>
+                    <span class="badge bg-danger text-white">
+                      <%= code.due_date.strftime("%d/%m/%Y") %> (Vencido)
+                    </span>
+                  <% else %>
+                    <span class="badge bg-warning text-dark">
+                      <%= code.due_date&.strftime("%d/%m/%Y") || "Sin fecha" %>
+                    </span>
+                  <% end %>
+                </td>
+                <td><%= code.product&.name || "Sin producto" %></td>
+                <td class="text-center">
+                  <div class="d-flex gap-1 justify-content-center">
+                    <!-- Ver -->
+                    <%= link_to admin_discount_code_path(code),
+                          class: "btn btn-sm btn-info flex-shrink-0",
+                          title: "Ver" do %>
+                      <i class="fa fa-eye"></i>
+                    <% end %>
+
+                    <!-- Editar -->
+                    <%= link_to edit_admin_discount_code_path(code),
+                          class: "btn btn-sm btn-warning flex-shrink-0",
+                          title: "Editar" do %>
+                      <i class="fa fa-pencil"></i>
+                    <% end %>
+
+                    <!-- Eliminar -->
+                    <%= button_to admin_discount_code_path(code),
+                          method: :delete,
+                          form: { class: "d-inline" },
+                          data: { turbo_confirm: "¿Estás seguro de eliminar este código?" },
+                          class: "btn btn-sm btn-danger flex-shrink-0",
+                          title: "Eliminar" do %>
+                      <i class="fa fa-trash"></i>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 Estilos adicionales -->
+<style>
+  thead.bg-gradient {
+    background: linear-gradient(90deg, #0d6efd, #6610f2);
+  }
+  .badge {
+    font-size: 0.85rem;
+    padding: 0.45em 0.7em;
+    border-radius: 0.5rem;
+  }
+  table.table-hover tbody tr:hover {
+    background-color: #e9f2ff;
+    transform: translateX(2px);
+  }
+</style>

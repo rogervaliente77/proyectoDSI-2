@@ -44,7 +44,6 @@ Rails.application.routes.draw do
       
     end
 
-
     #get 'cart', to: 'carts#show', as: :cart
     #post 'cart/add/:id', to: 'carts#add', as: :add_cart
     #post 'increase/:product_id', to: 'carts#increase', as: 'increase'
@@ -96,6 +95,7 @@ Rails.application.routes.draw do
 
     # 🔹 Inventario
     get "/productos/inventario", to: "products#inventory", as: :inventory_admin_products
+    get "/productos/devueltos", to: "products#devueltos", as: :admin_returned_products
 
     get "/cajas", to: "cajas#index"
     get "/cajas/new", to: "cajas#new"
@@ -109,15 +109,42 @@ Rails.application.routes.draw do
     get "/cajeros/edit", to: "cajeros#edit"
     patch "/cajeros/update", to: "cajeros#update"
 
+    # Sales
     get "/sales", to: "sales#index"
     get "/sales/new", to: "sales#new"
     post "/sales/create", to: "sales#create"
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
+    get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
+    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
 
+    # Devoluciones
+    resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
+      member do
+        patch :autorizar_devolucion
+        get :generate_pdf
+      end
+
+      collection do
+        get :generate_report
+      end
+    end
+
+    # Marcas y Roles
     resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
     resources :roles, except: [:show]
+
+   #  Discount Codes
+    resources :discount_codes
+
+  #  Productos (para autocomplete en DiscountCode)
+    get 'products/search', to: 'products#search'
+
+  # ProductHistory (Historial de productos)
+    resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
   end
 
-  
+  get "up", to: "rails/health#show", as: :rails_health_check
+  get 'landing/index', to: 'landing#index', as: 'landing_index'
+  root "landing#index"
 end
