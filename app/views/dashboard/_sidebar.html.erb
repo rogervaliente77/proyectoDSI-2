@@ -167,6 +167,18 @@
       </div>
     </li>
   <% end %>
+  
+  <!-- MIs compras - Cliente -->
+ <% if @current_user.role.name == 'cliente' %>
+    <li class="nav-item">
+      <%= link_to portal_purchases_path, class: "nav-link d-flex align-items-center" do %>
+        <i class="fas fa-shopping-bag me-2"></i>
+        Mis compras
+      <% end %>
+    </li>
+  <% end %>
+
+
 
   <!-- Devoluciones -->
   <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>

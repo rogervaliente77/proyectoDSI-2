@@ -5,6 +5,8 @@ class ProductSale
   field :quantity, type: Integer
   field :unit_price, type: Float
   field :discount, type: Float
+  field :subtotal, type: Float
+
 
   # Callbacks — se ejecutan en orden
   before_create :create_product_history

@@ -24,16 +24,25 @@ Rails.application.routes.draw do
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
 
-    # root "landing#index"
+    root "landing#index"
+    get "checkout", to: "carts#checkout"
+    post "checkout", to: "carts#create_purchase"
 
+    resources :purchases, only: [:index,:show]
+    post "create_purchase", to: "carts#create_purchase", as: :create_purchase_portal_carts
+
+
+    resource :carts, only: [] do
+      patch :update_quantity, to: "carts#update_quantity", as: :update_quantity
+    end
     #Rutas de manejo para el carrito de compras del cliente
     resource :cart, only: [:show] do
       post 'add/:id', to: 'carts#add', as: 'add'
       post 'increase/:id', to: 'carts#increase', as: 'increase'
       post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
       delete 'remove/:id', to: 'carts#remove', as: 'remove'
+      
     end
-
 
     #get 'cart', to: 'carts#show', as: :cart
     #post 'cart/add/:id', to: 'carts#add', as: :add_cart
