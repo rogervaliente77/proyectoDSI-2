@@ -1,0 +1,84 @@
+<%= form_with(model: [:admin, @discount_code], local: true) do |f| %>
+  <% if @discount_code.errors.any? %>
+    <div class="alert alert-danger">
+      <h4>Errores:</h4>
+      <ul>
+        <% @discount_code.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Descuento -->
+  <div class="mb-3">
+    <%= f.label :discount, "Descuento (%)" %>
+    <div class="input-group">
+      <%= f.number_field :discount, class: "form-control", min: 1, max: 100 %>
+      <span class="input-group-text">%</span>
+    </div>
+  </div>
+
+  <!-- Fecha de vencimiento -->
+  <div class="mb-3">
+    <%= f.label :due_date, "Fecha de vencimiento" %>
+    <%= f.date_field :due_date, class: "form-control" %>
+  </div>
+
+  <!-- Searchbar de producto -->
+  <div class="mb-3">
+    <%= label_tag :product_search, "Buscar producto" %>
+    <input type="text" id="product_search" class="form-control" placeholder="Escribe el nombre del producto..." value="<%= @discount_code.product&.name %>">
+
+    <%= f.hidden_field :product_id, id: "discount_code_product_id", value: @discount_code.product_id %>
+
+    <ul id="searchResults" class="list-group mt-2"></ul>
+  </div>
+
+  <!-- Botones -->
+  <div class="mt-3">
+    <%= f.submit "Guardar", class: "btn btn-success" %>
+    <%= link_to "Cancelar", admin_discount_codes_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>
+
+<!-- Script para autocomplete de productos -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("product_search");
+  const hiddenInput = document.getElementById("discount_code_product_id");
+  const resultsList = document.getElementById("searchResults");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", async () => {
+      const query = searchInput.value.trim();
+      if (query.length < 1) {
+        resultsList.innerHTML = "";
+        return;
+      }
+
+      const response = await fetch(`/admin/products/search?q=${query}`);
+      const data = await response.json();
+
+      resultsList.innerHTML = "";
+      data.forEach(product => {
+        const item = document.createElement("li");
+        item.textContent = product.name;
+        item.className = "list-group-item list-group-item-action";
+        item.addEventListener("click", () => {
+          searchInput.value = product.name;
+          hiddenInput.value = product.id;
+          resultsList.innerHTML = "";
+        });
+        resultsList.appendChild(item);
+      });
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !resultsList.contains(e.target)) {
+        resultsList.innerHTML = "";
+      }
+    });
+  }
+});
+</script>
