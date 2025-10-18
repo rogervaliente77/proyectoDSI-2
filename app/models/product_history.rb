@@ -3,7 +3,6 @@ class ProductHistory
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  # Campos
   field :name,          type: String
   field :description,   type: String
   field :quantity,      type: Integer
@@ -16,9 +15,9 @@ class ProductHistory
   field :devolucion_id, type: BSON::ObjectId
   field :stock_before,  type: Integer
   field :current_stock, type: Integer
-  field :movement_type, type: String  # Tipo: Ingreso, Salida, Ajuste
-  field :user_id,       type: BSON::ObjectId  # <-- Nuevo
+  field :movement_type, type: String  # Ingreso, Salida, Ajuste
+  field :user_id,       type: BSON::ObjectId  # Usuario que realizó el movimiento
 
   belongs_to :product
-  belongs_to :user, optional: true          # Relación con el usuario
+  belongs_to :user, optional: true
 end

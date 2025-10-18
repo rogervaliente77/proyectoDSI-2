@@ -1,3 +1,4 @@
+# app/models/sale.rb
 class Sale
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -8,10 +9,12 @@ class Sale
   field :client_id, type: BSON::ObjectId
   field :total_amount, type: Float
   field :code, type: String
+  field :user_id, type: BSON::ObjectId  # <-- Usuario que realizó la venta
 
   # Relaciones
   belongs_to :caja, class_name: "Caja", inverse_of: :sales, optional: true
   belongs_to :cajero, class_name: "Cajero", inverse_of: :sales, optional: true
+  belongs_to :user, optional: true
   has_many :product_sales, class_name: "ProductSale", inverse_of: :sale, dependent: :destroy
   has_many :devoluciones, class_name: "Devolucion", inverse_of: :sale, dependent: :destroy
 
@@ -22,15 +25,12 @@ class Sale
   def generate_code
     prefix = 'v'
     date_str = Date.today.strftime("%Y-%m-%d")
-
     count_today = Sale.where(
       :created_at.gte => Date.today.beginning_of_day,
       :created_at.lt  => Date.today.end_of_day
     ).count
-
     sequence = count_today + 1
     padded_seq = sequence.to_s.rjust(3, '0')
-
     self.code = "#{prefix}-#{date_str}-#{padded_seq}"
   end
 

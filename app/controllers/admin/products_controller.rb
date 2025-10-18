@@ -141,7 +141,7 @@ module Admin
         stock_before: stock_before,
         current_stock: stock_after,
         movement_type: movement_type,
-        user: @current_user
+        user_id: @current_user.id
       )
     end
   end

@@ -3,25 +3,19 @@ module Admin
   class SalesController < Admin::ApplicationController
     layout 'dashboard'
 
-     # PD1-42: alerta de devoluciones pendientes
+    before_action :set_current_user
     before_action :check_pending_devoluciones
 
     def index
       @sales = Sale.all
-    
-      # Filtro por código
-      if params[:code].present?
-        @sales = @sales.where(code: /#{Regexp.escape(params[:code])}/i)
-      end
-    
-      # Filtro por rango de fecha
+      @sales = @sales.where(code: /#{Regexp.escape(params[:code])}/i) if params[:code].present?
+
       if params[:start_date].present? && params[:end_date].present?
         start_date = DateTime.parse(params[:start_date]).beginning_of_day
         end_date   = DateTime.parse(params[:end_date]).end_of_day
         @sales = @sales.where(:sold_at.gte => start_date, :sold_at.lte => end_date)
       end
-    
-      # Ordenar por fecha descendente
+
       @sales = @sales.order_by(sold_at: :desc)
     end
 
@@ -30,8 +24,7 @@ module Admin
     end
 
     def create
-      # Restricción de rol
-      if @current_user.role.name == "super_admin" || @current_user.role.name == "admin"
+      if @current_user.role.name.in?(["super_admin", "admin"])
         redirect_to admin_sales_new_path, alert: "Esta acción solo la puede hacer un cajero"
         return
       end
@@ -39,8 +32,10 @@ module Admin
       @sale = Sale.new(sale_params)
       @sale.status = "confirmed"
       @sale.sold_at = Time.now
+      @sale.user_id = @current_user.id
 
       if @sale.save
+        create_product_histories(@sale)
         redirect_to admin_sales_path, notice: "Venta registrada correctamente"
       else
         flash.now[:alert] = "Error al registrar la venta"
@@ -62,7 +57,6 @@ module Admin
                 disposition: 'inline'
     end
 
-    # Productos disponibles para devolución
     def available_products
       sale = Sale.find(params[:id])
       products = sale.products_available_for_return.map do |ps|
@@ -70,17 +64,14 @@ module Admin
           id: ps.id,
           name: ps.product.name,
           quantity: ps.quantity,
-          price: ps.unit_price - (ps.discount || 0) # precio unitario con descuento
+          price: ps.unit_price - (ps.discount || 0)
         }
       end
-
       render json: products
     end
 
-    # Búsqueda de venta por código (para devoluciones)
     def search_by_code
       sale = Sale.where(code: params[:code]).first
-
       if sale && sale.has_products_available_for_return?
         render json: {
           id: sale.id.to_s,
@@ -90,7 +81,7 @@ module Admin
               id: ps.product_id.to_s,
               name: ps.product_name,
               quantity: ps.quantity,
-              price: ps.unit_price - (ps.discount || 0) # precio unitario con descuento
+              price: ps.unit_price - (ps.discount || 0)
             }
           end
         }
@@ -110,8 +101,11 @@ module Admin
         product_sales_attributes: [:product_id, :quantity, :unit_price, :discount]
       )
     end
-    
-    # PD1-42: verificar devoluciones pendientes
+
+    def set_current_user
+      @current_user = current_user
+    end
+
     def check_pending_devoluciones
       if current_user && current_user.role && ["admin", "super_admin"].include?(current_user.role.name)
         @pending_devoluciones_count = Devolucion.where(is_authorized: false).count
@@ -120,5 +114,24 @@ module Admin
       end
     end
 
+    # Crear historial en ProductHistory para cada producto vendido
+    def create_product_histories(sale)
+      sale.product_sales.each do |ps|
+        ProductHistory.create!(
+          product_id: ps.product_id,
+          name: ps.product.name,
+          code: ps.product.code,
+          description: ps.product.description,
+          quantity: ps.quantity,
+          price: ps.unit_price,
+          discount: ps.discount || 0,
+          movement_type: "Salida",
+          sale_id: sale.id,
+          stock_before: ps.product.quantity + ps.quantity,
+          current_stock: ps.product.quantity,
+          user_id: @current_user.id
+        )
+      end
+    end
   end
 end

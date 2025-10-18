@@ -1,75 +1,87 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-       
-    </div>
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  </div>
 
-    <!-- Content Row -->
-
-    <div class="row">
-        <!-- Area Chart -->
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
-                <div
-                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                            aria-labelledby="dropdownMenuLink">
-                            <div class="dropdown-header">Dropdown Header:</div>
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-                    <% if flash[:notice] %>
-                    <div class="alert alert-success"><%= flash[:notice] %></div>
-                    <% elsif flash[:alert] %>
-                    <div class="alert alert-danger"><%= flash[:alert] %></div>
-                    <% end %>
-
-                
-                    <%# TOAST DE DEVOLUCIONES PENDIENTES %>
-                    <% if @pending_devoluciones_count.to_i > 0 %>
-                      <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-                        <div id="pendingDevolucionesToast" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                          <div class="d-flex">
-                            <div class="toast-body">
-                              Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
-                            </div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                          </div>
-                        </div>
-                      </div>
-                    <% end %>
-
-                    <script>
-                      document.addEventListener("DOMContentLoaded", function() {
-                        var toastEl = document.getElementById('pendingDevolucionesToast');
-                        if(toastEl){
-                          var toast = new bootstrap.Toast(toastEl, { delay: 5000 }); // 5 segundos
-                          toast.show();
-                        }
-                      });
-                    </script>
-                    
-                                        
-                    <h1>Bienvenido al admin home</h1>
-
-                </div>
+  <!-- Content Row -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Opciones:</div>
+              <a class="dropdown-item" href="#">Acción</a>
+              <a class="dropdown-item" href="#">Otra acción</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Algo más aquí</a>
             </div>
-        </div>                     
+          </div>
+        </div>
+
+        <div class="card-body">
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <h1>Bienvenido al admin home</h1>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 <!-- /.container-fluid -->
+
+<!-- Toasts para stock bajo y devoluciones pendientes -->
+<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+
+  <!-- Toasts de devoluciones pendientes -->
+  <% if @pending_devoluciones_count.to_i > 0 %>
+    <div id="pendingDevolucionesToast" class="toast align-items-center text-bg-warning border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Toasts de stock bajo -->
+  <% if @low_stock_products.present? %>
+    <% @low_stock_products.each do |product| %>
+      <div class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            ⚠️ El producto <strong><%= product.name %></strong> tiene stock bajo: <%= product.quantity %> unidades.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+</div>
+
+<!-- Activar los toasts con JavaScript -->
+<script>
+  document.addEventListener("turbo:load", function() {
+    document.querySelectorAll('.toast').forEach(function(toastEl) {
+      const toast = new bootstrap.Toast(toastEl, { autohide: false });
+      toast.show();
+      toastEl.querySelector('.btn-close').addEventListener('click', function() {
+        toast.hide();
+      });
+    });
+  });
+</script>
