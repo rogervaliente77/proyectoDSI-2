@@ -1,4 +1,4 @@
-<%= form_with(model: [:admin, @discount_code], local: true, html: { class: "needs-validation", novalidate: true }) do |f| %>
+<%= form_with(model: [:admin, @discount_code], local: true, data: { turbo: false }, html: { class: "needs-validation", novalidate: true }) do |f| %>
   <% if @discount_code.errors.any? %>
     <div class="alert alert-danger">
       <h4>Errores:</h4>
@@ -21,10 +21,11 @@
 
   <!-- Fecha de vencimiento -->
   <div class="mb-3">
-    <%= f.label :due_date, "Fecha de vencimiento", class: "form-label" %>
-    <%= f.date_field :due_date, class: "form-control", required: true %>
+    <%= f.label :offer_expires_at, "Fecha de expiración de la oferta", class: "form-label" %>
+    <%= f.datetime_local_field :offer_expires_at, class: "form-control", required: true,
+        value: (@discount_code.offer_expires_at.present? ? @discount_code.offer_expires_at.strftime("%Y-%m-%dT%H:%M") : nil) %>
     <div class="invalid-feedback">
-      Seleccione una fecha de vencimiento válida.
+      Seleccione una fecha de expiración válida.
     </div>
   </div>
 
@@ -52,17 +53,13 @@
 <!-- Modal de búsqueda de productos -->
 <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-header bg-primary text-white">
+    <div class="modal-content">
+      <div class="modal-header">
         <h5 class="modal-title" id="productModalLabel">Buscar Producto</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <input type="text" id="product_search_input" class="form-control mb-3" placeholder="Escribe el nombre del producto..." aria-label="Buscar producto">
-        <div id="loader" class="text-center my-2" style="display:none;">
-          <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
-          <span class="visually-hidden">Buscando...</span>
-        </div>
         <ul id="product_search_results" class="list-group list-group-flush"></ul>
       </div>
       <div class="modal-footer">
@@ -72,58 +69,53 @@
   </div>
 </div>
 
-<!-- JS para búsqueda de productos -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("product_search_input");
   const resultsList = document.getElementById("product_search_results");
   const hiddenInput = document.getElementById("discount_code_product_id");
-  const selectedName = document.getElementById("selected_product_name");
-  const loader = document.getElementById("loader");
 
-  const searchProducts = async (query) => {
-    loader.style.display = "block";
-    try {
-      const response = await fetch(`/admin/products/search?q=${encodeURIComponent(query)}`);
-      if (!response.ok) throw new Error("Error al buscar productos");
-      return await response.json();
-    } catch (err) {
-      console.error(err);
-      return [];
-    } finally {
-      loader.style.display = "none";
-    }
-  };
+  // Precargar productos
+  const products = <%= raw(Product.all.map { |p| {id: p.id.to_s, name: p.name} }.to_json) %>;
 
-  searchInput.addEventListener("input", async () => {
+  const filterProducts = (query) => products.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+
+  searchInput.addEventListener("input", () => {
     const query = searchInput.value.trim();
     resultsList.innerHTML = "";
-    if (!query) return;
+    if (!query) { resultsList.classList.add("d-none"); return; }
 
-    const products = await searchProducts(query);
-    if (!products.length) {
+    const filtered = filterProducts(query);
+    if (!filtered.length) {
       const li = document.createElement("li");
       li.textContent = "No se encontraron productos.";
       li.className = "list-group-item text-muted";
       resultsList.appendChild(li);
-      return;
-    }
-
-    products.forEach(product => {
-      const li = document.createElement("li");
-      li.className = "list-group-item list-group-item-action";
-      li.textContent = product.name;
-      li.setAttribute("role", "button");
-      li.tabIndex = 0;
-      li.addEventListener("click", () => {
-        hiddenInput.value = product.id;
-        selectedName.value = product.name;
-        resultsList.innerHTML = "";
-        const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
-        modal.hide();
+    } else {
+      filtered.forEach(product => {
+        const li = document.createElement("li");
+        li.className = "list-group-item list-group-item-action";
+        li.textContent = product.name;
+        li.tabIndex = 0;
+        li.setAttribute("role", "button");
+        li.addEventListener("click", () => {
+          hiddenInput.value = product.id;
+          document.getElementById("selected_product_name").value = product.name;
+          resultsList.innerHTML = "";
+          resultsList.classList.add("d-none");
+          const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+          modal.hide();
+        });
+        resultsList.appendChild(li);
       });
-      resultsList.appendChild(li);
-    });
+    }
+    resultsList.classList.remove("d-none");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!resultsList.contains(e.target) && e.target !== searchInput) {
+      resultsList.classList.add("d-none");
+    }
   });
 });
 </script>

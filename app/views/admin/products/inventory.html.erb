@@ -34,12 +34,14 @@
         </tr>
       </thead>
       <tbody>
+        <% low_stock_products = [] %> <!-- Inicializamos siempre -->
+        <% total_valor = 0 %>
+
         <% if @products.present? %>
-          <% low_stock_products = [] %>
-          <% total_valor = 0 %>
           <% @products.each do |product| %>
-            <% total_valor += product.price * product.quantity %>
-            <% low_stock_products << product if product.quantity <= 25 %>
+            <% total_valor += product.price.to_f * product.quantity.to_i %>
+            <% low_stock_products << product if product.quantity.to_i <= 25 %>
+
             <tr class="align-middle">
               <td class="text-muted text-center"><%= product.code %></td>
               <td class="fw-semibold"><%= product.name %></td>
@@ -51,11 +53,11 @@
                 </span>
               </td>
               <td class="text-center">
-                <% if product.quantity > 100 %>
+                <% if product.quantity.to_i > 100 %>
                   <span class="badge px-3 py-2 shadow-sm" style="background-color:#d4edda; color:#155724;">
                     ✅ <%= product.quantity %>
                   </span>
-                <% elsif product.quantity > 25 %>
+                <% elsif product.quantity.to_i > 25 %>
                   <span class="badge px-3 py-2 shadow-sm" style="background-color:#fff3cd; color:#856404;">
                     ⚠️ <%= product.quantity %>
                   </span>
@@ -89,31 +91,25 @@
 
 <!-- Toasts para stock bajo -->
 <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-  <% if defined?(low_stock_products) && low_stock_products.any? %>
-    <% low_stock_products.each do |product| %>
-      <div class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div class="toast-body">
-            ⚠️ El producto <strong><%= product.name %></strong> tiene stock bajo: <%= product.quantity %> unidades.
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
+  <% low_stock_products.each do |product| %>
+    <div class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          ⚠️ El producto <strong><%= product.name %></strong> tiene stock bajo: <%= product.quantity %> unidades.
         </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
       </div>
-    <% end %>
+    </div>
   <% end %>
 </div>
 
-<!-- Activar los toasts con JavaScript (no se cierran automáticamente, solo al hacer clic) -->
+<!-- Activar los toasts con JavaScript -->
 <script>
   document.addEventListener("turbo:load", function() {
     document.querySelectorAll('.toast').forEach(function(toastEl) {
-      // Creamos el toast con autohide desactivado
       const toast = new bootstrap.Toast(toastEl, { autohide: false });
-
-      // Mostramos el toast
       toast.show();
 
-      // Vinculamos la X al método hide() del toast
       toastEl.querySelector('.btn-close').addEventListener('click', function() {
         toast.hide();
       });

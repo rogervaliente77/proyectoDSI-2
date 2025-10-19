@@ -1,9 +1,11 @@
+# app/controllers/admin/products_controller.rb
 module Admin
   class ProductsController < ApplicationController
     before_action :set_current_user
     before_action :set_product, only: %i[edit update destroy product_sales]
     layout 'dashboard'
 
+    # LISTADO DE PRODUCTOS
     def index
       @categories = Category.all
       @marcas = Marca.all
@@ -25,6 +27,7 @@ module Admin
       @products = @products.asc(:name)
     end
 
+    # NUEVO PRODUCTO
     def new
       @product = Product.new
       @categories = Category.all
@@ -32,6 +35,7 @@ module Admin
       @product.product_images.build
     end
 
+    # CREAR PRODUCTO
     def create
       @categories = Category.all
       @marcas = Marca.all
@@ -45,12 +49,14 @@ module Admin
       end
     end
 
+    # EDITAR PRODUCTO
     def edit
       @categories = Category.all
       @marcas = Marca.all
       @product.product_images.build if @product.product_images.empty?
     end
 
+    # ACTUALIZAR PRODUCTO
     def update
       @categories = Category.all
       @marcas = Marca.all
@@ -68,12 +74,34 @@ module Admin
       end
     end
 
+    # ELIMINAR PRODUCTO
     def destroy
       @product.destroy!
       redirect_to admin_productos_path, notice: "Producto eliminado exitosamente", status: :see_other
     end
 
-    # 🔹 Acción para búsqueda de productos por AJAX
+    # VENTAS DE UN PRODUCTO
+    def product_sales
+      @products = @product&.product_sales
+    end
+
+    # INVENTARIO
+    def inventory
+      @products = Product.all.includes(:category, :marca).asc(:name)
+      if params[:query].present?
+        @products = @products.any_of(
+          { name: /#{Regexp.escape(params[:query].strip)}/i },
+          { code: /#{Regexp.escape(params[:query].strip)}/i }
+        )
+      end
+    end
+
+    # DEVUELTOS
+    def devueltos
+      @returned_products = ReturnedProduct.all
+    end
+
+    # BÚSQUEDA AJAX
     def search
       query = params[:q].to_s.strip
       products = if query.present?
@@ -82,7 +110,7 @@ module Admin
                    Product.none
                  end
 
-      render json: products.map { |p| { id: p.id, name: p.name } }
+      render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price, discount: p.discount } }
     end
 
     private
