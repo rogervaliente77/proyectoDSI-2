@@ -1,239 +1,161 @@
 <div class="container-fluid bg-light min-vh-100 py-5">
 
-  <!-- Cabecera Profesional -->
+  <!-- Cabecera -->
   <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between mb-4 p-4 rounded" style="background-color: #cfe2ff; gap: 1.5rem;">
-    
-    <!-- Logo -->
-    <div class="d-flex align-items-center flex-shrink-0 justify-content-center" 
-         style="width: 150px; height: 150px; border-radius: 50%; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); overflow: hidden;">
-      <img src="https://i.ibb.co/B2QsNGLm/20250913-1732-Logo-Herramientas-Ferre-Pro-remix-01k52pmwf5ewavwk0cjb9g6k1z-1.png"
-           alt="Logo" 
-           class="img-fluid"
-           style="max-width: 100%; max-height: 100%; object-fit: contain;">
+    <div class="d-flex align-items-center justify-content-center" style="width: 120px; height: 120px; border-radius: 50%; background-color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); overflow: hidden;">
+      <img src="https://i.ibb.co/B2QsNGLm/20250913-1732-Logo-Herramientas-Ferre-Pro-remix-01k52pmwf5ewavwk0cjb9g6k1z-1.png" alt="Logo" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;">
     </div>
 
-    <!-- Título -->
-    <div class="flex-grow-1 text-center">
-      <h1 class="h2 text-dark fw-bold mb-2">Catálogo de Productos</h1>
-      <p class="text-muted mb-0 fs-6">Descubra nuestras mejores opciones y adquiera sus productos iniciando sesión o creando una cuenta.</p>
+    <div class="text-center flex-grow-1">
+      <h1 class="h3 text-dark fw-bold mb-1">Catálogo de Productos</h1>
+      <p class="text-muted mb-0 small">Descubre nuestras mejores opciones e inicia sesión o crea una cuenta para comprar.</p>
     </div>
 
-    <!-- Botones -->
-    <div class="d-flex gap-3 flex-wrap mt-3 mt-lg-0">
-      <%= link_to portal_login_path, class: "btn btn-primary btn-md shadow-sm" do %>
-        <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+    <div class="d-flex gap-2 flex-wrap mt-3 mt-lg-0">
+      <%= link_to portal_login_path, class: "btn btn-primary btn-sm shadow-sm" do %>
+        <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
       <% end %>
-      <%= link_to portal_signup_path, class: "btn btn-outline-primary btn-md shadow-sm" do %>
-        <i class="fas fa-user-plus me-2"></i> Crear Cuenta
+      <%= link_to portal_signup_path, class: "btn btn-outline-primary btn-sm shadow-sm" do %>
+        <i class="fas fa-user-plus me-1"></i> Crear Cuenta
       <% end %>
     </div>
   </div>
 
   <!-- Filtros -->
-  <div class="card p-4 mb-5 shadow-sm rounded">
-    <%= form_with url: landing_index_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
-      <div class="col-md-3">
-        <label class="form-label small text-secondary">Buscar por nombre</label>
-        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control form-control-md" %>
-      </div>
-
-      <div class="col-md-3">
-        <label class="form-label small text-secondary">Categoría</label>
-        <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), prompt: "Todas las categorías", class: "form-select form-select-md" %>
-      </div>
-
-      <div class="col-md-2">
-        <label class="form-label small text-secondary">Marca</label>
-        <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), prompt: "Todas las marcas", class: "form-select form-select-md" %>
-      </div>
-
-      <div class="col-md-1">
-        <label class="form-label small text-secondary"><i class="fas fa-tags me-1"></i> Oferta</label>
-        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-md filter-select" %>
-      </div>
-
-      <div class="col-md-3">
-        <label class="form-label small text-secondary">Precio ($)</label>
-        <div class="d-flex gap-2 align-items-center">
-          <input type="number" name="min_price" value="<%= params[:min_price] || 0 %>" class="form-control form-control-md" placeholder="Min" min="0" style="width: 90px;">
-          <span class="text-muted">-</span>
-          <input type="number" name="max_price" value="<%= params[:max_price] || 1000 %>" class="form-control form-control-md" placeholder="Max" min="0" style="width: 90px;">
+  <div class="position-sticky top-0 bg-light shadow-sm py-3 mb-3" style="z-index: 1050;">
+    <div class="container">
+      <%= form_with url: landing_index_path, method: :get, local: true, class: "row row-cols-lg-auto g-2 align-items-end justify-content-start" do %>
+        <div class="col">
+          <label class="form-label small text-secondary">Buscar</label>
+          <%= text_field_tag :query, params[:query], placeholder: "Ej. Taladro, Laptop...", class: "form-control form-control-sm" %>
         </div>
-      </div>
-
-      <div class="col-12 d-flex gap-3 mt-3">
-        <%= submit_tag "Aplicar", class: "btn btn-primary btn-md flex-grow-1" %>
-        <%= link_to landing_index_path, class: "btn btn-outline-secondary btn-md flex-grow-1" do %>
-          Limpiar
-        <% end %>
-      </div>
-    <% end %>
+        <div class="col">
+          <label class="form-label small text-secondary">Categoría</label>
+          <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), prompt: "Todas", class: "form-select form-select-sm" %>
+        </div>
+        <div class="col">
+          <label class="form-label small text-secondary">Marca</label>
+          <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), prompt: "Todas", class: "form-select form-select-sm" %>
+        </div>
+        <div class="col">
+          <label class="form-label small text-secondary">Oferta</label>
+          <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-sm" %>
+        </div>
+        <div class="col d-flex align-items-end gap-2">
+          <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm" %>
+          <%= link_to "Reiniciar", landing_index_path, class: "btn btn-outline-secondary btn-sm" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 
   <!-- Productos -->
-  <div class="row g-4">
+  <div class="row g-3">
     <% if @products.any? %>
       <% @products.each do |product| %>
+        <% images = product.product_images.map(&:image_url) %>
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-          <div class="card border-0 shadow-sm rounded-lg h-100 product-card bg-white position-relative">
-
-            <!-- Badge de ofertas -->
-            <% if product.discount.to_i > 0 || product.offer_type.present? %>
-              <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">
-                <i class="fas fa-gift me-1"></i> Oferta 
-                <%= " #{product.offer_type.capitalize}" if product.offer_type.present? %>
-              </span>
-            <% end %>
-
-            <!-- Badge de disponibilidad -->
-            <% if product.quantity > 0 %>
-              <span class="badge bg-success small position-absolute top-0 end-0 m-2">Disponible</span>
-            <% else %>
-              <span class="badge bg-secondary small position-absolute top-0 end-0 m-2">Agotado</span>
-            <% end %>
-
-            <!-- Carrusel -->
-            <div class="custom-carousel">
-              <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
-              <% if images.any? %>
-                <% images.each_with_index do |img, index| %>
-                  <img src="<%= img.image_url %>" class="carousel-image <%= 'active' if index.zero? %>" alt="<%= product.name %> imagen <%= index+1 %>">
-                <% end %>
-                <button class="carousel-btn prev" onclick="prevSlide(this)">‹</button>
-                <button class="carousel-btn next" onclick="nextSlide(this)">›</button>
+          <div class="card border-0 shadow-sm rounded-lg h-100 product-card bg-white position-relative" style="overflow: visible;">
+            
+            <!-- Badges de oferta y disponibilidad -->
+            <div class="position-absolute top-0 start-0 p-2 d-flex flex-column align-items-start" style="z-index: 10; width: auto; max-width: 100%;">
+              <% if product.offer_type.present? %>
+                <span class="badge bg-danger text-uppercase mb-1" style="white-space: nowrap;"><%= product.offer_type %></span>
+              <% end %>
+              <% if product.quantity > 0 %>
+                <span class="badge bg-success mb-1" style="white-space: nowrap;">Disponible</span>
               <% else %>
-                <img src="https://via.placeholder.com/300x220" class="carousel-image active" alt="<%= product.name %>">
+                <span class="badge bg-secondary mb-1" style="white-space: nowrap;">Agotado</span>
               <% end %>
             </div>
 
-            <!-- Información del producto -->
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title text-dark fw-bold mb-2 fs-5"><%= product.name %></h5>
-              <p class="card-text text-muted mb-2 fs-7"><%= truncate(product.description, length: 100) %></p>
-              <p class="mt-auto mb-2 fs-5">
-                <% if product.discount.to_i > 0 %>
-                  <%if product.offer_type == "descuento"%>
-                    <span class="text-muted text-decoration-line-through">
-                      <%= number_to_currency(product.price) %>
-                    </span>
-                    <br>
-                    <span class="fw-bold text-success fs-5">
-                      <%= number_to_currency(product.discounted_price) %>
-                    </span>
-                    <span class="fw-bold text-success fs-5">
-                      (-<%= product.discount %>%)
-                    </span>
-                  <%elsif product.offer_type == "mayoreo"%>
-                    <p class="mb-0 fs-7 text-primary"><strong>Obten precio de mayoreo a partir de <%= product.wholesale_quantity %></strong></p>
-                    <br>
-                    <span class="fw-bold text-success fs-5">
-                      <%= number_to_currency(product.discounted_price) %> (-<%= product.discount %>%)
-                    </span>
-                    <span class="fw-bold fs-5">
-                      Precio normal <%= number_to_currency(product.price) %>
-                    </span>
-                  <%end %>
-                  <span class="fw-bold fs-5">
-                    <%= number_to_currency(product.price) %>
-                  </span>
-                <% else %>
-                  <span class="fw-bold fs-5">
-                    <%= number_to_currency(product.price) %>
-                  </span>
-                <% end %>
-              </p>
-              <p class="mb-0 fs-7"><strong>Categoría:</strong> <span class="text-muted"><%= product.category.name if product.category %></span></p>
-              <p class="mb-0 fs-7"><strong>Marca:</strong> <span class="text-muted"><%= product.marca.name if product.marca %></span></p>
+            <!-- Carrusel -->
+            <div class="product-carousel" data-images="<%= images.join('|') %>">
+              <img class="carousel-img" src="<%= images.first || 'https://via.placeholder.com/300x220?text=Sin+imagen' %>" alt="<%= product.name %>">
+              <% if images.size > 1 %>
+                <button class="carousel-btn prev-btn">&lt;</button>
+                <button class="carousel-btn next-btn">&gt;</button>
+              <% end %>
             </div>
 
+            <!-- Body de la card -->
+            <div class="card-body d-flex flex-column p-3">
+              <h6 class="card-title text-dark fw-bold text-truncate mb-1"><%= product.name %></h6>
+              <p class="card-text text-muted small mb-2"><%= truncate(product.description, length: 60) %></p>
+
+              <div class="mt-auto">
+                <% if product.discount.to_i > 0 && product.on_offer? %>
+                  <p class="mb-1 small text-muted text-decoration-line-through"><%= number_to_currency(product.price) %></p>
+                  <p class="fw-bold text-success mb-0"><%= number_to_currency(product.discounted_price) %> (-<%= product.discount %>%)</p>
+                <% else %>
+                  <p class="fw-bold text-dark mb-0"><%= number_to_currency(product.price) %></p>
+                <% end %>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted"><%= product.category&.name %></small>
+              </div>
+            </div>
           </div>
         </div>
       <% end %>
     <% else %>
-      <div class="col-12 text-center mt-5">
-        <p class="text-muted fs-6">No se encontraron productos con los criterios de búsqueda.</p>
-      </div>
+      <div class="col-12 text-center mt-4"><p class="text-muted">No se encontraron productos.</p></div>
     <% end %>
   </div>
-
-  <!-- Toast de notificaciones de ofertas -->
-  <% if @current_user&.role&.name == 'cliente' && @current_user.allow_notifications && @offer_products.any? %>
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
-      <div id="offerToast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div class="toast-body">
-            ¡Atención! Tenemos <%= @offer_products.count %> productos en oferta. 👀
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        const toastEl = document.getElementById('offerToast');
-        if(toastEl) {
-          const bsToast = new bootstrap.Toast(toastEl, { delay: 5000 });
-          bsToast.show();
-        }
-      });
-    </script>
-  <% end %>
-
 </div>
 
-<style>
-.custom-carousel { position: relative; width: 100%; height: 250px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; }
-.carousel-image { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.5s ease-in-out; z-index: 1; }
-.carousel-image.active { opacity: 1; z-index: 2; }
-.carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; font-size: 1.5rem; border-radius: 50%; z-index: 10; transition: background 0.3s; }
-.carousel-btn:hover { background: rgba(0,0,0,0.7); }
-.carousel-btn.prev { left: 10px; }
-.carousel-btn.next { right: 10px; }
-.badge { padding: 0.4rem 0.7rem; font-size: 0.85rem; z-index: 10; }
-</style>
-
 <script>
-function showSlide(carousel, index) {
-  const slides = carousel.querySelectorAll('.carousel-image');
-  slides.forEach((s, i) => s.classList.toggle('active', i === index));
-  carousel.dataset.current = index;
-}
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('.product-carousel').forEach(carousel => {
+    const imgEl = carousel.querySelector('.carousel-img');
+    const nextBtn = carousel.querySelector('.next-btn');
+    const prevBtn = carousel.querySelector('.prev-btn');
+    const images = carousel.dataset.images.split('|');
+    let index = 0;
+    let interval;
 
-function prevSlide(button) {
-  const carousel = button.closest('.custom-carousel');
-  const slides = carousel.querySelectorAll('.carousel-image');
-  let index = parseInt(carousel.dataset.current || 0);
-  index = (index - 1 + slides.length) % slides.length;
-  showSlide(carousel, index);
-}
+    const showImage = i => imgEl.src = images[i];
 
-function nextSlide(button) {
-  const carousel = button.closest('.custom-carousel');
-  const slides = carousel.querySelectorAll('.carousel-image');
-  let index = parseInt(carousel.dataset.current || 0);
-  index = (index + 1) % slides.length;
-  showSlide(carousel, index);
-}
+    if(nextBtn) nextBtn.addEventListener('click', e => { e.stopPropagation(); index = (index+1) % images.length; showImage(index); });
+    if(prevBtn) prevBtn.addEventListener('click', e => { e.stopPropagation(); index = (index-1+images.length)%images.length; showImage(index); });
 
-document.addEventListener("DOMContentLoaded", function() {
-  document.querySelectorAll('.product-card').forEach(card => {
-    let interval = null;
-    const carousel = card.querySelector('.custom-carousel');
-    if (!carousel) return;
-
-    card.addEventListener('mouseenter', () => {
-      let index = parseInt(carousel.dataset.current || 0);
-      interval = setInterval(() => {
-        const slides = carousel.querySelectorAll('.carousel-image');
-        index = (index + 1) % slides.length;
-        showSlide(carousel, index);
-      }, 2000);
+    carousel.addEventListener('mouseenter', () => {
+      if(images.length>1) interval = setInterval(()=>{ index=(index+1)%images.length; showImage(index); },1500);
     });
-
-    card.addEventListener('mouseleave', () => {
-      clearInterval(interval);
-    });
+    carousel.addEventListener('mouseleave', () => clearInterval(interval));
   });
 });
 </script>
+
+<style>
+.product-carousel {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+}
+.carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+  font-weight: bold;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  border-radius: 3px;
+  z-index: 10;
+}
+.prev-btn { left: 5px; }
+.next-btn { right: 5px; }
+.card-title { font-size: 0.95rem; }
+.card-text { font-size: 0.8rem; line-height:1.3; }
+.badge.small { font-size:0.7rem; padding:0.25rem 0.4rem; }
+</style>

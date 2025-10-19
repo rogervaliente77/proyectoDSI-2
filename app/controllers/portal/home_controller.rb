@@ -4,7 +4,6 @@ module Portal
     before_action :set_current_user
 
     def index
-      # Traer todos los productos, categorías y marcas
       @products = Product.all.includes(:category, :marca)
       @categories = Category.all
       @marcas = Marca.all
@@ -30,21 +29,13 @@ module Portal
       end
 
       # ----------------- OFERTAS -----------------
+      # Solo mostrar notificaciones la primera vez que inicia sesión
       if @current_user&.role&.name == 'cliente' && !@current_user.allow_notifications
-        # Solo productos con descuento u oferta vigente
         @offer_products = @products.select(&:on_offer?)
+        # Marcamos que ya se mostraron las notificaciones
+        @current_user.update(allow_notifications: true)
       else
         @offer_products = []
-      end
-    end
-
-    # ----------------- NUEVO MÉTODO -----------------
-    def accept_notifications
-      if @current_user
-        @current_user.update(allow_notifications: true)
-        head :ok
-      else
-        head :unauthorized
       end
     end
 
