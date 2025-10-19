@@ -73,6 +73,18 @@ module Admin
       redirect_to admin_productos_path, notice: "Producto eliminado exitosamente", status: :see_other
     end
 
+    # 🔹 Acción para búsqueda de productos por AJAX
+    def search
+      query = params[:q].to_s.strip
+      products = if query.present?
+                   Product.where(name: /#{Regexp.escape(query)}/i).limit(10)
+                 else
+                   Product.none
+                 end
+
+      render json: products.map { |p| { id: p.id, name: p.name } }
+    end
+
     private
 
     def set_product

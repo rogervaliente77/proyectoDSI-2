@@ -1,28 +1,23 @@
+# app/controllers/admin/discount_codes_controller.rb
 module Admin
   class DiscountCodesController < ApplicationController
     before_action :set_current_user
     #before_action :check_admin_access
     before_action :set_discount_code, only: %i[show edit update destroy]
+
     layout 'dashboard'
 
-    # GET /admin/discount_codes
     def index
-      @discount_codes = if params[:product_id].present?
-                          DiscountCode.where(product_id: params[:product_id])
-                        else
-                          DiscountCode.all
-                        end
+      @discount_codes = DiscountCode.includes(:product)
+      @discount_codes = @discount_codes.where(product_id: params[:product_id]) if params[:product_id].present?
     end
 
-    # GET /admin/discount_codes/new
     def new
       @discount_code = DiscountCode.new
     end
 
-    # POST /admin/discount_codes
     def create
       @discount_code = DiscountCode.new(discount_code_params)
-
       if @discount_code.save
         redirect_to admin_discount_codes_path, notice: "Código de descuento creado con éxito."
       else
@@ -31,15 +26,8 @@ module Admin
       end
     end
 
-    # GET /admin/discount_codes/:id
-    def show
-    end
+    def edit; end
 
-    # GET /admin/discount_codes/:id/edit
-    def edit
-    end
-
-    # PATCH/PUT /admin/discount_codes/:id
     def update
       if @discount_code.update(discount_code_params)
         redirect_to admin_discount_codes_path, notice: "Código actualizado con éxito."
@@ -49,7 +37,6 @@ module Admin
       end
     end
 
-    # DELETE /admin/discount_codes/:id
     def destroy
       @discount_code.destroy
       redirect_to admin_discount_codes_path, notice: "Código eliminado exitosamente."
