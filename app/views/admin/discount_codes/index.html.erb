@@ -2,7 +2,9 @@
   <h1 class="mb-3">Códigos de Descuento</h1>
 
   <div class="mb-3">
-    <%= link_to "Nuevo Código", new_admin_discount_code_path, class: "btn btn-primary" %>
+    <% if @current_user.role.name != "cajero"%>
+      <%= link_to "Nuevo Código", new_admin_discount_code_path, class: "btn btn-primary" %>
+    <% end %>
   </div>
 
   <div class="card shadow-lg border-0 rounded-4">
@@ -40,27 +42,29 @@
                 <td class="text-center">
                   <div class="d-flex gap-1 justify-content-center">
                     <!-- Ver -->
-                    <%= link_to admin_discount_code_path(code),
-                          class: "btn btn-sm btn-info flex-shrink-0",
-                          title: "Ver" do %>
-                      <i class="fa fa-eye"></i>
-                    <% end %>
+                    <% if @current_user.role.name != "cajero"%>
+                      <%= link_to admin_discount_code_path(code),
+                            class: "btn btn-sm btn-info flex-shrink-0",
+                            title: "Ver" do %>
+                        <i class="fa fa-eye"></i>
+                      <% end %>
 
-                    <!-- Editar -->
-                    <%= link_to edit_admin_discount_code_path(code),
-                          class: "btn btn-sm btn-warning flex-shrink-0",
-                          title: "Editar" do %>
-                      <i class="fa fa-pencil"></i>
-                    <% end %>
+                      <!-- Editar -->
+                      <%= link_to edit_admin_discount_code_path(code),
+                            class: "btn btn-sm btn-warning flex-shrink-0",
+                            title: "Editar" do %>
+                        <i class="fa fa-pencil"></i>
+                      <% end %>
 
-                    <!-- Eliminar -->
-                    <%= button_to admin_discount_code_path(code),
-                          method: :delete,
-                          form: { class: "d-inline" },
-                          data: { turbo_confirm: "¿Estás seguro de eliminar este código?" },
-                          class: "btn btn-sm btn-danger flex-shrink-0",
-                          title: "Eliminar" do %>
-                      <i class="fa fa-trash"></i>
+                      <!-- Eliminar -->
+                      <%= button_to admin_discount_code_path(code),
+                            method: :delete,
+                            form: { class: "d-inline" },
+                            data: { turbo_confirm: "¿Estás seguro de eliminar este código?" },
+                            class: "btn btn-sm btn-danger flex-shrink-0",
+                            title: "Eliminar" do %>
+                        <i class="fa fa-trash"></i>
+                      <% end %>
                     <% end %>
                   </div>
                 </td>

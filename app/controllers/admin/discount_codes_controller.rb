@@ -1,7 +1,7 @@
 module Admin
   class DiscountCodesController < ApplicationController
     before_action :set_current_user
-    before_action :check_admin_access
+    #before_action :check_admin_access
     before_action :set_discount_code, only: %i[show edit update destroy]
     layout 'dashboard'
 
