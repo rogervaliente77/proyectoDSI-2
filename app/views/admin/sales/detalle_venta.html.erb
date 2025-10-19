@@ -50,7 +50,7 @@
                 <th>Producto</th>
                 <th>Cantidad</th>
                 <th>Precio Unitario</th>
-                <th>Descuento %</th>
+                <th>Oferta?</th>
                 <th>Valor del Descuento </th>
                 <th>Subtotal</th>
               </tr>
@@ -68,9 +68,13 @@
                   <td><%= ps.product.name %></td>
                   <td><%= ps.quantity %></td>
                   <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
-                                 
-                  <td><%= number_with_precision(ps.discount, precision: 2) %>%</td>
-                  <td>$<%= number_with_precision(discount_decimal, precision: 2) %></td>
+                  <% if ps&.offer_type.present? %>
+                    <td> <span class="badge badge-info"><%= ps&.offer_type rescue ''%></span></td>               
+                  <%else%>
+                    <td> <span class="badge badge-danger">N/A</span></td> 
+                  <%end%>
+                  <td><%= number_with_precision(ps.discount, precision: 2) %></td>
+                  <!--<td>$<%#= number_with_precision(discount_decimal, precision: 2) %></td>-->
                   <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
 
                 </tr>

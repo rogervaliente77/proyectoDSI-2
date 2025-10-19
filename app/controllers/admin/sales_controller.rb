@@ -98,7 +98,7 @@ module Admin
         :cajero_id,
         :caja_id,
         :total_amount,
-        product_sales_attributes: [:product_id, :quantity, :unit_price, :discount]
+        product_sales_attributes: [:product_id, :quantity, :unit_price, :discount, :offer_type, :subtotal]
       )
     end
 

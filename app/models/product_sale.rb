@@ -6,6 +6,8 @@ class ProductSale
   field :unit_price, type: Float
   field :discount, type: Float
   field :subtotal, type: Float
+  field :offer_type, type: String
+  field :concepto, type: String
 
 
   # Callbacks — se ejecutan en orden

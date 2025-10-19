@@ -94,6 +94,7 @@
                               <th>Cantidad</th>
                               <th>Precio Unitario</th>
                               <th>Descuento %</th>
+                              <th>Tipo de oferta</th>
                               <th>Valor del Descuento </th>
                               <th>Subtotal</th>
                               <th>Acciones</th>
@@ -119,36 +120,37 @@
 
                     <!-- Modal de productos -->
                     <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-xl">
-                            <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Buscar producto</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                      <div class="modal-dialog modal-xl" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="productModalLabel">Buscar producto</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <div class="mb-3">
+                              <input type="text" id="search-product-input" class="form-control" placeholder="Buscar por nombre...">
                             </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                <input type="text" id="search-product-input" class="form-control" placeholder="Buscar por nombre...">
-                                </div>
 
-                                <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                    <th>Nombre</th>
-                                    <th>Descripción</th>
-                                    <th>Precio</th>
-                                    <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="product-search-results">
-                                    <!-- Aquí se renderizan los resultados -->
-                                </tbody>
-                                </table>
-                            </div>
-                            </div>
+                            <table class="table table-striped">
+                              <thead>
+                                <tr>
+                                  <th>Nombre</th>
+                                  <th>Descripción</th>
+                                  <th>Precio</th>
+                                  <th>Oferta?</th>
+                                  <th>Acciones</th>
+                                </tr>
+                              </thead>
+                              <tbody id="product-search-results">
+                                <!-- Aquí se renderizan los resultados -->
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
+                      </div>
                     </div>
-
-
                 </div>
             </div>
         </div>                     
@@ -157,8 +159,7 @@
 <!-- /.container-fluid -->
 
 <script>
-
-  document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   let productIndex = 0;
 
   // Buscar productos en el modal
@@ -173,23 +174,37 @@
     resultsContainer.innerHTML = "";
 
     products.forEach(product => {
-  resultsContainer.innerHTML += `
-    <tr>
-      <td>${product.name}</td>
-      <td>${product.description}</td>
-      <td>$${product.price}</td>
-      <td>
-        <button type="button" class="btn btn-sm btn-success select-product-btn"
-                data-id="${product.id}"
-                data-name="${product.name}"
-                data-price="${product.price}"
-                data-discount="${product.discount || 0}">
-          Seleccionar
-        </button>
-      </td>
-    </tr>
-  `;
-});
+      resultsContainer.innerHTML += `
+        <tr>
+          <td>${product.name}</td>
+          <td>${product.description}</td>
+          <td>$${product.price}</td>
+          <td>
+            ${
+              product.offer_type
+                ? `<span class="badge badge-info">${product.offer_type}</span>
+                  ${
+                    product.offer_type === 'mayoreo'
+                      ? `<br><small>A partir de ${product.wholesale_quantity} unidades</small>`
+                      : ''
+                  }`
+                : `<span class="badge badge-danger">N/A</span>`
+            }
+          </td>
+          <td>
+            <button type="button" class="btn btn-sm btn-success select-product-btn"
+                    data-id="${product.id}"
+                    data-name="${product.name}"
+                    data-price="${product.price}"
+                    data-discount="${product.discount || 0}"
+                    data-offer-type="${product.offer_type || ''}"
+                    data-wholesale-quantity="${product.wholesale_quantity || 0}">
+              Seleccionar
+            </button>
+          </td>
+        </tr>
+      `;
+    });
   });
 
   // Agregar producto desde el modal
@@ -198,34 +213,44 @@
       const id = e.target.dataset.id;
       const name = e.target.dataset.name;
       const price = e.target.dataset.price;
-const discount = e.target.dataset.discount || 0;
+      const discount = e.target.dataset.discount || 0;
+      const offerType = e.target.dataset.offerType || '';
+      const wholesaleQuantity = e.target.dataset.wholesaleQuantity || 0;
 
       const container = document.getElementById("product-sales-container");
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${name}</td>
-          <td>
-            <input type="number" name="sale[product_sales_attributes][${productIndex}][quantity]" value="1" class="form-control" min="1">
-          </td>
-          <td>
-            <input type="number" name="sale[product_sales_attributes][${productIndex}][unit_price]" value="${price}" class="form-control" readonly>
-          </td>
-          <td>
-            <input type="number" name="sale[product_sales_attributes][${productIndex}][discount]" value="${discount}" class="form-control" readonly>
-          </td>
-          <td class="discount-value">0.00</td>
-          <td class="subtotal">0.00</td>
-          <td>
-            <button type="button" class="btn btn-danger btn-sm remove-product">Eliminar</button>
-          </td>
-          <input type="hidden" name="sale[product_sales_attributes][${productIndex}][product_id]" value="${id}">
-        `;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${name}</td>
+        <td>
+          <input type="number" name="sale[product_sales_attributes][${productIndex}][quantity]" value="1" class="form-control" min="1">
+        </td>
+        <td>
+          <input type="number" name="sale[product_sales_attributes][${productIndex}][unit_price]" value="${price}" class="form-control" readonly>
+        </td>
+        <td>
+          <input type="number" name="sale[product_sales_attributes][${productIndex}][discount]" value="${discount}" class="form-control" readonly data-original-discount="${discount}">
+        </td>
+
+        <td class="offer_type-value">
+          ${offerType ? `<span class="badge badge-info">${offerType}</span>` : '<span class="badge badge-secondary">N/A</span>'}
+          <input type="hidden" name="sale[product_sales_attributes][${productIndex}][offer_type]" value="${offerType}">
+          <input type="hidden" class="wholesale-quantity" value="${wholesaleQuantity}">
+        </td>
+
+        <td class="discount-value">0.00</td>
+        <td class="subtotal">0.00</td>
+        <input type="hidden" name="sale[product_sales_attributes][${productIndex}][subtotal]" value="0.00" class="subtotal-input">
+
+        <td>
+          <button type="button" class="btn btn-danger btn-sm remove-product">Eliminar</button>
+        </td>
+        <input type="hidden" name="sale[product_sales_attributes][${productIndex}][product_id]" value="${id}">
+      `;
       container.appendChild(row);
       updateSaleTotal();
 
       productIndex++;
-
       bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
     }
 
@@ -233,18 +258,17 @@ const discount = e.target.dataset.discount || 0;
     if (e.target.classList.contains("remove-product")) {
       e.target.closest("tr").remove();
       updateSaleTotal();
-
     }
   });
-});
 
-document.addEventListener("input", function (e) {
-  if (e.target.name?.includes("quantity") || e.target.name?.includes("unit_price") || e.target.name?.includes("discount")) {
-    updateSaleTotal();
-  }
-});
+  // Detectar cambios en inputs de cantidad
+  document.addEventListener("input", function (e) {
+    if (e.target.name?.includes("quantity")) {
+      updateSaleTotal();
+    }
+  });
 
-function updateSaleTotal() {
+  function updateSaleTotal() {
   let total = 0;
   const rows = document.querySelectorAll("#product-sales-container tr");
 
@@ -252,25 +276,70 @@ function updateSaleTotal() {
     const quantityInput = row.querySelector('input[name*="[quantity]"]');
     const priceInput = row.querySelector('input[name*="[unit_price]"]');
     const discountInput = row.querySelector('input[name*="[discount]"]');
+    const offerType = row.querySelector('input[name*="[offer_type]"]').value;
+    const wholesaleQuantity = parseFloat(row.querySelector(".wholesale-quantity")?.value || 0);
+    const subtotalInput = row.querySelector('.subtotal-input');
 
     const quantity = parseFloat(quantityInput?.value || 0);
     const price = parseFloat(priceInput?.value || 0);
-    const discount = parseFloat(discountInput?.value || 0);
+    const originalDiscount = parseFloat(discountInput?.dataset.originalDiscount || 0);
 
-    // descuento calculado en dinero
-    const values = quantity * price
-    const discountValue = values * (discount / 100);
-    const subtotal = (quantity * price) - discountValue;
+    let discountValue = 0;
+    let subtotal = 0;
+    const value = quantity * price;
 
-    // actualizar columnas en la fila
+    switch (offerType) {
+      case "mayoreo":
+        if (quantity >= wholesaleQuantity && wholesaleQuantity > 0) {
+          discountValue = value * (originalDiscount / 100);
+        } else {
+          discountValue = 0;
+        }
+        break;
+
+      case "2x1":
+        discountValue = Math.floor(quantity / 2) * price;
+        break;
+
+      case "3x1":
+        discountValue = Math.floor(quantity / 3) * price;
+        break;
+
+      case "descuento":
+        discountValue = value * (originalDiscount / 100);
+        break;
+
+      default:
+        discountValue = 0;
+    }
+
+    subtotal = value - discountValue;
+
+    // Actualizar input que se envía al backend con el valor real del descuento
+    discountInput.value = discountValue.toFixed(2);
+
+    // Actualizar la columna % Descuento visual
+    const discountPercentageCell = row.querySelector(".discount-percentage");
+    if (discountPercentageCell) {
+      if (offerType === "2x1" || offerType === "3x1") {
+        discountPercentageCell.textContent = "0%";
+      } else {
+        discountPercentageCell.textContent = originalDiscount.toFixed(2) + "%";
+      }
+    }
+
     row.querySelector(".discount-value").textContent = discountValue.toFixed(2);
-row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
+    row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
+    if(subtotalInput) subtotalInput.value = subtotal.toFixed(2);
 
-    total = (total + subtotal);
+    total += subtotal;
   });
 
   document.getElementById("sale-total").textContent = total.toFixed(2);
   document.getElementById("sale_total_amount").value = total.toFixed(2);
 }
 
+
+
+});
 </script>

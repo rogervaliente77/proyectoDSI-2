@@ -104,13 +104,26 @@ module Admin
     # BÚSQUEDA AJAX
     def search
       query = params[:q].to_s.strip
+    
       products = if query.present?
                    Product.where(name: /#{Regexp.escape(query)}/i).limit(10)
                  else
                    Product.none
                  end
-
-      render json: products.map { |p| { id: p.id.to_s, name: p.name, description: p.description, price: p.price, discount: p.discount } }
+    
+        render json: products.map { |p|
+        vigente = p.offer_expires_at.present? && p.offer_expires_at > Time.current
+      
+        {
+          id: p.id.to_s,
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          discount: p.discount,
+          offer_type: vigente ? p.offer_type : '',
+          wholesale_quantity: (vigente && p.offer_type == 'mayoreo') ? p.wholesale_quantity : ''
+        }
+      }         
     end
 
     private
