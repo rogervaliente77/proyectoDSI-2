@@ -11,13 +11,13 @@
           <% @cart_items.each do |item| %>
             <% product = item[:product] %>
             <% quantity = item[:quantity] %>
-            <% discounted_price = product.discount.present? && product.discount > 0 ? (product.price - (product.price * product.discount / 100.0)) : product.price %>
+            <% discounted_price = item[:unit_price] %>
 
             <div class="d-flex align-items-center mb-3 border-bottom pb-2 product-card" 
                  data-product-id="<%= product.id %>" 
                  data-price="<%= discounted_price %>" 
                  data-original-price="<%= product.price %>">
-              
+
               <% if product.product_images.any? %>
                 <%= image_tag product.product_images.first.image_url, class: "img-thumbnail me-3", style: "width: 120px; height: 120px;" %>
               <% else %>
@@ -28,25 +28,33 @@
                 <div>
                   <strong class="fs-5"><%= product.name %></strong><br>
 
-                  <% if product.discount.present? && product.discount > 0 %>
-                    <div>
-                      <i>Precio por unidad:</i>
-                      <span class="text-muted text-decoration-line-through">$<%= '%.2f' % product.price %></span>
-                      <span class="badge bg-danger ms-2">-<%= product.discount %>%</span><br>
-                      <span class="text-success fw-bold fs-5">$<%= '%.2f' % discounted_price %></span>
-                    </div>
-                  <% else %>
+                  <div>
                     <i>Precio por unidad:</i>
-                    <span class="text-success fw-bold fs-5">$<%= '%.2f' % product.price %></span>
-                  <% end %>
+                    <% if discounted_price < product.price %>
+                      <span class="text-muted text-decoration-line-through">$<%= '%.2f' % product.price %></span>
+                      <span class="badge bg-danger ms-2">-<%= '%.0f' % ((1 - discounted_price / product.price) * 100) %>%</span><br>
+                    <% else %>
+                      <span class="text-muted text-decoration-line-through d-none">$<%= '%.2f' % product.price %></span>
+                      <span class="badge bg-danger ms-2"></span><br>
+                    <% end %>
+                    <span class="text-success fw-bold fs-5 price-per-unit">$<%= '%.2f' % discounted_price %></span>
+                  </div>
 
                   <div class="mt-2">
                     <strong>Subtotal:</strong>
                     <span class="text-success subtotal">$<%= '%.2f' % (discounted_price * quantity) %></span>
                   </div>
+
+                  <!-- Campo de cupón -->
+                  <div class="input-group mt-2" style="max-width: 220px;">
+                    <input type="text" class="form-control form-control-sm product-coupon" placeholder="Código de descuento">
+                    <button class="btn btn-sm btn-outline-primary apply-coupon-btn" data-product-id="<%= product.id %>">Aplicar</button>
+                  </div>
                 </div>
 
-               
+                <div class="d-flex flex-column align-items-end">
+                  <span class="fw-bold">Cantidad: <span class="quantity"><%= quantity %></span></span>
+                </div>
               </div>
             </div>
           <% end %>
@@ -92,7 +100,7 @@
             <span id="total-amount" class="text-success">$<%= '%.2f' % @total %></span>
           </div>
 
-          <%= form_with url: portal_create_purchase_portal_carts_path, method: :post, local: false, id: "checkout-form" do |f| %>
+          <%= form_with url: portal_checkout_path, method: :post, local: false, id: "checkout-form", data: { turbo: false } do |f| %>
             <div class="mt-4 text-center">
               <button type="submit" class="btn btn-success btn-lg">
                 <i class="fas fa-check-circle"></i> Confirmar compra
@@ -105,75 +113,123 @@
   </div>
 </div>
 
-<!-- 🔹 AJAX + JS dinámico -->
+<!-- Toast container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <div id="coupon-toast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-body">Cupón aplicado</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
   const productCards = document.querySelectorAll(".product-card");
   const subtotalDisplay = document.getElementById("subtotal-amount");
   const discountDisplay = document.getElementById("discount-amount");
   const totalDisplay = document.getElementById("total-amount");
 
   const cartData = {};
+  const toastEl = document.getElementById("coupon-toast");
+  const toastBody = document.getElementById("toast-body");
+  const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
 
   productCards.forEach(card => {
-    const productId = card.dataset.productId;
-    const price = parseFloat(card.dataset.price);
-    const originalPrice = parseFloat(card.dataset.originalPrice);
+    const pid = card.dataset.productId;
     const quantityEl = card.querySelector(".quantity");
+    const priceEl = card.querySelector(".price-per-unit");
+    const originalPrice = parseFloat(card.dataset.originalPrice);
 
-    // Inicializar cartData
-    cartData[productId] = parseInt(quantityEl.textContent);
-
-    const updateTotals = () => {
-      let subtotal = 0;
-      let totalDiscount = 0;
-
-      productCards.forEach(c => {
-        const pid = c.dataset.productId;
-        const qty = cartData[pid];
-        const p = parseFloat(c.dataset.price);
-        const op = parseFloat(c.dataset.originalPrice);
-
-        subtotal += p * qty;
-        totalDiscount += (op - p) * qty;
-
-        c.querySelector(".subtotal").textContent = `$${(p * qty).toFixed(2)}`;
-      });
-
-      subtotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
-      discountDisplay.textContent = `- $${totalDiscount.toFixed(2)}`;
-      totalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+    cartData[pid] = {
+      quantity: parseInt(quantityEl.textContent),
+      price: parseFloat(priceEl.textContent.replace('$','')),
+      originalPrice: originalPrice
     };
+  });
 
-    card.querySelector(".btn-increase").addEventListener("click", () => {
-      cartData[productId]++;
-      quantityEl.textContent = cartData[productId];
-      updateTotals();
-      sendQuantityUpdate(productId, cartData[productId]);
-    });
+  const updateTotals = () => {
+    let subtotal = 0;
+    let totalDiscount = 0;
 
-    card.querySelector(".btn-decrease").addEventListener("click", () => {
-      if (cartData[productId] > 1) {
-        cartData[productId]--;
-        quantityEl.textContent = cartData[productId];
-        updateTotals();
-        sendQuantityUpdate(productId, cartData[productId]);
+    productCards.forEach(card => {
+      const pid = card.dataset.productId;
+      const qty = cartData[pid].quantity;
+      const price = cartData[pid].price;
+      const originalPrice = cartData[pid].originalPrice;
+
+      const subtotalProduct = price * qty;
+      subtotal += subtotalProduct;
+      totalDiscount += (originalPrice - price) * qty;
+
+      card.querySelector(".subtotal").textContent = `$${subtotalProduct.toFixed(2)}`;
+      card.querySelector(".price-per-unit").textContent = `$${price.toFixed(2)}`;
+
+      // Actualiza badge y precio tachado
+      let badgeEl = card.querySelector(".badge");
+      const textMutedEl = card.querySelector("span.text-muted");
+      if (!badgeEl) {
+        badgeEl = document.createElement("span");
+        badgeEl.classList.add("badge","bg-danger","ms-2");
+        card.querySelector(".price-per-unit").parentNode.insertBefore(badgeEl, card.querySelector(".price-per-unit").nextSibling);
+      }
+      if (price < originalPrice) {
+        badgeEl.textContent = `-${Math.round((1 - price / originalPrice) * 100)}%`;
+        textMutedEl?.classList.remove("d-none");
+      } else {
+        badgeEl.textContent = '';
+        textMutedEl?.classList.add("d-none");
       }
     });
 
-    const sendQuantityUpdate = (productId, quantity) => {
-      
-      fetch("<%= update_quantity_portal_carts_path %>", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ product_id: productId, quantity: quantity })
-    });
+    subtotalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+    discountDisplay.textContent = `- $${totalDiscount.toFixed(2)}`;
+    totalDisplay.textContent = `$${subtotal.toFixed(2)}`;
+  };
 
-    };
+  productCards.forEach(card => {
+    card.querySelector(".apply-coupon-btn").addEventListener("click", (e) => {
+      e.preventDefault();
+      const input = card.querySelector(".product-coupon");
+      const code = input.value.trim();
+      if (!code) {
+        toastBody.textContent = "Ingrese un código válido";
+        toastEl.classList.remove("bg-success");
+        toastEl.classList.add("bg-danger");
+        toast.show();
+        return;
+      }
+
+      const pid = card.dataset.productId;
+
+      fetch(`/portal/cart/apply_discount_code`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ product_id: pid, code })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          cartData[pid].price = parseFloat(data.new_price);
+          card.dataset.price = parseFloat(data.new_price);
+          updateTotals();
+
+          toastBody.textContent = `✅ Cupón aplicado: -${data.discount}% en ${data.product_name}`;
+          toastEl.classList.remove("bg-danger");
+          toastEl.classList.add("bg-success");
+          toast.show();
+        } else {
+          toastBody.textContent = `❌ ${data.error}`;
+          toastEl.classList.remove("bg-success");
+          toastEl.classList.add("bg-danger");
+          toast.show();
+        }
+      })
+      .catch(err => console.error(err));
+    });
   });
 });
 </script>
-
