@@ -9,4 +9,9 @@ class UserVerificationMailer < ApplicationMailer
         subject: "Verificación de cuenta - Código OTP"
         )
     end
+    # Correo para notificaciones habilitadas
+    def allow_notifications_email(user)
+        @user = user
+        mail(to: @user.email, subject: "Notificaciones habilitadas")
+    end
 end

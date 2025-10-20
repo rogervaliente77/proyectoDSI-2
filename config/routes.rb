@@ -22,6 +22,8 @@ Rails.application.routes.draw do
     post "/productos/canjear/:product_id", to: "products#canjear_producto", as: :canjear_producto
 
     patch "/users/update", to: "users#update"
+    get "/users/confirm_notifications", to: "users#confirm_notifications", as: :confirm_notifications
+    patch "/users/allow_notifications", to: "users#allow_notifications", as: :allow_notifications
     get "/users/edit_password", to: "users#edit_password"
 
     root "landing#index"

@@ -29,12 +29,15 @@ module Portal
       end
 
       # ----------------- OFERTAS -----------------
-      # Solo mostrar notificaciones la primera vez que inicia sesión
-      if @current_user&.role&.name == 'cliente' && !@current_user.allow_notifications
-        @offer_products = @products.select(&:on_offer?)
-        # Marcamos que ya se mostraron las notificaciones
-        @current_user.update(allow_notifications: true)
-      else
+      # Solo mostrar notificaciones la primera vez que inicia sesión en esta sesión
+      if @current_user&.role&.name == 'cliente'
+        if session[:offer_toast_shown].nil?
+          @offer_products = @products.select(&:on_offer?)
+          session[:offer_toast_shown] = true  # Marcamos que ya se mostró
+          else
+          @offer_products = []
+        end
+        else
         @offer_products = []
       end
     end

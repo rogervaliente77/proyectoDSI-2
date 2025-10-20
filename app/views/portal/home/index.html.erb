@@ -137,20 +137,59 @@
 
 <!-- TOASTS DE OFERTAS -->
 <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-  <% @products.select(&:on_offer?).each do |product| %>
-    <div class="toast align-items-center text-white bg-primary border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body">
-          🎉 <strong><%= product.name %></strong> en <strong><%= product.offer_type || "Oferta" %></strong>  
-          - Precio: <%= number_to_currency(product.discounted_price || product.price) %>
-          <% if product.discount.to_i > 0 %>
-            (-<%= product.discount %>%)
-          <% end %>
+  <% if @offer_products.present? %>
+    <% @offer_products.each do |product| %>
+      <div class="toast align-items-center text-white bg-primary border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex align-items-center w-100">
+          
+          <div class="toast-body flex-grow-1">
+            🎉 <strong><%= product.name %></strong> en <strong><%= product.offer_type || "Oferta" %></strong>  
+            - Precio: <%= number_to_currency(product.discounted_price || product.price) %>
+            <% if product.discount.to_i > 0 %>
+              (-<%= product.discount %>%)
+            <% end %>
+          </div>
+
+          <!-- Botón de permitir notificaciones -->
+          <button type="button" 
+                  class="btn btn-primary btn-sm p-1 me-2 allow-notifications-btn" 
+                  data-user-id="<%= @current_user.id %>" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#confirmNotificationsModal"
+                  title="Permitir notificaciones por correo">
+            <i class="fas fa-envelope fa-xs"></i>
+          </button>
+
+
+          <!-- Botón cerrar toast -->
+          <button type="button" class="btn-close btn-close-white" aria-label="Cerrar">
+          </button>
+
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<!-- Modal confirmación contraseña -->
+<div class="modal fade" id="confirmNotificationsModal" tabindex="-1" aria-labelledby="confirmNotificationsLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmNotificationsLabel">Confirmar contraseña</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="confirm-notifications-form">
+          <div class="mb-3">
+            <label for="password" class="form-label">Ingrese su contraseña</label>
+            <input type="password" class="form-control" id="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Permitir notificaciones</button>
+        </form>
       </div>
     </div>
-  <% end %>
+  </div>
 </div>
 
 <style>
@@ -267,4 +306,55 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const modalElement = document.getElementById("confirmNotificationsModal");
+  const modal = new bootstrap.Modal(modalElement);
+
+  document.querySelectorAll(".allow-notifications-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      modal.show();
+
+      const form = document.getElementById("confirm-notifications-form");
+      form.onsubmit = async function(e) {
+        e.preventDefault();
+        const password = document.getElementById("password").value;
+
+        const response = await fetch("/portal/users/allow_notifications", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({ password })
+        });
+        const data = await response.json();
+
+        if (data.status === "success") {
+          btn.innerHTML = '<i class="fas fa-check fa-xs"></i> Permitido';
+          btn.classList.remove("btn-primary");
+          btn.classList.add("btn-success");
+          btn.disabled = true;
+          showToast("✅ Notificaciones habilitadas", "success");
+          modal.hide();
+
+          // ✅ Mostrar toast de confirmación de correo
+          showToast("📧 Se envió un correo confirmando las notificaciones", "success");
+          
+        } else {
+          showToast(`⚠️ ${data.message}`, "danger");
+        }
+      };
+    });
+  });
+
+  // Elimina cualquier backdrop que quede colgado (seguridad extra)
+  modalElement.addEventListener('hidden.bs.modal', () => {
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+  });
+});
+
+
 </script>

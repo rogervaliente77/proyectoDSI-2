@@ -48,6 +48,25 @@ module Portal
       @user = User.find(params[:id])
     end
 
+
+   
+    def confirm_notifications
+  # Solo renderizamos el formulario
+    end
+
+    def allow_notifications
+      if current_user.authenticate(params[:password])
+        if current_user.update(allow_notifications: true)
+          # Enviar correo notificando que las notificaciones fueron habilitadas
+          UserVerificationMailer.allow_notifications_email(current_user).deliver_now
+          render json: { status: 'success' }
+        else
+          render json: { status: 'error', message: "No se pudo habilitar notificaciones" }
+        end
+      else
+        render json: { status: 'error', message: "Contraseña incorrecta" }
+      end
+    end
     # def show
 
     # end
