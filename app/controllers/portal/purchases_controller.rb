@@ -3,7 +3,8 @@ class Portal::PurchasesController < ApplicationController
   layout "dashboard"
 
   def index
-    @purchases = UserSale.where(user_id: @current_user.id).map(&:sale)
+    # Traer todas las compras del usuario
+    @purchases = Sale.where(client_id: @current_user.id).order(sold_at: :desc)
   end
 
   private
@@ -12,3 +13,7 @@ class Portal::PurchasesController < ApplicationController
     @current_user = User.find_by(id: session[:user_id])
   end
 end
+
+
+
+

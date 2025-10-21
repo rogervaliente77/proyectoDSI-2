@@ -149,6 +149,7 @@ Rails.application.routes.draw do
 
     # ProductHistory
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
+    
   end
 
   # Health check y landing

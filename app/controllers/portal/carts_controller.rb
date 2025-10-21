@@ -32,6 +32,32 @@ class Portal::CartsController < ApplicationController
     render json: { success: true }
   end
 
+  def increase
+    session[:cart] ||= []
+    item = session[:cart].find { |i| i["product_id"] == params[:id] }
+    item["quantity"] += 1 if item
+
+    render partial: "portal/carts/cart", locals: { cart: session[:cart] }
+  end
+
+  def decrease
+    session[:cart] ||= []
+    item = session[:cart].find { |i| i["product_id"] == params[:id] }
+    if item
+      item["quantity"] -= 1
+      session[:cart].delete(item) if item["quantity"] <= 0
+    end
+
+    render partial: "portal/carts/cart", locals: { cart: session[:cart] }
+  end
+
+  def remove
+    session[:cart] ||= []
+    session[:cart].reject! { |i| i["product_id"] == params[:id] }
+
+    render partial: "portal/carts/cart", locals: { cart: session[:cart] }
+  end
+
   def checkout
     session[:cart] ||= []
     @cart = session[:cart]
@@ -100,6 +126,7 @@ class Portal::CartsController < ApplicationController
   end
 
   def create_purchase
+    # binding.pry
     session[:cart] ||= []
     return redirect_to portal_home_path, alert: "Tu carrito está vacío" if session[:cart].empty?
 
@@ -131,7 +158,9 @@ class Portal::CartsController < ApplicationController
       client_name: @current_user.full_name,
       client_id: @current_user.id,
       total_amount: total,
-      status: "pendiente"
+      status: "pendiente",
+      cajero_id: Cajero.where(nombre: "Cajero en Linea").first.id,
+      caja_id: Caja.where(nombre: "Caja en linea").first.id
     )
 
     @cart_items.each do |item|
