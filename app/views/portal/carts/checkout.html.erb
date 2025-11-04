@@ -65,13 +65,20 @@
       <div class="col-lg-4 col-md-5">
         <div class="card p-4 shadow-sm mb-4">
           <h5 class="mb-3">Método de envío</h5>
-          <div class="p-2 border rounded text-center mb-2">
-            <input type="radio" name="shipping" id="pickup" value="pickup" hidden checked>
-            <label for="pickup" class="mb-0 fw-medium cursor-pointer">Recoger en tienda</label>
-          </div>
-          <p class="text-muted mt-2">El pago se realizará al momento de recoger el producto.</p>
+          
+          <!-- Select de método de envío -->
           <div class="mb-3">
-            <select class="form-select">
+            <label for="shipping_method" class="fw-medium mb-2">Selecciona método</label>
+            <select name="shipping" id="shipping_method" class="form-select text-center fw-medium" required>
+              <option value="pickup" selected>Recoger en tienda</option>
+              <option value="delivery">Envío a domicilio</option>
+            </select>
+          </div>
+
+          <p class="text-muted mt-2">El pago se realizará al momento de recoger el producto.</p>
+          <!-- Select de sucursal -->
+          <div class="mb-3">
+            <select id="store_select" class="form-select">
               <option value="">Selecciona tienda</option>
               <option value="san_salvador">San Salvador</option>
               <option value="santa_ana">Santa Ana</option>
@@ -101,6 +108,8 @@
           </div>
 
           <%= form_with url: portal_checkout_path, method: :post, local: false, id: "checkout-form", data: { turbo: false } do |f| %>
+            <%= hidden_field_tag :shipping_method, "pickup", id: "hidden-shipping-method" %>
+            <%= hidden_field_tag :store_branch, "", id: "hidden-store-branch" %>
             <div class="mt-4 text-center">
               <button type="submit" class="btn btn-success btn-lg">
                 <i class="fas fa-check-circle"></i> Confirmar compra
@@ -232,4 +241,25 @@ document.addEventListener("turbo:load", () => {
     });
   });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const shippingSelect = document.getElementById("shipping_method");
+  const storeSelect = document.getElementById("store_select");
+  const hiddenShipping = document.getElementById("hidden-shipping-method");
+  const hiddenStore = document.getElementById("hidden-store-branch");
+
+  if (shippingSelect && hiddenShipping) {
+    shippingSelect.addEventListener("change", () => {
+      hiddenShipping.value = shippingSelect.value;
+    });
+  }
+
+  if (storeSelect && hiddenStore) {
+    storeSelect.addEventListener("change", () => {
+      hiddenStore.value = storeSelect.value;
+    });
+  }
+});
+
+
 </script>
