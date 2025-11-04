@@ -38,7 +38,10 @@
         <% end %>
 
         <div class="mt-3">
-          <p class="mb-1"><strong>Método de envío:</strong> Recoger en tienda</p>
+          <p class="mb-1">
+            <strong>Método de envío:</strong>
+            <%= sale&.delivery_method.present? ? sale.delivery_method.titleize : "Recoger en tienda" %>
+          </p>
           <p class="mb-1 text-muted"><small>El pago se realizará al recoger el producto.</small></p>
         </div>
 

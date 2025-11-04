@@ -126,7 +126,7 @@ class Portal::CartsController < ApplicationController
   end
 
   def create_purchase
-    # binding.pry7
+    # binding.pry
     session[:cart] ||= []
     return redirect_to portal_home_path, alert: "Tu carrito está vacío" if session[:cart].empty?
 
@@ -160,7 +160,9 @@ class Portal::CartsController < ApplicationController
       total_amount: total,
       status: "pendiente",
       cajero_id: Cajero.where(nombre: "Cajero en Linea").first.id,
-      caja_id: Caja.where(nombre: "Caja en linea").first.id
+      caja_id: Caja.where(nombre: "Caja en linea").first.id,
+      delivery_method: params[:shipping_method],
+      sucursal: params[:store_branch]
     )
 
     @cart_items.each do |item|
