@@ -1,0 +1,9 @@
+class DeliveryDriver
+  include Mongoid::Document
+  include Mongoid::Timestamps # Para created_at y updated_at automáticos
+
+  belongs_to :user
+
+  field :nombre, type: String
+  field :transportation_type, type: String #motorcycle, car, bike, truck
+end

@@ -10,6 +10,7 @@ class Sale
   field :total_amount, type: Float
   field :code, type: String
   field :user_id, type: BSON::ObjectId  # <-- Usuario que realizó la venta
+  field :delivery_method, type: String #pickup_in_store, delivery
 
   # Relaciones
   belongs_to :caja, class_name: "Caja", inverse_of: :sales, optional: true

@@ -126,7 +126,7 @@ class Portal::CartsController < ApplicationController
   end
 
   def create_purchase
-    # binding.pry
+    # binding.pry7
     session[:cart] ||= []
     return redirect_to portal_home_path, alert: "Tu carrito está vacío" if session[:cart].empty?
 
