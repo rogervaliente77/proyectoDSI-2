@@ -1,0 +1,102 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin / Mensajeros</h1>
+    
+    <%= link_to new_admin_delivery_driver_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear mensajero
+    <% end %>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <!-- Area Chart -->
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Gestion de mensajeros</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Dropdown Header:</div>
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+
+          <% if flash[:notice] %>
+          <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+          <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <h1 class="h3 mb-4 text-gray-800"></h1>
+
+          <table class="table table-bordered" id="usersTable">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nombre</th>
+                <th>Mensajero</th>
+                <th>Transporte</th>
+                <th>F. creación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @delivery_drivers.each_with_index do |mensajero, index| %>
+                <tr>
+                  <td><%= index + 1 %></td>
+                  <td><%= mensajero.user.full_name %></td>
+                  <td><%= mensajero.nombre %></td>
+
+                  <td>
+                    <% icon_class =
+                      case mensajero.transportation_type
+                      when "car" then "fa-car"
+                      when "truck" then "fa-truck"
+                      when "motorcycle" then "fa-motorcycle"
+                      when "bike" then "fa-bicycle"
+                      else "fa-question-circle" # Por si hay un valor inesperado
+                      end
+                    %>
+                    <i class="fa <%= icon_class %> text-primary"></i>
+                    <%= {
+                          "car" => "Auto",
+                          "truck" => "Camión",
+                          "motorcycle" => "Moto",
+                          "bike" => "Bicicleta"
+                        }[mensajero.transportation_type] || "Desconocido" %>
+                  </td>
+
+                  <td><%= l(mensajero.created_at, format: :short) %></td>
+                  <td>
+                    <%= link_to edit_admin_delivery_driver_path(id: mensajero.id),
+                                class: "btn btn-primary btn-sm",
+                                data: { turbo: false } do %>
+                      <i class="fa fa-edit"></i>
+                      <span>Editar</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.container-fluid -->
