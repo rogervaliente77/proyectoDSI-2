@@ -62,6 +62,8 @@
                       <span class="badge badge-info">Administrador</span>
                     <% elsif user&.role&.name == "cajero"%>
                       <span class="badge badge-primary">Cajero</span>
+                    <% elsif user&.role&.name == "mensajero"%>
+                      <span class="badge badge-warning">Mensajero</span>
                     <% else %>
                       <span class="badge badge-secondary">Cliente</span>
                     <% end %>

@@ -126,6 +126,9 @@ Rails.application.routes.draw do
     get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
     get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
 
+    # Mensajero
+    resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]
+
     # Devoluciones
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
       member do

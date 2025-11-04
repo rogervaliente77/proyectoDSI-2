@@ -6,4 +6,6 @@ class DeliveryDriver
 
   field :nombre, type: String
   field :transportation_type, type: String #motorcycle, car, bike, truck
+  field :scoring, type: Integer
+  field :disabled, type: Boolean, default: true
 end

@@ -200,6 +200,24 @@
     </li>
   <% end %>
 
+  <!-- Mensajeros -->
+  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMensajeros"
+         aria-expanded="true" aria-controls="collapseMensajeros">
+        <i class="fas fa-undo-alt"></i>
+        <span>Mensajeros</span>
+      </a>
+      <div id="collapseMensajeros" class="collapse" aria-labelledby="headingMensajeros" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Gestión de mensajeros:</h6>
+          <a class="collapse-item" href="<%= admin_delivery_drivers_path %>" data-turbo="false">Ver mensajeros</a>
+          <a class="collapse-item" href="<%= new_admin_delivery_driver_path %>" data-turbo="false">Crear nuevo mensajero</a>
+        </div>
+      </div>
+    </li>
+  <% end %>
+
   <hr class="sidebar-divider d-none d-md-block">
 
   <div class="text-center d-none d-md-inline">
