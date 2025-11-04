@@ -17,6 +17,6 @@ class Delivery
   belongs_to :delivery_driver
 
   # Validaciones
-  validates :sale_code, delivery_code, presence: { message: "El codigo de venta y delivery son obligatorios" }, uniqueness: { message: "Codigo de venta o delivery ya existe" }
+  validates :sale_code, :delivery_code, presence: { message: "El codigo de venta y delivery son obligatorios" }, uniqueness: { message: "Codigo de venta o delivery ya existe" }
 
 end
