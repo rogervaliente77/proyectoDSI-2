@@ -4,7 +4,7 @@ class Delivery
 
   # Campos
   field :sale_code, type: String
-  field :delivery_code, tyoe: String
+  field :delivery_code, type: String
   field :client_name, type: String
   field :client_id, type: BSON::ObjectId
   field :package_status, type: String, default: "in_warehouse" #picked_up
