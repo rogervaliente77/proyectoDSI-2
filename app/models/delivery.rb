@@ -12,6 +12,7 @@ class Delivery
   field :appointment_date, type: DateTime
   field :has_appointment, type: Boolean, default: false
   field :status_log_changes, type: Array, default: []
+  field :sale_id, type: BSON::ObjectId
 
   belongs_to :sale
   belongs_to :delivery_driver

@@ -7,6 +7,14 @@ class Portal::PurchasesController < ApplicationController
     @purchases = Sale.where(client_id: @current_user.id).order(sold_at: :desc)
   end
 
+  def schedule_appointment
+    @sale = Sale.find(params[:purchase_id])
+  end
+
+  def delivery_status_real_time
+
+  end
+
   private
 
   def set_current_user

@@ -12,6 +12,8 @@ class Sale
   field :user_id, type: BSON::ObjectId  # <-- Usuario que realizó la venta
   field :delivery_method, type: String #pickup_in_store, delivery
   field :sucursal, type: String
+  field :was_delivered, type: Boolean, default: false
+  field :delivered_at, type: DateTime
 
   # Relaciones
   belongs_to :caja, class_name: "Caja", inverse_of: :sales, optional: true
@@ -19,6 +21,7 @@ class Sale
   belongs_to :user, optional: true
   has_many :product_sales, class_name: "ProductSale", inverse_of: :sale, dependent: :destroy
   has_many :devoluciones, class_name: "Devolucion", inverse_of: :sale, dependent: :destroy
+  has_one :delivery
 
   accepts_nested_attributes_for :product_sales, allow_destroy: true
 

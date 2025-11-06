@@ -42,13 +42,34 @@
             <strong>Método de envío:</strong>
             <%= sale&.delivery_method.present? ? sale.delivery_method.titleize : "Recoger en tienda" %>
           </p>
-          <p class="mb-1 text-muted"><small>El pago se realizará al recoger el producto.</small></p>
+
+          <% if sale.delivery_method == "delivery" %>
+            <% if sale.was_delivered == false %>
+              <span class="badge bg-warning text-dark">No entregado</span>
+              <% if sale.delivery.present? %>
+                <span class="badge bg-info text-dark"><%= sale.delivery.package_status %></span>
+              <% else %>
+                <span class="badge bg-danger">Proceso de entrega no iniciado</span>
+              <% end %>
+
+              <!-- 🔹 Botón para agendar cita de entrega -->
+              <div class="mt-2">
+                <%= link_to "Agendar entrega", 
+                    portal_purchase_schedule_appointment_path(sale.id), 
+                    class: "btn btn-primary btn-sm" %>
+              </div>
+            <% else %>
+              <span></span>
+            <% end %>
+          <% end %>
+
+          <p class="mb-1 text-muted mt-2">
+            <small>El pago se realizará al recoger el producto.</small>
+          </p>
         </div>
 
         <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
           <span class="fw-bold fs-5 text-success">Total: $<%= '%.2f' % sale.total_amount %></span>
-
-        
         </div>
       </div>
     <% end %>

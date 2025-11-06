@@ -46,7 +46,9 @@ Rails.application.routes.draw do
     post "checkout", to: "carts#create_purchase", as: 'create_purchase'
 
     # Compras
-    resources :purchases, only: [:index, :show]
+    resources :purchases, only: [:index, :show] do
+      get "schedule_appointment", to: "purchases#schedule_appointment"
+    end
 
     # Root portal
     root "landing#index"
