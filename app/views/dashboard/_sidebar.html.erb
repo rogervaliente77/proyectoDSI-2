@@ -168,9 +168,31 @@
       </div>
     </li>
   <% end %>
-  
-  <!-- MIs compras - Cliente -->
- <% if @current_user.role.name == 'cliente' %>
+
+<!-- Sidebar - Reportes -->
+<% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
+  <li class="nav-item">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReports"
+       aria-expanded="true" aria-controls="collapseReports">
+      <i class="fas fa-chart-bar"></i>
+      <span>Reportes</span>
+    </a>
+    <div id="collapseReports" class="collapse" aria-labelledby="headingReports" data-parent="#accordionSidebar">
+      <div class="bg-white py-2 collapse-inner rounded">
+        <h6 class="collapse-header">Gestión de Reportes:</h6>
+        <a class="collapse-item" href="/admin/reports">Lista de reportes</a>
+        <a class="collapse-item" href="/admin/reports/top_products">Producto Más Vendido</a>
+        <a class="collapse-item" href="/admin/reports/top_brands">Marca Más Vendida</a>
+        <a class="collapse-item" href="/admin/reports/best_seller">Mejor Vendedor</a>
+      </div>
+    </div>
+  </li>
+<% end %>
+
+
+
+  <!-- Mis compras - Cliente -->
+  <% if @current_user.role.name == 'cliente' %>
     <li class="nav-item">
       <%= link_to portal_purchases_path, class: "nav-link d-flex align-items-center" do %>
         <i class="fas fa-shopping-bag me-2"></i>
@@ -178,8 +200,6 @@
       <% end %>
     </li>
   <% end %>
-
-
 
   <!-- Devoluciones -->
   <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
