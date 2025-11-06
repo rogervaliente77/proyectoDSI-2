@@ -1,0 +1,161 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Información del Perfil</h2>
+
+  <%= form_with model: @user, url: portal_profile_path, method: :patch, local: true, multipart: true do |f| %>
+    <div class="row mb-4">
+      <!-- Imagen de perfil -->
+      <div class="col-md-4 text-center">
+        <% if @user.profile_image.present? %>
+          <%= image_tag "/uploads/#{@user.profile_image}", class: "img-thumbnail rounded-circle mb-3", style: "width: 120px; height: 120px;" %>
+        <% else %>
+          <%= image_tag "default-avatar.svg", class: "img-thumbnail rounded-circle mb-3", style: "width: 120px; height: 120px;" %>
+        <% end %>
+
+        <%= f.file_field :profile_image, class: "form-control" %>
+      </div>
+
+      <!-- Información básica -->
+      <div class="col-md-8">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <%= f.label :first_name, "Nombre" %>
+              <%= f.text_field :first_name, class: "form-control" %>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <%= f.label :last_name, "Apellido" %>
+              <%= f.text_field :last_name, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mb-3">
+          <%= f.label :email, "Correo electrónico" %>
+          <%= f.text_field :email, class: "form-control", readonly: true %>
+        </div>
+
+        <div class="form-group mb-3">
+          <%= f.label :phone_number, "Número de teléfono" %>
+          <%= f.text_field :phone_number, class: "form-control" %>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+    <h4>Direcciones</h4>
+
+    
+      <%= f.fields_for :addresses do |address_form| %>
+        <div class="row mb-3 border rounded p-3 bg-light">
+          <div class="col-md-4">
+            <%= address_form.label :department, "Departamento" %>
+            <%= address_form.text_field :department, class: "form-control" %>
+          </div>
+
+          <div class="col-md-4">
+            <%= address_form.label :municipality, "Municipio" %>
+            <%= address_form.text_field :municipality, class: "form-control" %>
+          </div>
+
+          <div class="col-md-4">
+            <%= address_form.label :street, "Calle/Avenida" %>
+            <%= address_form.text_field :street, class: "form-control" %>
+          </div>
+
+          <div class="col-md-4 mt-2">
+            <%= address_form.label :house, "Casa/Apartamento" %>
+            <%= address_form.text_field :house, class: "form-control" %>
+          </div>
+
+          <div class="col-md-4 mt-2">
+            <%= address_form.label :reference, "Referencia" %>
+            <%= address_form.text_field :reference, class: "form-control" %>
+          </div>
+
+          <div class="col-md-4 mt-4 text-end">
+            <%= link_to "Eliminar", "#", class: "btn btn-danger btn-sm remove-address" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="text-center">
+      <%= link_to "Agregar dirección", "#", class: "btn btn-outline-primary mt-3", id: "add-address" %>
+    </div>
+
+    <div class="text-center mt-4">
+      <%= f.submit "Guardar cambios", class: "btn btn-success" %>
+    </div>
+  <% end %>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const addBtn = document.getElementById("add-address");
+  const addressesDiv = document.getElementById("addresses");
+
+  if (!addBtn || !addressesDiv) return;
+
+  let addressIndex = <%= @user.addresses.size %>;
+
+  addBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    // plantilla HTML de un bloque de dirección
+    const newAddressHtml = `
+      <div class="row mb-3 border rounded p-3">
+        <div class="col-md-4">
+          <label for="user_addresses_${addressIndex}_department">Departamento</label>
+          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][department]" id="user_addresses_${addressIndex}_department">
+        </div>
+
+        <div class="col-md-4">
+          <label for="user_addresses_${addressIndex}_municipality">Municipio</label>
+          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][municipality]" id="user_addresses_${addressIndex}_municipality">
+        </div>
+
+        <div class="col-md-4">
+          <label for="user_addresses_${addressIndex}_street">Calle/Avenida</label>
+          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][street]" id="user_addresses_${addressIndex}_street">
+        </div>
+
+        <div class="col-md-4">
+          <label for="user_addresses_${addressIndex}_house">Casa/Apartamento</label>
+          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][house]" id="user_addresses_${addressIndex}_house">
+        </div>
+
+        <div class="col-md-4">
+          <label for="user_addresses_${addressIndex}_reference">Referencia</label>
+          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][reference]" id="user_addresses_${addressIndex}_reference">
+        </div>
+
+        <div class="col-12 text-end mt-2">
+          <a href="#" class="btn btn-danger btn-sm remove-address">Eliminar</a>
+        </div>
+      </div>
+    `;
+
+    addressesDiv.insertAdjacentHTML("beforeend", newAddressHtml);
+    addressIndex++;
+    
+    if (addressIndex >= 3) {
+  alert("Solo puedes agregar hasta 3 direcciones.");
+  return;
+}
+
+  });
+
+  // Permitir eliminar dinámicamente
+  addressesDiv.addEventListener("click", (e) => {
+    if (e.target.classList.contains("remove-address")) {
+      e.preventDefault();
+      e.target.closest(".row").remove();
+    }
+  });
+});
+</script>
+
+

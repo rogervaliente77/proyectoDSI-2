@@ -28,6 +28,9 @@ Rails.application.routes.draw do
     # Usuarios
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
+    resource :profile, only: [:show, :update]
+    
+
 
     # Carrito y compras
     resource :cart, only: [:show] do
