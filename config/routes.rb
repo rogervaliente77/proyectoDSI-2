@@ -48,6 +48,8 @@ Rails.application.routes.draw do
     # Compras
     resources :purchases, only: [:index, :show] do
       get "schedule_appointment", to: "purchases#schedule_appointment"
+      post "confirm_appointment", to: "purchases#confirm_appointment"
+      get "estado_entrega", to: "purchases#delivery_status_real_time"
     end
 
     # Root portal

@@ -1,5 +1,66 @@
 <div class="container py-5 bg-light min-vh-100">
   <h2 class="mb-4 text-center fw-bold text-uppercase">Agendar entrega</h2>
+      
+      <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+        <h4 class="fw-bold mb-3">Programar entrega</h4>
+
+        <%= form_with url: portal_purchase_confirm_appointment_path(@sale), method: :post, scope: :delivery do |f| %>
+
+          <!-- Fecha -->
+          <div class="mb-3">
+            <%= f.label :appointment_date, "Fecha de entrega", class: "form-label" %>
+            <%= f.date_field :appointment_date,
+                  class: "form-control",
+                  required: true,
+                  id: "appointment_date",
+                  min: Date.today %>
+          </div>
+
+          <!-- Hora (select quemado) -->
+          <div class="mb-3">
+            <%= f.label :appointment_hour, "Hora de entrega", class: "form-label" %>
+
+            <%= f.select :appointment_hour,
+              [
+                ["08:00 AM", "08:00 AM"],
+                ["09:00 AM", "09:00 AM"],
+                ["10:00 AM", "10:00 AM"],
+                ["11:00 AM", "11:00 AM"],
+                ["12:00 PM", "12:00 PM"],
+                ["01:00 PM", "01:00 PM"],
+                ["02:00 PM", "02:00 PM"],
+                ["03:00 PM", "03:00 PM"],
+                ["04:00 PM", "04:00 PM"],
+                ["05:00 PM", "05:00 PM"]
+              ],
+              { prompt: "Seleccione una hora" },
+              class: "form-select",
+              id: "appointment_hour",
+              required: true %>
+
+          </div>
+
+          <!-- Dirección -->
+          <div class="mb-3">
+            <%= f.label :delivery_address, "Dirección de entrega", class: "form-label" %>
+            <%= f.select :delivery_address,
+                  [["Address 1", "Address 1"],
+                  ["Address 2", "Address 2"],
+                  ["Address 3", "Address 3"]],
+                  {},
+                  class: "form-select",
+                  required: true %>
+          </div>
+
+          <%= f.hidden_field :sale_id, value: @sale.id.to_s %>
+          
+          <div class="d-grid">
+            <%= f.submit "Confirmar cita", class: "btn btn-primary btn-lg rounded-pill fw-bold" %>
+          </div>
+
+        <% end %>
+      </div>
+
 
 
       <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
@@ -55,3 +116,57 @@
         </div>
       </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+  const dateField = document.querySelector("#appointment_date");
+  const hourField = document.querySelector("#appointment_hour");
+
+  function updateAvailableHours() {
+    if (!dateField || !hourField) return;
+
+    const selectedDate = new Date(dateField.value);
+    const today = new Date();
+
+    // Primero, habilitar todas las opciones
+    for (let option of hourField.options) {
+      option.disabled = false;
+    }
+
+    // Si la fecha no es hoy, no hay que limitar nada
+    if (!dateField.value || selectedDate.toDateString() !== today.toDateString()) {
+      return;
+    }
+
+    // Obtener la hora actual (redondeada a minutos)
+    const now = today.getHours() * 60 + today.getMinutes();
+
+    // Deshabilitar las horas pasadas
+    for (let option of hourField.options) {
+      if (!option.value) continue;
+
+      const [time, meridian] = option.value.split(" ");
+      let [hour, minute] = time.split(":").map(Number);
+
+      if (meridian === "PM" && hour !== 12) hour += 12;
+      if (meridian === "AM" && hour === 12) hour = 0;
+
+      const optionMinutes = hour * 60 + minute;
+
+      if (optionMinutes <= now) {
+        option.disabled = true;
+      }
+    }
+
+    // Si la hora seleccionada quedó deshabilitada, reset
+    if (hourField.value && hourField.selectedOptions[0].disabled) {
+      hourField.value = "";
+    }
+  }
+
+  // Eventos
+  dateField.addEventListener("change", updateAvailableHours);
+  updateAvailableHours(); // Ejecutar al cargar
+});
+</script>
