@@ -47,9 +47,18 @@
     <hr>
     <h4>Direcciones</h4>
 
-    
+    <!-- ✅ CONTENEDOR PARA DIRECCIONES -->
+    <div id="addresses">
       <%= f.fields_for :addresses do |address_form| %>
-        <div class="row mb-3 border rounded p-3 bg-light">
+        <div class="address-fields row mb-3 border rounded p-3 bg-light">
+          <%= address_form.hidden_field :_destroy %>
+
+          <!-- 🏷️ Campo nombre con select -->
+          <div class="col-md-4">
+            <%= address_form.label :name, "Nombre de la dirección" %>
+            <%= address_form.text_field :name, class: "form-control", placeholder: "Ej: Casa, Trabajo, etc." %>
+          </div>
+
           <div class="col-md-4">
             <%= address_form.label :department, "Departamento" %>
             <%= address_form.text_field :department, class: "form-control" %>
@@ -73,89 +82,128 @@
           <div class="col-md-4 mt-2">
             <%= address_form.label :reference, "Referencia" %>
             <%= address_form.text_field :reference, class: "form-control" %>
+            <%= link_to "Eliminar", "#", class: "btn btn-danger btn-sm remove-address" %>
           </div>
 
           <div class="col-md-4 mt-4 text-end">
-            <%= link_to "Eliminar", "#", class: "btn btn-danger btn-sm remove-address" %>
           </div>
         </div>
       <% end %>
     </div>
 
-    <div class="text-center">
-      <%= link_to "Agregar dirección", "#", class: "btn btn-outline-primary mt-3", id: "add-address" %>
-    </div>
-
-    <div class="text-center mt-4">
+    <div class="d-flex justify-content-center gap-2 mt-4">
+      <%= link_to "Agregar dirección", "#", class: "btn btn-outline-primary", id: "add-address" %>
       <%= f.submit "Guardar cambios", class: "btn btn-success" %>
     </div>
+
   <% end %>
+</div>
 
+<!-- ✅ CSS -->
+<style>
+  .fade-in {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .fade-in.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
 
+<!-- ✅ JavaScript -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
   const addBtn = document.getElementById("add-address");
   const addressesDiv = document.getElementById("addresses");
 
   if (!addBtn || !addressesDiv) return;
 
-  let addressIndex = <%= @user.addresses.size %>;
+  const maxAddresses = 3;
+
+  const countActiveAddresses = () => {
+    return addressesDiv.querySelectorAll('.address-fields:not([style*="display: none"])').length;
+  };
 
   addBtn.addEventListener("click", (e) => {
     e.preventDefault();
 
-    // plantilla HTML de un bloque de dirección
-    const newAddressHtml = `
-      <div class="row mb-3 border rounded p-3">
-        <div class="col-md-4">
-          <label for="user_addresses_${addressIndex}_department">Departamento</label>
-          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][department]" id="user_addresses_${addressIndex}_department">
-        </div>
+    const currentCount = countActiveAddresses();
+    if (currentCount >= maxAddresses) {
+      alert("Solo puedes agregar hasta 3 direcciones.");
+      return;
+    }
 
-        <div class="col-md-4">
-          <label for="user_addresses_${addressIndex}_municipality">Municipio</label>
-          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][municipality]" id="user_addresses_${addressIndex}_municipality">
-        </div>
+    const index = currentCount;
 
-        <div class="col-md-4">
-          <label for="user_addresses_${addressIndex}_street">Calle/Avenida</label>
-          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][street]" id="user_addresses_${addressIndex}_street">
-        </div>
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("address-fields", "row", "mb-3", "border", "rounded", "p-3", "bg-light", "fade-in");
 
-        <div class="col-md-4">
-          <label for="user_addresses_${addressIndex}_house">Casa/Apartamento</label>
-          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][house]" id="user_addresses_${addressIndex}_house">
-        </div>
+    wrapper.innerHTML = `
+      <input type="hidden" name="user[addresses_attributes][${index}][_destroy]" value="false">
 
-        <div class="col-md-4">
-          <label for="user_addresses_${addressIndex}_reference">Referencia</label>
-          <input class="form-control" type="text" name="user[addresses_attributes][${addressIndex}][reference]" id="user_addresses_${addressIndex}_reference">
-        </div>
+      <div class="col-md-4">
+        <label>Nombre de la dirección</label>
+        <input class="form-control" type="text" name="user[addresses_attributes][${index}][name]" placeholder="Ej: Casa, Trabajo, etc.">
+      </div>
 
-        <div class="col-12 text-end mt-2">
+      <div class="col-md-4">
+        <label>Departamento</label>
+        <input class="form-control" type="text" name="user[addresses_attributes][${index}][department]">
+      </div>
+
+      <div class="col-md-4">
+        <label>Municipio</label>
+        <input class="form-control" type="text" name="user[addresses_attributes][${index}][municipality]">
+
+        
+      </div>
+
+      <div class="col-md-4 mt-2">
+        <label>Calle/Avenida</label>
+        <input class="form-control" type="text" name="user[addresses_attributes][${index}][street]">
+      </div>
+
+      <div class="col-md-4 mt-2">
+        <label>Casa/Apartamento</label>
+        <input class="form-control" type="text" name="user[addresses_attributes][${index}][house]">
+      </div>
+
+      <div class="col-md-4 mt-2">
+        <label>Referencia</label>
+        <input class="form-control" type="text" name="user[addresses_attributes][${index}][reference]">
+
+        <!-- 🟢 Botón eliminar debajo de la tercera columna -->
+        <div class="text-end mt-2">
           <a href="#" class="btn btn-danger btn-sm remove-address">Eliminar</a>
         </div>
       </div>
     `;
 
-    addressesDiv.insertAdjacentHTML("beforeend", newAddressHtml);
-    addressIndex++;
-    
-    if (addressIndex >= 3) {
-  alert("Solo puedes agregar hasta 3 direcciones.");
-  return;
-}
+    addressesDiv.appendChild(wrapper);
 
+    requestAnimationFrame(() => {
+      wrapper.classList.add("show");
+    });
   });
 
-  // Permitir eliminar dinámicamente
-  addressesDiv.addEventListener("click", (e) => {
-    if (e.target.classList.contains("remove-address")) {
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('remove-address')) {
       e.preventDefault();
-      e.target.closest(".row").remove();
+
+      const addressFields = e.target.closest('.address-fields');
+      if (!addressFields) return;
+
+      const destroyField = addressFields.querySelector('input[name*="[_destroy]"]');
+      if (destroyField) destroyField.value = '1';
+
+      addressFields.style.display = 'none';
     }
   });
 });
 </script>
+
+
 
 

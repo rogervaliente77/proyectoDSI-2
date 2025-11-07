@@ -2,6 +2,7 @@ class Address
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  field :name, type: String
   field :department, type: String
   field :municipality, type: String
   field :street, type: String

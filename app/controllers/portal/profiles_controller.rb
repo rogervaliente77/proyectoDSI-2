@@ -46,6 +46,7 @@ module Portal
         :profile_image,
         addresses_attributes: [
           :id,
+          :name,
           :department,
           :municipality,
           :street,

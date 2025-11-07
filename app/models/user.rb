@@ -24,8 +24,9 @@ class User
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
   belongs_to :role
   
-   has_many :addresses, dependent: :destroy
-  accepts_nested_attributes_for :addresses, allow_destroy: true, limit: 3
+   has_many :addresses, inverse_of: :user, dependent: :destroy, autosave: true
+
+  accepts_nested_attributes_for :addresses, allow_destroy: true, reject_if: :all_blank
 
   # Seguridad de contraseña
   has_secure_password
