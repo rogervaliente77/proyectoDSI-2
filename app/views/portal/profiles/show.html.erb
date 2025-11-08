@@ -5,8 +5,8 @@
     <div class="row mb-4">
       <!-- Imagen de perfil -->
       <div class="col-md-4 text-center">
-        <% if @user.profile_image.present? %>
-          <%= image_tag "/uploads/#{@user.profile_image}", class: "img-thumbnail rounded-circle mb-3", style: "width: 120px; height: 120px;" %>
+       <% if @user.profile_image_url.present? %>
+          <%= image_tag @user.profile_image_url, class: "img-thumbnail rounded-circle mb-3", style: "width: 120px; height: 120px; object-fit: cover;" %>
         <% else %>
           <%= image_tag "default-avatar.svg", class: "img-thumbnail rounded-circle mb-3", style: "width: 120px; height: 120px;" %>
         <% end %>
@@ -82,8 +82,14 @@
           <div class="col-md-4 mt-2">
             <%= address_form.label :reference, "Referencia" %>
             <%= address_form.text_field :reference, class: "form-control" %>
-            <%= link_to "Eliminar", "#", class: "btn btn-danger btn-sm remove-address" %>
           </div>
+          
+          <div class=" mt-4 text-end">
+            <%= link_to "Eliminar", "#", 
+                class: "btn btn-danger btn-sm remove-address", 
+                data: { address_id: address_form.object.id } %>
+          </div>
+
 
           <div class="col-md-4 mt-4 text-end">
           </div>
@@ -189,18 +195,32 @@ document.addEventListener("turbo:load", () => {
   });
 
   document.addEventListener('click', function(e) {
-    if (e.target && e.target.classList.contains('remove-address')) {
-      e.preventDefault();
+  if (e.target && e.target.classList.contains('remove-address')) {
+    e.preventDefault();
 
-      const addressFields = e.target.closest('.address-fields');
-      if (!addressFields) return;
+    Swal.fire({
+      title: '¿Eliminar dirección?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const addressFields = e.target.closest('.address-fields');
+        if (!addressFields) return;
 
-      const destroyField = addressFields.querySelector('input[name*="[_destroy]"]');
-      if (destroyField) destroyField.value = '1';
+        const destroyField = addressFields.querySelector('input[name*="[_destroy]"]');
+        if (destroyField) destroyField.value = '1';
 
-      addressFields.style.display = 'none';
-    }
-  });
+        addressFields.style.display = 'none';
+      }
+    });
+  }
+});
+
 });
 </script>
 

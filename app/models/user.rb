@@ -16,7 +16,9 @@ class User
   field :otp_code,         type: Integer
   field :is_admin,         type: Mongoid::Boolean, default: false
   field :profile_image, type: String
+  field :profile_image_url, type: String
 
+  
   # field :role,             type: String, default: "cliente"
   field :allow_notifications, type: Mongoid::Boolean, default: false # NUEVO CAMPO
 

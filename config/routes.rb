@@ -29,7 +29,10 @@ Rails.application.routes.draw do
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
     resource :profile, only: [:show, :update]
-    
+    resources :addresses, only: [:destroy]
+      delete 'profile/remove_address/:id', to: 'profile#remove_address', as: 'remove_address'
+
+
 
 
     # Carrito y compras

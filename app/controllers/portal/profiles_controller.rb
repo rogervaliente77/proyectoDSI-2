@@ -13,14 +13,14 @@ module Portal
       # Guardar imagen de perfil (antes del redirect)
       if params[:user][:profile_image].present?
         uploaded_file = params[:user][:profile_image]
-        filename = "#{SecureRandom.hex}_#{uploaded_file.original_filename}"
-        filepath = Rails.root.join('public', 'uploads', filename)
 
-        FileUtils.mkdir_p(File.dirname(filepath))
-        File.open(filepath, 'wb') { |f| f.write(uploaded_file.read) }
+        # ✅ Sube el archivo a Cloudinary
+        result = Cloudinary::Uploader.upload(uploaded_file.path, folder: "users/profile_images")
 
-        @user.profile_image = filename
+        # ✅ Guarda la URL segura
+        @user.profile_image_url = result["secure_url"]
       end
+
 
       if @user.update(user_params)
         redirect_to portal_profile_path, notice: "Perfil actualizado correctamente."
@@ -29,6 +29,17 @@ module Portal
         render :show, status: :unprocessable_entity
       end
     end
+
+    def remove_address
+      @address = Address.find(params[:id])
+
+      if @address.destroy
+        render json: { success: true, message: 'Dirección eliminada correctamente.' }
+      else
+        render json: { success: false, message: 'No se pudo eliminar la dirección.' }, status: :unprocessable_entity
+      end
+    end
+
 
     private
 
