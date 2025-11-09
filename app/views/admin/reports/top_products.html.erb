@@ -1,0 +1,238 @@
+<div class="container-fluid py-5">
+
+  <!-- Título, subtítulo y botones alineados -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 flex-wrap">
+    
+    <!-- Botón regresar a la izquierda -->
+    <div class="mb-3 mb-md-0">
+      <a href="/admin/reports" class="btn btn-outline-secondary">
+        ← Regresar a Reportes
+      </a>
+    </div>
+
+    <!-- Título y subtítulo centrados -->
+    <div class="text-center flex-grow-1 px-3">
+      <h1 class="mb-1">Reporte de Productos Más Vendidos</h1>
+      <p class="text-muted mb-0">Consulta los productos más vendidos y analiza su evolución en el tiempo.</p>
+    </div>
+
+    <!-- Botones Exportar a la derecha -->
+    <div class="mb-3 mb-md-0 d-flex gap-2 flex-wrap justify-content-center justify-content-md-end">
+      <button class="btn btn-success" onclick="exportTableToExcel('productsTable', 'productos_mas_vendidos')">
+        Exportar a Excel
+      </button>
+      <button class="btn btn-danger" onclick="exportTableAndChartToPDF('productsTable', 'topProductsChart', 'productos_mas_vendidos')">
+        Descargar PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="row g-3 mb-4 justify-content-center">
+    <div class="col-12 col-md-8">
+      <%= form_with url: '/admin/reports/top_products', method: :get, local: true, turbo: false, class: 'row g-2 align-items-end' do |f| %>
+        <div class="col-12 col-md-4">
+          <label>Fecha inicio</label>
+          <%= f.date_field :start_date, value: params[:start_date], class: 'form-control' %>
+        </div>
+        <div class="col-12 col-md-4">
+          <label>Fecha fin</label>
+          <%= f.date_field :end_date, value: params[:end_date], class: 'form-control' %>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2 flex-wrap">
+          <%= f.submit 'Aplicar filtros', class: 'btn btn-primary flex-grow-1' %>
+          <a href="/admin/reports/top_products" class="btn btn-secondary flex-grow-1">Reiniciar filtros</a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Gráfico de barras -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <canvas id="topProductsChart" height="350"></canvas>
+    </div>
+  </div>
+
+  <!-- Resumen de ventas -->
+  <div class="row mb-4 text-center">
+    <div class="col-12 col-md-6 mb-2">
+      <div class="card shadow-sm border-light p-3">
+        <h6>Total de productos vendidos</h6>
+        <p class="fs-5 mb-0"><%= @products_sales.sum { |r| r["total_sold"] } %></p>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 mb-2">
+      <div class="card shadow-sm border-light p-3">
+        <h6>Total de ingresos</h6>
+        <p class="fs-5 mb-0">$<%= number_with_precision(@products_sales.sum { |r| r["total_revenue"] }, precision: 2) %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de historial de productos -->
+  <div class="table-responsive mb-3">
+    <table class="table table-sm table-striped table-hover table-bordered" id="productsTable">
+      <thead class="table-dark">
+        <tr>
+          <th class="text-center">Fecha</th>
+          <th class="text-center">Producto</th>
+          <th class="text-center">Código</th>
+          <th class="text-center">Cantidad Vendida</th>
+          <th class="text-center">Ingreso Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @products_sales.each do |p| %>
+          <tr>
+            <td class="text-center"><%= p["date"] %></td>
+            <td class="text-center"><%= p["name"] %></td>
+            <td class="text-center"><%= p["code"] || p["product_id"] %></td>
+            <td class="text-center"><%= p["total_sold"] %></td>
+            <td class="text-center">$<%= number_with_precision(p["total_revenue"], precision: 2) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center" id="pagination"></ul>
+  </nav>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+  window.topProductsChart = window.topProductsChart || null;
+
+  // Exportar tabla a Excel
+  function exportTableToExcel(tableID, filename='') {
+    const table = document.getElementById(tableID);
+    const template = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>${table.outerHTML}</body></html>`;
+    const uri = 'data:application/vnd.ms-excel;base64,';
+    const link = document.createElement("a");
+    link.href = uri + window.btoa(unescape(encodeURIComponent(template)));
+    link.download = filename ? filename + '.xls' : 'excel_data.xls';
+    link.click();
+  }
+
+  // Exportar tabla + gráfico a PDF
+  function exportTableAndChartToPDF(tableID, canvasID, filename='') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'pt', 'a4');
+
+    const table = document.getElementById(tableID);
+    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+    const data = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
+      Array.from(tr.cells).map(td => td.textContent)
+    );
+
+    doc.autoTable({
+      head: [headers],
+      body: data,
+      startY: 50,
+      theme: 'striped',
+      headStyles: { fillColor: [52, 58, 64] },
+      styles: { fontSize: 10 }
+    });
+
+    const canvas = document.getElementById(canvasID);
+    if (canvas) {
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = doc.internal.pageSize.getWidth() - 40;
+      const pdfHeight = (canvas.height / canvas.width) * pdfWidth;
+      doc.addPage();
+      doc.addImage(imgData, 'PNG', 20, 40, pdfWidth, pdfHeight);
+    }
+
+    doc.save(filename ? filename + '.pdf' : 'reporte.pdf');
+  }
+
+  // Inicializar gráfico
+  function initializeProductsChart() {
+    const table = document.getElementById('productsTable');
+    const canvas = document.getElementById('topProductsChart');
+    if (!table || !canvas) return;
+
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    if (!rows.length) return;
+
+    const chartData = rows.map(r => ({
+      label: r.cells[1].textContent.trim(),
+      code: r.cells[2].textContent.trim(),
+      value: parseInt(r.cells[3].textContent.replace(/,/g,'')) || 0
+    })).sort((a,b) => b.value - a.value);
+
+    const labels = chartData.map(d => d.code);
+    const data = chartData.map(d => d.value);
+    const maxValue = Math.max(...data) * 1.2;
+
+    if (window.topProductsChart && typeof window.topProductsChart.destroy === 'function') {
+      window.topProductsChart.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+    window.topProductsChart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'Cantidad Vendida', data, backgroundColor: labels.map(() => `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*200)}, ${Math.floor(Math.random()*255)}, 0.7)`), borderColor: '#333', borderWidth: 1 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Productos Más Vendidos' },
+          tooltip: { callbacks: { label: ctx => { const p = chartData[ctx.dataIndex]; return `${p.label} (${p.code}): ${p.value} unidades`; } } }
+        },
+        scales: { y: { beginAtZero: true, max: maxValue } }
+      }
+    });
+
+    // Paginación
+    const rowsPerPage = 10;
+    const pagination = document.getElementById('pagination');
+    let currentPage = 1;
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+    function showPage(page){
+      currentPage = page;
+      const start = (page-1)*rowsPerPage;
+      const end = start+rowsPerPage;
+      rows.forEach((r,i) => r.style.display=(i>=start && i<end)?'':'none');
+      renderPagination();
+    }
+
+    function renderPagination(){
+      pagination.innerHTML='';
+      for(let i=1;i<=totalPages;i++){
+        const li = document.createElement('li');
+        li.className = `page-item ${i===currentPage?'active':''}`;
+        const a = document.createElement('a');
+        a.className='page-link';
+        a.href='javascript:void(0)';
+        a.textContent=i;
+        a.addEventListener('click',()=>showPage(i));
+        li.appendChild(a);
+        pagination.appendChild(li);
+      }
+    }
+
+    if(rows.length > rowsPerPage) showPage(1);
+    else rows.forEach(r=>r.style.display='');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initializeProductsChart, 100);
+
+    // Observador para actualizar gráfico automáticamente cuando se recargue la tabla
+    const tableBody = document.querySelector('#productsTable tbody');
+    if (tableBody) {
+      const observer = new MutationObserver(() => initializeProductsChart());
+      observer.observe(tableBody, { childList: true, subtree: true });
+    }
+  });
+</script>

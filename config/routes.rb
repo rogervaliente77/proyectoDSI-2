@@ -1,7 +1,6 @@
 Rails.application.routes.draw do
   # Namespace para Portal
   namespace :portal do
-    # Autenticación y usuarios
     get "/login", to: "authentication#login"
     post "/new_login", to: "authentication#new_login"
     get "/signup", to: "authentication#signup"
@@ -10,7 +9,6 @@ Rails.application.routes.draw do
     post "/signup_create", to: "authentication#signup_create"
     put "/logout", to: "authentication#logout"
 
-    # Home
     get "/home", to: "home#index"
 
     # Conferencias
@@ -37,13 +35,10 @@ Rails.application.routes.draw do
 
     # Carrito y compras
     resource :cart, only: [:show] do
-      # Agregar, aumentar, disminuir, eliminar
       post 'add/:id', to: 'carts#add', as: 'add'
       post 'increase/:id', to: 'carts#increase', as: 'increase'
       post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
       delete 'remove/:id', to: 'carts#remove', as: 'remove'
-
-      # Aplicar cupon
       post 'apply_discount_code', to: 'carts#apply_discount_code', as: 'apply_discount_code'
     end
 
@@ -54,7 +49,6 @@ Rails.application.routes.draw do
     # Compras
     resources :purchases, only: [:index, :show]
 
-    # Root portal
     root "landing#index"
   end
 
@@ -158,7 +152,14 @@ Rails.application.routes.draw do
 
     # ProductHistory
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
-    
+
+    # 🔹 Reportes
+# 🔹 Reportes
+get 'reports', to: 'reports#index', as: :admin_reports
+get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
+get 'reports/top_brands', to: 'reports#top_brands', as: :top_brands_admin_reports
+get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
+get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
   end
 
   # Health check y landing

@@ -17,28 +17,30 @@
   <!-- Filtros -->
   <div class="mb-3">
     <div class="container">
-      <%= form_with url: portal_home_path, method: :get, local: true, class: "row row-cols-lg-auto g-2 align-items-end justify-content-start" do %>
-        <div class="col">
-          <label class="form-label small text-secondary">Buscar</label>
-          <%= text_field_tag :query, params[:query], placeholder: "Ej. Taladro, Laptop...", class: "form-control form-control-sm" %>
-        </div>
-        <div class="col">
-          <label class="form-label small text-secondary">Categoría</label>
-          <%= select_tag :category_id, options_from_collection_for_select(@categories || [], :id, :name, params[:category_id]), prompt: "Todas", class: "form-select form-select-sm" %>
-        </div>
-        <div class="col">
-          <label class="form-label small text-secondary">Marca</label>
-          <%= select_tag :marca_id, options_from_collection_for_select(@marcas || [], :id, :name, params[:marca_id]), prompt: "Todas", class: "form-select form-select-sm" %>
-        </div>
-        <div class="col">
-          <label class="form-label small text-secondary">Oferta</label>
-          <%= select_tag :offer, options_for_select([["Descuento","descuento"],["2x1","2x1"],["3x1","3x1"],["Mayoreo","mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-sm" %>
-        </div>
-        <div class="col d-flex align-items-end gap-2">
-          <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm" %>
-          <%= link_to "Reiniciar", portal_home_path, class: "btn btn-outline-secondary btn-sm" %>
-        </div>
-      <% end %>
+      <div class="bg-white shadow-sm rounded-lg p-3">
+        <%= form_with url: portal_home_path, method: :get, local: true, class: "row row-cols-lg-auto g-2 align-items-end justify-content-start" do %>
+          <div class="col">
+            <label class="form-label small text-secondary">Buscar</label>
+            <%= text_field_tag :query, params[:query], placeholder: "Ej. Taladro, Laptop...", class: "form-control form-control-sm" %>
+          </div>
+          <div class="col">
+            <label class="form-label small text-secondary">Categoría</label>
+            <%= select_tag :category_id, options_from_collection_for_select(@categories || [], :id, :name, params[:category_id]), prompt: "Todas", class: "form-select form-select-sm" %>
+          </div>
+          <div class="col">
+            <label class="form-label small text-secondary">Marca</label>
+            <%= select_tag :marca_id, options_from_collection_for_select(@marcas || [], :id, :name, params[:marca_id]), prompt: "Todas", class: "form-select form-select-sm" %>
+          </div>
+          <div class="col">
+            <label class="form-label small text-secondary">Oferta</label>
+            <%= select_tag :offer, options_for_select([["Descuento","descuento"],["2x1","2x1"],["3x1","3x1"],["Mayoreo","mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select form-select-sm" %>
+          </div>
+          <div class="col d-flex align-items-end gap-2">
+            <%= submit_tag "Aplicar", class: "btn btn-primary btn-sm" %>
+            <%= link_to "Reiniciar", portal_home_path, class: "btn btn-outline-secondary btn-sm" %>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 
@@ -119,9 +121,6 @@
     </div>
   </div>
 
-  <!-- Toast container -->
-  <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index:1100;"></div>
-
   <!-- Carrito flotante abajo derecha -->
   <div class="position-fixed bottom-0 end-0 m-3" style="z-index:2000;">
     <button type="button" class="btn btn-primary position-relative btn-lg rounded-circle" 
@@ -133,24 +132,6 @@
     </button>
   </div>
 
-</div>
-
-<!-- TOASTS DE OFERTAS -->
-<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-  <% @products.select(&:on_offer?).each do |product| %>
-    <div class="toast align-items-center text-white bg-primary border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body">
-          🎉 <strong><%= product.name %></strong> en <strong><%= product.offer_type || "Oferta" %></strong>  
-          - Precio: <%= number_to_currency(product.discounted_price || product.price) %>
-          <% if product.discount.to_i > 0 %>
-            (-<%= product.discount %>%)
-          <% end %>
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
-      </div>
-    </div>
-  <% end %>
 </div>
 
 <style>
@@ -184,21 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
     carousel.addEventListener('mouseleave', () => clearInterval(interval));
   });
 
-  // Función Toast
-  function showToast(message, type='success'){
-    const container = document.getElementById('toast-container');
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast align-items-center text-white bg-${type} border-0 mb-2`;
-    toastEl.setAttribute('role','alert');
-    toastEl.setAttribute('aria-live','assertive');
-    toastEl.setAttribute('aria-atomic','true');
-    toastEl.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button></div>`;
-    container.appendChild(toastEl);
-    const toast = new bootstrap.Toast(toastEl, {autohide:true, delay:3000});
-    toast.show();
-    toastEl.querySelector('.btn-close').addEventListener('click', ()=>toast.hide());
-  }
-
   // Agregar al carrito
   document.addEventListener("click", function(e){
     if(e.target.classList.contains("add-to-cart-btn")){
@@ -215,8 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({quantity})
       }).then(r=>r.json()).then(data=>{
         if(data.success){
-          showToast(`✅ ${btn.dataset.productName} agregado al carrito (${quantity})`);
-
           // Actualizar contador carrito
           const cartCountEl = document.getElementById('cart-count');
           let cartCount = parseInt(cartCountEl.innerText)||0;
@@ -228,8 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if(offcanvas){
             fetch("/portal/cart").then(r=>r.text()).then(html=>document.getElementById("cart-content").innerHTML=html);
           }
-        } else {
-          showToast(`⚠️ ${data.error || "No se pudo agregar el producto"}`, 'danger');
         }
       });
     }
@@ -246,15 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(r=>r.text())
         .then(html=>document.getElementById("cart-content").innerHTML=html)
         .catch(err=>console.error(err));
-      if(action==="remove") showToast("🗑️ Producto eliminado del carrito","danger");
     }
-  });
-
-  // Inicializar toasts de ofertas
-  document.querySelectorAll('.toast').forEach(function(toastEl){
-    const toast = new bootstrap.Toast(toastEl, {autohide:false});
-    toast.show();
-    toastEl.querySelector('.btn-close').addEventListener('click', ()=>toast.hide());
   });
 
   // Cargar carrito al abrir offcanvas
