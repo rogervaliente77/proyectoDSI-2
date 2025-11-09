@@ -14,14 +14,15 @@ class Delivery
   field :has_appointment, type: Boolean, default: false
   field :status_log_changes, type: Array, default: []
   field :sale_id, type: BSON::ObjectId
+  field :delivery_address, type: String
 
   belongs_to :sale
-  belongs_to :delivery_driver
+  belongs_to :delivery_driver, optional: true
 
   before_create :assign_delivery_code
 
   # Validaciones
-  validates :sale_code, :delivery_code, presence: { message: "El codigo de venta y delivery son obligatorios" }, uniqueness: { message: "Codigo de venta o delivery ya existe" }
+  validates :sale_code, presence: { message: "El codigo de venta y delivery son obligatorios" }, uniqueness: { message: "Codigo de venta o delivery ya existe" }
 
   private
 

@@ -15,12 +15,14 @@ class Portal::PurchasesController < ApplicationController
     @sale = Sale.find(params[:delivery][:sale_id])
     @client = User.find(@sale.client_id)
 
+    binding.pry
     @delivery = Delivery.new(delivery_params)
     @delivery.client_id = @client.id
     @delivery.client_name = @client.full_name
     @delivery.sale_code = @sale.code
     @delivery.has_appointment = true
 
+    binding.pry
     if @delivery.save
       flash[:success] = "Cita agendada correctamente"
       redirect_to portal_purchase_estado_entrega_path(@sale)
@@ -32,7 +34,11 @@ class Portal::PurchasesController < ApplicationController
   end
 
   def delivery_status_real_time
+    @sale = Sale.find(params[:purchase_id])
+  end
 
+  def update_delivery_status
+     
   end
 
   private
