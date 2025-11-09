@@ -45,63 +45,72 @@
     </div>
 
     <hr>
-    <h4>Direcciones</h4>
 
     <!-- ✅ CONTENEDOR PARA DIRECCIONES -->
-    <div id="addresses">
-      <%= f.fields_for :addresses do |address_form| %>
-        <div class="address-fields row mb-3 border rounded p-3 bg-light">
-          <%= address_form.hidden_field :_destroy %>
 
-          <!-- 🏷️ Campo nombre con select -->
-          <div class="col-md-4">
-            <%= address_form.label :name, "Nombre de la dirección" %>
-            <%= address_form.text_field :name, class: "form-control", placeholder: "Ej: Casa, Trabajo, etc." %>
+    <% if @current_user.role.name == "cliente" %>
+      <h4>Direcciones</h4>
+
+      <div id="addresses">
+        <%= f.fields_for :addresses do |address_form| %>
+          <div class="address-fields row mb-3 border rounded p-3 bg-light">
+            <%= address_form.hidden_field :_destroy %>
+
+            <!-- 🏷️ Campo nombre con select -->
+            <div class="col-md-4">
+              <%= address_form.label :name, "Nombre de la dirección" %>
+              <%= address_form.text_field :name, class: "form-control", placeholder: "Ej: Casa, Trabajo, etc." %>
+            </div>
+
+            <div class="col-md-4">
+              <%= address_form.label :department, "Departamento" %>
+              <%= address_form.text_field :department, class: "form-control" %>
+            </div>
+
+            <div class="col-md-4">
+              <%= address_form.label :municipality, "Municipio" %>
+              <%= address_form.text_field :municipality, class: "form-control" %>
+            </div>
+
+            <div class="col-md-4">
+              <%= address_form.label :street, "Calle/Avenida" %>
+              <%= address_form.text_field :street, class: "form-control" %>
+            </div>
+
+            <div class="col-md-4 mt-2">
+              <%= address_form.label :house, "Casa/Apartamento" %>
+              <%= address_form.text_field :house, class: "form-control" %>
+            </div>
+
+            <div class="col-md-4 mt-2">
+              <%= address_form.label :reference, "Referencia" %>
+              <%= address_form.text_field :reference, class: "form-control" %>
+            </div>
+            
+            <div class=" mt-4 text-end">
+              <button type="button" 
+                class="btn btn-danger remove-address" 
+                data-id="<%= address_form.object.id %>">
+                Eliminar
+              </button>
+
+            </div>
+
+
+            <div class="col-md-4 mt-4 text-end">
+            </div>
           </div>
+        <% end %>
+      </div>
 
-          <div class="col-md-4">
-            <%= address_form.label :department, "Departamento" %>
-            <%= address_form.text_field :department, class: "form-control" %>
-          </div>
-
-          <div class="col-md-4">
-            <%= address_form.label :municipality, "Municipio" %>
-            <%= address_form.text_field :municipality, class: "form-control" %>
-          </div>
-
-          <div class="col-md-4">
-            <%= address_form.label :street, "Calle/Avenida" %>
-            <%= address_form.text_field :street, class: "form-control" %>
-          </div>
-
-          <div class="col-md-4 mt-2">
-            <%= address_form.label :house, "Casa/Apartamento" %>
-            <%= address_form.text_field :house, class: "form-control" %>
-          </div>
-
-          <div class="col-md-4 mt-2">
-            <%= address_form.label :reference, "Referencia" %>
-            <%= address_form.text_field :reference, class: "form-control" %>
-          </div>
-          
-          <div class=" mt-4 text-end">
-            <%= link_to "Eliminar", "#", 
-                class: "btn btn-danger btn-sm remove-address", 
-                data: { address_id: address_form.object.id } %>
-          </div>
-
-
-          <div class="col-md-4 mt-4 text-end">
-          </div>
-        </div>
-      <% end %>
-    </div>
-
-    <div class="d-flex justify-content-center gap-2 mt-4">
-      <%= link_to "Agregar dirección", "#", class: "btn btn-outline-primary", id: "add-address" %>
+      <div class="d-flex justify-content-center gap-2 mt-4">
+        <%= link_to "Agregar dirección", "#", class: "btn btn-outline-primary", id: "add-address" %>
+        
+      </div>
+    <% end %>
+    <div class="d-flex justify-content-end gap-2 mt-4">
       <%= f.submit "Guardar cambios", class: "btn btn-success" %>
     </div>
-
   <% end %>
 </div>
 
@@ -198,6 +207,8 @@ document.addEventListener("turbo:load", () => {
   if (e.target && e.target.classList.contains('remove-address')) {
     e.preventDefault();
 
+    const addressId = e.target.dataset.id;
+
     Swal.fire({
       title: '¿Eliminar dirección?',
       text: 'Esta acción no se puede deshacer.',
@@ -209,17 +220,37 @@ document.addEventListener("turbo:load", () => {
       cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
-        const addressFields = e.target.closest('.address-fields');
-        if (!addressFields) return;
-
-        const destroyField = addressFields.querySelector('input[name*="[_destroy]"]');
-        if (destroyField) destroyField.value = '1';
-
-        addressFields.style.display = 'none';
+        // Si la dirección ya existe en la BD
+        if (addressId) {
+          fetch(`/portal/addresses/${addressId}`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+              'Accept': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire('Eliminado', data.message, 'success');
+              // Oculta visualmente el bloque eliminado
+              const addressFields = e.target.closest('.address-fields');
+              if (addressFields) addressFields.remove();
+            } else {
+              Swal.fire('Error', data.message, 'error');
+            }
+          })
+          .catch(() => Swal.fire('Error', 'No se pudo conectar con el servidor.', 'error'));
+        } else {
+          // Si la dirección es nueva (aún no guardada)
+          const addressFields = e.target.closest('.address-fields');
+          if (addressFields) addressFields.remove();
+        }
       }
     });
   }
 });
+
 
 });
 </script>

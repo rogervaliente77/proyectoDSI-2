@@ -30,16 +30,19 @@ module Portal
       end
     end
 
-    def remove_address
-      @address = Address.find(params[:id])
+    def destroy
+      address = @current_user.addresses.find_by(params[:id])
 
-      if @address.destroy
-        render json: { success: true, message: 'Dirección eliminada correctamente.' }
+       if address
+        address.destroy
+        render json: { success: true, message: "Dirección eliminada correctamente." }
       else
-        render json: { success: false, message: 'No se pudo eliminar la dirección.' }, status: :unprocessable_entity
+        render json: { success: false, message: "No se encontró la dirección." }, status: :not_found
       end
+    rescue => e
+      render json: { success: false, message: "Error al eliminar: #{e.message}" }, status: :internal_server_error
+    
     end
-
 
     private
 
