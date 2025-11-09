@@ -133,6 +133,11 @@ Rails.application.routes.draw do
     # Mensajero
     resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]
 
+    #Deliveries
+    get "pedidos", to: "deliveries#index"
+    get "assign_to_delivery_driver", to: "deliveries#assign_to_delivery_driver"
+    patch "assign_to_delivery_driver", to: "deliveries#save_delivery_driver_in_delivery"
+
     # Devoluciones
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
       member do

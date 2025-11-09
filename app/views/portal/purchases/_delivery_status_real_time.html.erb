@@ -1,0 +1,112 @@
+<% sale ||= @sale %>
+<div id="delivery-status-wrapper" data-sale-id="<%= sale.id %>">
+
+    <div class="container py-5 bg-light min-vh-100">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Estado del pedido</h1>
+            
+            <%= link_to portal_purchases_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a mis compras
+            <% end %>
+        </div>
+
+        <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
+            
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                    <th>Codigo del pedido</th>
+                    <th>Estado del paquete</th>
+                    <th>Estado del pedido</th>
+                    <th>Fecha programada</th>
+                    <th>Dirección</th>
+                    <th>Mensajero</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    <td><%= sale.delivery.delivery_code %></td>
+                    <td>
+                        <% if sale.delivery.package_status == 'in_warehouse' %>
+                            <span class="badge badge-info">En bodega</span>
+                        <% else %>
+                            <span class="badge badge-info">Recogido por el mensajero</span>
+                        <% end %>
+                    </td>
+                    <td>
+                        <% if sale.delivery.delivery_status == 'unassigned' %>
+                            <span class="badge badge-secondary">No asignado</span>
+                        <% else %>
+                            <span class="badge badge-info">Recogido por el mensajero</span>
+                        <% end %>
+                    </td>
+                    <td><%= sale.delivery.appointment_date.strftime("%d/%m/%Y") %> <%= sale.delivery.appointment_hour%> </td>
+                    <td><%= sale.delivery.delivery_address %></td>
+                    <td>
+                        <% if !sale.delivery&.delivery_driver.present? %>
+                            <span class="badge badge-secondary">No asignado</span>
+                        <% else %>
+                            <%= sale.delivery.delivery_driver.user.first_name %>
+                        <% end %>
+                    </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+        </div>
+
+
+        <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <strong class="fs-6">Código de venta: <%= sale.code %></strong><br>
+                <small class="text-muted">Realizada el <%= l(sale.sold_at, format: :long) %></small>
+            </div>
+            </div>
+
+            <% sale.product_sales.each do |ps| %>
+            <div class="d-flex align-items-center border-top pt-3 mt-2">
+                <% if ps.product && ps.product.product_images.any? %>
+                <%= image_tag ps.product.product_images.first.image_url, 
+                        class: "rounded me-4", 
+                        style: "width: 100px; height: 100px; object-fit: cover;" %>
+                <% else %>
+                <%= image_tag "placeholder.png", class: "rounded me-4", style: "width: 100px; height: 100px; object-fit: cover;" %>
+                <% end %>
+
+                <div class="flex-grow-1">
+                <strong><%= ps.product&.name %></strong><br>
+                <span class="text-muted">Cantidad:</span> <%= ps.quantity %><br>
+                <span class="text-success fw-bold">$<%= '%.2f' % ps.subtotal %></span>
+                </div>
+            </div>
+            <% end %>
+
+            <div class="mt-3">
+            <p class="mb-1">
+                <strong>Método de envío:</strong>
+                <%= sale&.delivery_method.present? ? sale.delivery_method.titleize : "Recoger en tienda" %>
+            </p>
+
+            <% if sale.delivery_method == "delivery" %>
+                <% if sale.was_delivered == false %>
+                <span class="badge badge-warning">No entregado</span>
+                <% if sale.delivery.present? %>
+                    <span class="badge badge-info"><%= sale.delivery.package_status %></span>
+                <% else %>
+                    <span class="badge badge-danger">Proceso de entrega no iniciado</span>
+                <% end %>
+                <% end %>
+            <% end %>
+
+            <p class="mb-1 text-muted"><small>El pago se realizará al recoger el producto.</small></p>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
+            <span class="fw-bold fs-5 text-success">Total: $<%= '%.2f' % sale.total_amount %></span>
+            </div>
+        </div>
+    </div>
+
+</div>

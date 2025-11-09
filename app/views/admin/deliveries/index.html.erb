@@ -1,0 +1,66 @@
+<div class="container py-5 bg-light min-vh-100">
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Admin / Pedidos</h1>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
+        
+        <table class="table table-bordered" id="categoriesTable">
+            <thead class="thead-light">
+                <tr>
+                <th>Codigo del pedido</th>
+                <th>Codigo de la venta</th>
+                <th>Estado del paquete</th>
+                <th>Estado del pedido</th>
+                <th>Fecha programada</th>
+                <th>Dirección</th>
+                <th>Mensajero</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% @deliveries.each do |delivery| %>
+                    <tr>
+                        <td><%= delivery.delivery_code %></td>
+                        <td><%= delivery&.sale&.code %></td>
+                        <td>
+                            <% if delivery.package_status == 'in_warehouse' %>
+                                <span class="badge badge-info">En bodega</span>
+                            <% else %>
+                                <span class="badge badge-info">Recogido por el mensajero</span>
+                            <% end %>
+                        </td>
+                        <td>
+                            <% if delivery.delivery_status == 'unassigned' %>
+                                <span class="badge badge-secondary">No asignado</span>
+                            <% else %>
+                                <span class="badge badge-info">Recogido por el mensajero</span>
+                            <% end %>
+                        </td>
+                        <td><%= delivery.appointment_date.strftime("%d/%m/%Y") %> <%= delivery.appointment_hour%> </td>
+                        <td> <%= delivery.delivery_address %> </td>
+                        <td>
+                            <% if delivery.delivery_driver.present? %>
+                                <span class="badge badge-success">
+                                <%= delivery.delivery_driver.user.first_name %>
+                                </span>
+                            <% else %>
+                                <span class="badge badge-secondary d-block">No asignado</span>
+
+                                <%= link_to "Asignar mensajero",
+                                    admin_assign_to_delivery_driver_path(id: delivery.id),
+                                    class: "badge badge-primary d-block mt-1" %>
+                            <% end %>
+                        </td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+        
+    </div>
+
+</div>
+
+<script>
+
+</script>

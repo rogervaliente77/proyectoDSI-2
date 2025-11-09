@@ -15,6 +15,7 @@ class Delivery
   field :status_log_changes, type: Array, default: []
   field :sale_id, type: BSON::ObjectId
   field :delivery_address, type: String
+  field :was_delivered, type: Boolean, default: false
 
   belongs_to :sale
   belongs_to :delivery_driver, optional: true

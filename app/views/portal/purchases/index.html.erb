@@ -52,12 +52,18 @@
                 <span class="badge bg-danger">Proceso de entrega no iniciado</span>
               <% end %>
 
-              <!-- 🔹 Botón para agendar cita de entrega -->
-              <div class="mt-2">
-                <%= link_to "Agendar entrega", 
-                    portal_purchase_schedule_appointment_path(sale.id), 
-                    class: "btn btn-primary btn-sm" %>
-              </div>
+              <% if !sale.delivery.has_appointment?%>
+                <!-- 🔹 Botón para agendar cita de entrega -->
+                <div class="mt-2">
+                  <%= link_to "Agendar entrega", 
+                      portal_purchase_schedule_appointment_path(sale.id), 
+                      class: "btn btn-primary btn-sm" %>
+                </div>
+              <% else %>
+                  <%= link_to "Ver estado del pedido", 
+                      portal_purchase_estado_entrega_path(purchase_id: sale.id), 
+                      class: "btn btn-primary btn-sm" %>
+              <% end %>
             <% else %>
               <span></span>
             <% end %>
