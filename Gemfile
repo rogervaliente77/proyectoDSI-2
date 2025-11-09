@@ -94,3 +94,5 @@ gem 'prawn-table', '~> 0.2.2'     # Si querés usar tablas en el PDF
 gem 'barby', '~> 0.6.8'           # Para generar códigos de barra
 
 gem 'chunky_png'  
+
+gem "dotenv-rails", groups: [:development, :test]

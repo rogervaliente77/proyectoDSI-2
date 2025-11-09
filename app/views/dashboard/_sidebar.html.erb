@@ -56,6 +56,7 @@
           <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
         <% else %>
           <a class="collapse-item" href="<%= portal_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
+          <a class="collapse-item" href="<%= portal_profile_path(id: @current_user.id) %>" data-turbo="false">Editar Perfil</a>
         <% end %>
       </div>
     </div>
@@ -197,7 +198,9 @@
   <!-- Mis compras - Cliente -->
   <% if @current_user.role.name == 'cliente' %>
     <li class="nav-item">
-      <%= link_to portal_purchases_path, class: "nav-link d-flex align-items-center" do %>
+      <%= link_to portal_purchases_path,
+          class: "nav-link d-flex align-items-center",
+          data: { turbo: false } do %>
         <i class="fas fa-shopping-bag me-2"></i>
         Mis compras
       <% end %>

@@ -28,5 +28,11 @@ module Portal
     def current_user
       @current_user
     end
+
+     def require_login
+      unless @current_user
+        redirect_to portal_login_path, alert: "Debes iniciar sesión para acceder a esta sección."
+      end
+    end
   end
 end
