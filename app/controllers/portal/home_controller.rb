@@ -29,11 +29,9 @@ module Portal
       end
 
       # ----------------- OFERTAS -----------------
-      # Solo mostrar notificaciones la primera vez que inicia sesión
-      if @current_user&.role&.name == 'cliente' && !@current_user.allow_notifications
+      # Mostrar siempre las ofertas para clientes
+      if @current_user&.role&.name == 'cliente'
         @offer_products = @products.select(&:on_offer?)
-        # Marcamos que ya se mostraron las notificaciones
-        @current_user.update(allow_notifications: true)
       else
         @offer_products = []
       end

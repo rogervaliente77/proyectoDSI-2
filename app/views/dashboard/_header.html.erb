@@ -1,78 +1,176 @@
 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
 
-    <!-- Sidebar Toggle (Topbar) -->
-    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-        <i class="fa fa-bars"></i>
-    </button>
+  <!-- Sidebar Toggle (Topbar) -->
+  <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+    <i class="fa fa-bars"></i>
+  </button>
 
-    <!-- Topbar Navbar -->
-    <ul class="navbar-nav ml-auto">
+  <!-- Topbar Navbar -->
+  <ul class="navbar-nav ml-auto">
 
-        <!-- Nav Item - Alerts -->
-        <li class="nav-item dropdown no-arrow mx-1">
-            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-bell fa-fw"></i>
-                <!-- Counter - Alerts -->
-                <span class="badge badge-danger badge-counter">3+</span>
-            </a>
-            <!-- Dropdown - Alerts -->
-            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="alertsDropdown">
-                <h6 class="dropdown-header">Alerts Center</h6>
-                <!-- Aquí van las alertas -->
+    <!-- Alerts -->
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-bell fa-fw"></i>
+        <% total_alerts = @pending_devoluciones_count.to_i + (@low_stock_products&.size || 0) %>
+        <% if total_alerts > 0 %>
+          <span class="badge badge-danger badge-counter"><%= total_alerts %></span>
+        <% end %>
+      </a>
+      <div class="dropdown-menu dropdown-menu-end shadow p-2 alerts-dropdown" aria-labelledby="alertsDropdown">
+        <h6 class="dropdown-header">Alerts Center</h6>
+        <div id="alertsContainer">
+          <% if @pending_devoluciones_count.to_i > 0 %>
+            <div class="alert-item d-flex align-items-center justify-content-between mb-2">
+              <div>
+                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                Hay <strong><%= @pending_devoluciones_count %></strong> devoluciones pendientes.
+              </div>
+              <button type="button" class="btn-close btn-close-white btn-sm ms-2" aria-label="Cerrar"></button>
             </div>
-        </li>
+          <% end %>
 
-        <!-- Nav Item - Messages -->
-        <li class="nav-item dropdown no-arrow mx-1">
-            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-envelope fa-fw"></i>
-                <!-- Counter - Messages -->
-                <span class="badge badge-danger badge-counter">7</span>
-            </a>
-            <!-- Dropdown - Messages -->
-            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                aria-labelledby="messagesDropdown">
-                <h6 class="dropdown-header">Message Center</h6>
-                <!-- Aquí van los mensajes -->
-            </div>
-        </li>
+          <% if @low_stock_products.present? %>
+            <% @low_stock_products.each do |p| %>
+              <div class="alert-item d-flex align-items-center justify-content-between mb-2">
+                <div>
+                  <i class="fas fa-box-open text-danger me-2"></i>
+                  ⚠️ <strong><%= p.name %></strong> tiene stock bajo: <%= p.quantity %>
+                </div>
+                <button type="button" class="btn-close btn-close-white btn-sm ms-2" aria-label="Cerrar"></button>
+              </div>
+            <% end %>
+          <% end %>
 
-        <div class="topbar-divider d-none d-sm-block"></div>
+          <% if @pending_devoluciones_count.to_i == 0 && @low_stock_products.blank? %>
+            <div class="text-center text-muted py-2">No hay alertas.</div>
+          <% end %>
+        </div>
+      </div>
+    </li>
 
-        <!-- Nav Item - User Information -->
-        <li class="nav-item dropdown no-arrow">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><%= @current_user.first_name rescue '' %></span>
-                <img class="img-profile rounded-circle"
-                     src="<%= asset_path('undraw_profile.svg') %>">
-            </a>
-            <!-- Dropdown - User Information -->
-            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                 aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Profile
-                </a>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Settings
-                </a>
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Activity Log
-                </a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Logout
-                </a>
-            </div>
-        </li>
+    <!-- Messages -->
+    <li class="nav-item dropdown no-arrow mx-1">
+      <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-envelope fa-fw"></i>
+        <% messages_count = @current_user.role.name == 'cliente' ? (@offer_products&.size || 0) : 0 %>
+        <% if messages_count > 0 %>
+          <span class="badge badge-danger badge-counter"><%= messages_count %></span>
+        <% end %>
+      </a>
+      <div class="dropdown-menu dropdown-menu-end shadow p-2 messages-dropdown" aria-labelledby="messagesDropdown">
+        <h6 class="dropdown-header">Message Center</h6>
+        <div id="messagesContainer">
+          <% if @current_user.role.name == 'cliente' && @offer_products.present? %>
+            <% @offer_products.each do |product| %>
+              <div class="message-item d-flex align-items-center justify-content-between mb-2">
+                <div>
+                  🎉 <strong><%= product.name %></strong> en <%= product.offer_type || "Oferta" %>
+                  <% if product.discount.to_i > 0 %>
+                    (-<%= product.discount %>%)
+                  <% end %>
+                </div>
+                <button type="button" class="btn-close btn-close-white btn-sm ms-2" aria-label="Cerrar"></button>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="text-center text-muted py-2">No hay mensajes.</div>
+          <% end %>
+        </div>
+      </div>
+    </li>
 
-    </ul>
+    <div class="topbar-divider d-none d-sm-block"></div>
 
+    <!-- User -->
+    <li class="nav-item dropdown no-arrow">
+      <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <span class="mr-2 d-none d-lg-inline text-gray-600 small"><%= @current_user.first_name rescue '' %></span>
+        <img class="img-profile rounded-circle" src="<%= asset_path('undraw_profile.svg') %>">
+      </a>
+      <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+        <a class="dropdown-item" href="#"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>Profile</a>
+        <a class="dropdown-item" href="#"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>Settings</a>
+        <a class="dropdown-item" href="#"><i class="fas fa-list fa-sm fa-fw me-2 text-gray-400"></i>Activity Log</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>Logout
+        </a>
+      </div>
+    </li>
+  </ul>
 </nav>
+
+<style>
+.alerts-dropdown, .messages-dropdown {
+  max-height: 400px;
+  overflow-y: auto;
+  min-width: 320px;
+}
+
+.alert-item, .message-item {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+}
+
+.alert-item + .alert-item, .message-item + .message-item { margin-top: 0.25rem; }
+
+.btn-close-white { filter: invert(1); }
+
+.alerts-dropdown::-webkit-scrollbar, .messages-dropdown::-webkit-scrollbar { width: 6px; }
+.alerts-dropdown::-webkit-scrollbar-thumb, .messages-dropdown::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+</style>
+
+<script>
+document.addEventListener("turbo:load", function() {
+  function attachCloseEvents(containerId) {
+    const container = document.getElementById(containerId);
+    if(container){
+      container.querySelectorAll('.btn-close').forEach(function(btn){
+        btn.removeEventListener('click', btn._closeHandler);
+        btn._closeHandler = function(e){
+          e.preventDefault();
+          const item = this.closest(containerId==='alertsContainer'?'.alert-item':'.message-item');
+          item.remove();
+
+          // actualizar badge
+          const badge = document.querySelector(`#${containerId==='alertsContainer'?'alertsDropdown':'messagesDropdown'} .badge-counter`);
+          if(badge){
+            let count = parseInt(badge.innerText.replace('+','')) - 1;
+            if(count<=0) badge.remove();
+            else badge.innerText = count;
+          }
+
+          // si no hay items
+          if(container.querySelectorAll(containerId==='alertsContainer'?'.alert-item':'.message-item').length===0){
+            const noMsg = document.createElement('div');
+            noMsg.classList.add('text-center','text-muted','py-2');
+            noMsg.innerText = containerId==='alertsContainer'?'No hay alertas.':'No hay mensajes.';
+            container.appendChild(noMsg);
+          }
+        };
+        btn.addEventListener('click', btn._closeHandler);
+      });
+    }
+  }
+
+  attachCloseEvents('alertsContainer');
+  attachCloseEvents('messagesContainer');
+
+  const alertsDropdown = document.getElementById('alertsDropdown');
+  const messagesDropdown = document.getElementById('messagesDropdown');
+
+  if(alertsDropdown) alertsDropdown.addEventListener('shown.bs.dropdown', ()=>attachCloseEvents('alertsContainer'));
+  if(messagesDropdown) messagesDropdown.addEventListener('shown.bs.dropdown', ()=>attachCloseEvents('messagesContainer'));
+});
+</script>

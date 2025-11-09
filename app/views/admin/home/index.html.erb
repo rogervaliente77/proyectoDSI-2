@@ -51,48 +51,6 @@
   </div>
 </div>
 
-<!-- Toasts para stock bajo y devoluciones pendientes -->
-<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-  <% if @pending_devoluciones_count.to_i > 0 %>
-    <div class="toast align-items-center text-bg-warning border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          Hay <strong><%= @pending_devoluciones_count %></strong> devoluciones pendientes de autorizar.
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
-      </div>
-    </div>
-  <% end %>
-
-  <% if @low_stock_products.present? %>
-    <% @low_stock_products.each do |product| %>
-      <div class="toast align-items-center text-white bg-danger border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-          <div class="toast-body">
-            <i class="fas fa-box-open me-2"></i>
-            ⚠️ El producto <strong><%= product.name %></strong> tiene stock bajo: <%= product.quantity %> unidades.
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Cerrar"></button>
-        </div>
-      </div>
-    <% end %>
-  <% end %>
-</div>
-
-<!-- Activar los toasts con JavaScript -->
-<script>
-  document.addEventListener("turbo:load", function() {
-    document.querySelectorAll('.toast').forEach(function(toastEl) {
-      const toast = new bootstrap.Toast(toastEl, { autohide: false });
-      toast.show();
-      toastEl.querySelector('.btn-close').addEventListener('click', function() {
-        toast.hide();
-      });
-    });
-  });
-</script>
-
 <!-- CSS para el fondo y cards -->
 <style>
   /* Fondo degradado profesional */
