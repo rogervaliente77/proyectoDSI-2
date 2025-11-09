@@ -16,7 +16,8 @@
   <% end %>
 
   <!-- Tabla de marcas -->
-  <table class="table table-striped">
+  <div class="table-responsive">
+<table class="table table-striped">
     <thead>
       <tr>
         <th>#</th>
@@ -35,7 +36,7 @@
             <td>
               <div class="d-flex gap-1"> <!-- Flex para controlar tamaño y separación -->
                 <%= link_to edit_admin_marca_path(marca), class: "btn btn-sm btn-warning flex-shrink-0" do %>
-                  <i class="fa fa-pencil"></i> Editar
+                  <i class="fa fa-pencil" title="Editar"></i> 
                 <% end %>
 
                 <%= button_to admin_marca_path(marca),
@@ -43,7 +44,7 @@
                       form: { class: "d-inline" },
                       data: { turbo_confirm: "¿Estás seguro de eliminar esta marca?" },
                       class: "btn btn-sm btn-danger flex-shrink-0" do %>
-                  <i class="fa fa-trash"></i> Eliminar
+                  <i class="fa fa-trash" title="Eliminar"></i> 
                 <% end %>
               </div>
             </td>
@@ -56,4 +57,5 @@
       <% end %>
     </tbody>
   </table>
+</div>
 </div>

@@ -43,7 +43,8 @@
 
           <h1 class="h3 mb-4 text-gray-800"></h1>
 
-          <table class="table table-bordered" id="usersTable">
+          <div class="table-responsive">
+<table class="table table-bordered" id="usersTable">
             <thead class="thead-light">
               <tr>
                 <th>No</th>
@@ -64,14 +65,14 @@
                   <td><%= cajero.created_at %></td>
                   <td>
                     <%= link_to admin_cajeros_edit_path(id: cajero.id), class: "btn btn-primary btn-sm" do %>
-                                <i class="fa fa-edit"></i><span>
-                                <span>Editar</span>
+                                <i class="fa fa-edit" title="Editar" ></i><span>
                               <% end %>
                   </td>
                 </tr>
               <% end %>
             </tbody>
           </table>
+</div>
         </div>
       </div>
     </div>

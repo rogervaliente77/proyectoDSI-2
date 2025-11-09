@@ -23,8 +23,9 @@
           <% elsif flash[:alert] %>
             <div class="alert alert-danger"><%= flash[:alert] %></div>
           <% end %>
-
-          <table class="table table-bordered" id="rolesTable">
+    
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle shadow-sm rounded  id="rolesTable">
             <thead class="thead-light">
               <tr>
                 <th>Nombre del Rol</th>
@@ -51,6 +52,8 @@
               <% end %>
             </tbody>
           </table>
+</div>
+</div>
         </div>
       </div>
     </div>

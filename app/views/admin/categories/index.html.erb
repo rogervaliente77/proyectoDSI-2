@@ -39,7 +39,8 @@
             <div class="alert alert-danger"><%= flash[:alert] %></div>
           <% end %>
 
-          <table class="table table-bordered" id="categoriesTable">
+          <div class="table-responsive">
+<table class="table table-bordered" id="categoriesTable">
             <thead class="thead-light">
               <tr>
                 <th>Nombre</th>
@@ -56,13 +57,13 @@
                   <td><%= category.created_at.strftime("%d/%m/%Y") if category.created_at %></td>
                   <td>
                     <%= link_to edit_admin_category_path(category), class: "btn btn-primary btn-sm", data: { turbo: false } do %>
-                      <i class="fa fa-edit"></i> Editar
+                      <i class="fa fa-edit" title="Editar"></i> 
                     <% end %>
                     
                     <%= link_to admin_category_path(category),
                             class: "btn btn-danger btn-sm",
                              data: { turbo_method: :delete, turbo_confirm: "¿Estás seguro de eliminar esta categoría?" } do %>
-                         <i class="fa fa-trash"></i> Eliminar
+                         <i class="fa fa-trash" title="Eliminar"></i>
                     <% end %>
 
                   </td>
@@ -70,6 +71,7 @@
               <% end %>
             </tbody>
           </table>
+</div>
         </div>
       </div>
     </div>
