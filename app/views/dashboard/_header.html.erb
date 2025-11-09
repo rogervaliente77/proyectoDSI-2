@@ -55,7 +55,7 @@
       <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <i class="fas fa-envelope fa-fw"></i>
-        <% messages_count = @current_user.role.name == 'cliente' ? (@offer_products&.size || 0) : 0 %>
+        <% messages_count = @current_user&.role&.name == 'cliente' ? (@offer_products&.size || 0) : 0 %>
         <% if messages_count > 0 %>
           <span class="badge badge-danger badge-counter"><%= messages_count %></span>
         <% end %>
@@ -63,7 +63,7 @@
       <div class="dropdown-menu dropdown-menu-end shadow p-2 messages-dropdown" aria-labelledby="messagesDropdown">
         <h6 class="dropdown-header">Message Center</h6>
         <div id="messagesContainer">
-          <% if @current_user.role.name == 'cliente' && @offer_products.present? %>
+          <% if @current_user&.role&.name == 'cliente' && @offer_products.present? %>
             <% @offer_products.each do |product| %>
               <div class="message-item d-flex align-items-center justify-content-between mb-2">
                 <div>
@@ -88,7 +88,7 @@
     <li class="nav-item dropdown no-arrow">
       <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span class="mr-2 d-none d-lg-inline text-gray-600 small"><%= @current_user.first_name rescue '' %></span>
+        <span class="mr-2 d-none d-lg-inline text-gray-600 small"><%= @current_user&.first_name || '' %></span>
         <img class="img-profile rounded-circle" src="<%= asset_path('undraw_profile.svg') %>">
       </a>
       <div class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
@@ -133,6 +133,8 @@
 
 <script>
 document.addEventListener("turbo:load", function() {
+
+  // -------------------- Botones de cerrar alerts y messages --------------------
   function attachCloseEvents(containerId) {
     const container = document.getElementById(containerId);
     if(container){
@@ -172,5 +174,17 @@ document.addEventListener("turbo:load", function() {
 
   if(alertsDropdown) alertsDropdown.addEventListener('shown.bs.dropdown', ()=>attachCloseEvents('alertsContainer'));
   if(messagesDropdown) messagesDropdown.addEventListener('shown.bs.dropdown', ()=>attachCloseEvents('messagesContainer'));
+
+  // -------------------- Inicialización Bootstrap Dropdowns y Modals --------------------
+  const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+  dropdownElementList.map(function (dropdownToggleEl) {
+    return new bootstrap.Dropdown(dropdownToggleEl);
+  });
+
+  const modalElementList = [].slice.call(document.querySelectorAll('.modal'));
+  modalElementList.map(function (modalEl) {
+    return new bootstrap.Modal(modalEl);
+  });
+
 });
 </script>
