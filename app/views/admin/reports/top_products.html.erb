@@ -153,11 +153,14 @@
     doc.save(filename ? filename + '.pdf' : 'reporte.pdf');
   }
 
-  // Inicializar gráfico
+  // Inicializar gráfico — CORREGIDO PARA TURBO
   function initializeProductsChart() {
     const table = document.getElementById('productsTable');
     const canvas = document.getElementById('topProductsChart');
     if (!table || !canvas) return;
+
+    // Evita que Turbo ejecute esto si ya no está visible
+    if (!document.body.contains(table)) return;
 
     const rows = Array.from(table.querySelectorAll('tbody tr'));
     if (!rows.length) return;
@@ -172,21 +175,37 @@
     const data = chartData.map(d => d.value);
     const maxValue = Math.max(...data) * 1.2;
 
+    // 🔥 Destruir el gráfico previo
     if (window.topProductsChart && typeof window.topProductsChart.destroy === 'function') {
       window.topProductsChart.destroy();
     }
 
     const ctx = canvas.getContext('2d');
+
     window.topProductsChart = new Chart(ctx, {
       type: 'bar',
-      data: { labels, datasets: [{ label: 'Cantidad Vendida', data, backgroundColor: labels.map(() => `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*200)}, ${Math.floor(Math.random()*255)}, 0.7)`), borderColor: '#333', borderWidth: 1 }] },
+      data: {
+        labels,
+        datasets: [{
+          label: 'Cantidad Vendida',
+          data,
+          backgroundColor: labels.map(() => `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*200)}, ${Math.floor(Math.random()*255)}, 0.7)`),
+          borderColor: '#333',
+          borderWidth: 1
+        }]
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           title: { display: true, text: 'Productos Más Vendidos' },
-          tooltip: { callbacks: { label: ctx => { const p = chartData[ctx.dataIndex]; return `${p.label} (${p.code}): ${p.value} unidades`; } } }
+          tooltip: { callbacks: { 
+            label: ctx => {
+              const p = chartData[ctx.dataIndex];
+              return `${p.label} (${p.code}): ${p.value} unidades`;
+            }
+          } }
         },
         scales: { y: { beginAtZero: true, max: maxValue } }
       }
@@ -202,16 +221,16 @@
       currentPage = page;
       const start = (page-1)*rowsPerPage;
       const end = start+rowsPerPage;
-      rows.forEach((r,i) => r.style.display=(i>=start && i<end)?'':'none');
+      rows.forEach((r,i)=>r.style.display=(i>=start && i<end)?'':'none');
       renderPagination();
     }
 
     function renderPagination(){
       pagination.innerHTML='';
       for(let i=1;i<=totalPages;i++){
-        const li = document.createElement('li');
-        li.className = `page-item ${i===currentPage?'active':''}`;
-        const a = document.createElement('a');
+        const li=document.createElement('li');
+        li.className=`page-item ${i===currentPage?'active':''}`;
+        const a=document.createElement('a');
         a.className='page-link';
         a.href='javascript:void(0)';
         a.textContent=i;
@@ -221,18 +240,16 @@
       }
     }
 
-    if(rows.length > rowsPerPage) showPage(1);
+    if(rows.length>rowsPerPage) showPage(1);
     else rows.forEach(r=>r.style.display='');
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  // ✅ COMPATIBLE CON TURBO
+  function runProductsChartInit() {
     setTimeout(initializeProductsChart, 100);
+  }
 
-    // Observador para actualizar gráfico automáticamente cuando se recargue la tabla
-    const tableBody = document.querySelector('#productsTable tbody');
-    if (tableBody) {
-      const observer = new MutationObserver(() => initializeProductsChart());
-      observer.observe(tableBody, { childList: true, subtree: true });
-    }
-  });
+  document.addEventListener("turbo:load", runProductsChartInit);
+  document.addEventListener("DOMContentLoaded", runProductsChartInit);
 </script>
+

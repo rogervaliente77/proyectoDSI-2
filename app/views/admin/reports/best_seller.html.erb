@@ -231,5 +231,15 @@
     else rows.forEach(r=>r.style.display='');
   }
 
-  document.addEventListener('DOMContentLoaded', () => setTimeout(initializeSellersChart, 100));
+  //document.addEventListener('DOMContentLoaded', () => setTimeout(initializeSellersChart, 100));
+  function safeInitTopSellers() {
+    setTimeout(() => {
+      if (typeof initializeSellersChart === "function") {
+        initializeSellersChart();
+      }
+    }, 50);
+  }
+
+  document.addEventListener("DOMContentLoaded", safeInitTopSellers);
+  document.addEventListener("turbo:load", safeInitTopSellers);
 </script>

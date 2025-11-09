@@ -15,7 +15,7 @@
             <p class="card-text text-muted" style="font-size: 0.9rem;">
               Consulta los productos con mayor demanda para optimizar inventario y stock.
             </p>
-            <%= link_to 'Abrir Reporte', '/admin/reports/top_products', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold' %>
+            <%= link_to 'Abrir Reporte', '/admin/reports/top_products', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold', data: { turbo: false } %>
           </div>
         </div>
       </div>
@@ -29,7 +29,7 @@
             <p class="card-text text-muted" style="font-size: 0.9rem;">
               Visualiza las marcas con mejor rendimiento en ventas para decisiones estratégicas de marketing.
             </p>
-            <%= link_to 'Abrir Reporte', '/admin/reports/top_brands', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold' %>
+            <%= link_to 'Abrir Reporte', '/admin/reports/top_brands', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold', data: { turbo: false } %>
           </div>
         </div>
       </div>
@@ -44,7 +44,7 @@
           <p class="card-text text-muted" style="font-size: 0.9rem;">
             Identifica al empleado con mejor desempeño en ventas y fomenta buenas prácticas.
           </p>
-          <%= link_to 'Abrir Reporte', '/admin/reports/best_seller', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold' %>
+          <%= link_to 'Abrir Reporte', '/admin/reports/best_seller', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold', data: { turbo: false } %>
         </div>
       </div>
     </div>
