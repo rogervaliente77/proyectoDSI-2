@@ -148,12 +148,19 @@ Rails.application.routes.draw do
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
 
     # 🔹 Reportes
-# 🔹 Reportes
-get 'reports', to: 'reports#index', as: :admin_reports
-get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
-get 'reports/top_brands', to: 'reports#top_brands', as: :top_brands_admin_reports
-get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
-get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
+    # 🔹 Reportes
+    get 'reports', to: 'reports#index', as: :admin_reports
+    get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
+    get 'reports/top_brands', to: 'reports#top_brands', as: :top_brands_admin_reports
+    get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
+    get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
+
+   # 🔹 Configuraciones del sitio
+  get "configuraciones", to: "site_configurations#show", as: :site_configuration
+  patch "configuraciones/update", to: "site_configurations#update", as: :update_site_configuration
+  post "configuraciones/mass_mail", to: "site_configurations#mass_mail", as: :mass_mail
+  #get "configuraciones/not", to: "site_configurations#not", as: :site_notifications_alerts  
+  
   end
 
   # Health check y landing
