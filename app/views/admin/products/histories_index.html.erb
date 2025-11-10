@@ -7,32 +7,32 @@
     <%= link_to "Volver a Productos", admin_productos_path, class: "btn btn-outline-primary fw-bold shadow-sm" %>
   </div>
 
-  <!-- 🔹 Filtros por usuario y fecha -->
-  <div class="d-flex justify-content-start align-items-center mb-3 no-print gap-2">
-    <%= form_with url: admin_product_histories_path, method: :get, local: true, class: "d-flex gap-2" do |f| %>
-      <div>
-        <%= f.label :user_name, "Buscar Usuario", class: "form-label small fw-bold" %>
+  <!-- 🔹 Filtros por usuario y fecha (horizontal completo) -->
+  <div class="card shadow-sm rounded mb-3 no-print p-3">
+    <%= form_with url: admin_product_histories_path, method: :get, local: true, class: "row g-2 align-items-end" do |f| %>
+      <div class="col-md-3">
+        <%= f.label :user_name, "Usuario", class: "form-label small fw-bold" %>
         <%= f.text_field :user_name, value: params[:user_name], placeholder: "Nombre o apellido", class: "form-control" %>
       </div>
-      <div>
+      <div class="col-md-3">
         <%= f.label :start_date, "Fecha Inicio", class: "form-label small fw-bold" %>
         <%= f.date_field :start_date, value: params[:start_date], class: "form-control" %>
       </div>
-      <div>
+      <div class="col-md-3">
         <%= f.label :end_date, "Fecha Fin", class: "form-label small fw-bold" %>
         <%= f.date_field :end_date, value: params[:end_date], class: "form-control" %>
       </div>
-      <div class="align-self-end d-flex gap-2">
-        <%= f.submit "Filtrar", class: "btn btn-primary mt-2" %>
-        <%= link_to "Reiniciar", admin_product_histories_path, class: "btn btn-secondary mt-2" %>
+      <div class="col-md-3 d-flex gap-2">
+        <%= f.submit "Filtrar", class: "btn btn-primary w-100" %>
+        <%= link_to "Reiniciar", admin_product_histories_path, class: "btn btn-secondary w-100" %>
       </div>
     <% end %>
   </div>
 
-  <!-- 🔹 Botones de imprimir y exportar -->
-  <div class="d-flex justify-content-end mb-3 no-print">
-    <button class="btn btn-primary me-2" onclick="window.print()">
-      <i class="fas fa-print me-1"></i> Imprimir
+  <!-- 🔹 Botones PDF y Excel -->
+  <div class="d-flex justify-content-end mb-3 no-print gap-2">
+    <button class="btn btn-danger" id="exportPDF">
+      <i class="fas fa-file-pdf me-1"></i> Descargar PDF
     </button>
     <button class="btn btn-success" id="exportExcel">
       <i class="fas fa-file-excel me-1"></i> Exportar a Excel
@@ -43,7 +43,7 @@
   <div class="card shadow-lg border-0 rounded-4">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover table-borderless align-middle mb-0" style="min-width: 1200px;">
+        <table id="historiesTable" class="table table-hover table-borderless align-middle mb-0" style="min-width: 1200px;">
           <thead class="bg-gradient text-white text-uppercase small">
             <tr>
               <th>Producto</th>
@@ -61,9 +61,9 @@
           </thead>
           <tbody>
             <% @product_histories.each do |history| %>
-              <tr class="align-middle" style="transition: background 0.2s, transform 0.2s;">
-                <td class="fw-semibold"><%= history.name %></td>
-                <td class="text-monospace text-muted"><%= history.code.presence || '-' %></td>
+              <tr class="align-middle">
+                <td class="fw-semibold"><%= history.product&.name || "-" %></td>
+                <td class="text-monospace text-muted"><%= history.product&.code.presence || '-' %></td>
                 <td>
                   <% if history.movement_type.in?(["Ingreso", "Ingreso inicial"]) %>
                     <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= history.quantity %></span>
@@ -100,13 +100,12 @@
   </div>
 </div>
 
-<!-- 🔹 Estilos adicionales -->
+<!-- 🔹 Estilos -->
 <style>
-  table.table-hover tbody tr:hover { background-color: #e9f2ff; transform: translateX(2px); }
+  table.table-hover tbody tr:hover { background-color: #e9f2ff; }
   thead.bg-gradient { background: linear-gradient(90deg, #0d6efd, #6610f2); }
   .badge { font-size: 0.85rem; padding: 0.45em 0.7em; border-radius: 0.5rem; }
   td.text-monospace { font-family: 'Courier New', Courier, monospace; }
-  .card { border: 1px solid #e3e6f0; }
 
   @media print {
     .btn, .no-print { display: none !important; }
@@ -120,12 +119,25 @@
   }
 </style>
 
-<!-- 🔹 Script para exportar Excel -->
+<!-- 🔹 Scripts para exportar Excel y PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <script>
+  // 🔹 Exportar Excel
   document.getElementById("exportExcel").addEventListener("click", function() {
-    var table = document.querySelector("table");
+    var table = document.getElementById("historiesTable");
     var wb = XLSX.utils.table_to_book(table, {sheet:"Movimiento de Inventario"});
     XLSX.writeFile(wb, "movimiento_inventario.xlsx");
+  });
+
+  // 🔹 Exportar PDF
+  document.getElementById("exportPDF").addEventListener("click", function() {
+    const { jsPDF } = window.jspdf;
+    var doc = new jsPDF('p', 'pt', 'letter');
+    doc.text("Movimiento de Inventario", 40, 40);
+    doc.autoTable({ html: "#historiesTable", startY: 60, theme: 'grid', headStyles: { fillColor: [13, 110, 253] } });
+    doc.save("movimiento_inventario.pdf");
   });
 </script>

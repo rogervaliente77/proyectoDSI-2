@@ -1,27 +1,46 @@
-<%= form_with model: [:admin, @marca], local: true, class: "card p-4 shadow-sm" do |form| %>
-  <% if @marca.errors.any? %>
-    <div class="alert alert-danger">
-      <h5><%= pluralize(@marca.errors.count, "error") %> impidieron guardar esta marca:</h5>
-      <ul>
-        <% @marca.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
+<!-- app/views/admin/marcas/_form.html.erb -->
+
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><%= @marca.new_record? ? "Crear Marca" : "Editar Marca" %></h5>
+        </div>
+        <div class="card-body">
+
+          <%= form_with model: [:admin, @marca], local: true, class: "needs-validation", novalidate: false do |form| %>
+            
+            <% if @marca.errors.any? %>
+              <div class="alert alert-danger">
+                <h6><%= pluralize(@marca.errors.count, "error") %> impidieron guardar esta marca:</h6>
+                <ul class="mb-0">
+                  <% @marca.errors.full_messages.each do |msg| %>
+                    <li><%= msg %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-3">
+              <%= form.label :name, "Nombre", class: "form-label" %>
+              <%= form.text_field :name, class: "form-control", placeholder: "Ingrese el nombre de la marca", required: true %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :description, "Descripción", class: "form-label" %>
+              <%= form.text_area :description, rows: 4, class: "form-control", placeholder: "Ingrese una descripción breve", required: true %>
+            </div>
+
+            <div class="d-flex flex-column flex-sm-row gap-2">
+              <%= form.submit @marca.new_record? ? "Crear" : "Actualizar", class: "btn btn-primary flex-grow-1" %>
+              <%= link_to "Cancelar", admin_marcas_path, class: "btn btn-secondary flex-grow-1" %>
+            </div>
+
+          <% end %>
+
+        </div>
+      </div>
     </div>
-  <% end %>
-
-  <div class="mb-3">
-    <%= form.label :name, "Nombre", class: "form-label" %>
-    <%= form.text_field :name, class: "form-control" %>
   </div>
-
-  <div class="mb-3">
-    <%= form.label :description, "Descripción", class: "form-label" %>
-    <%= form.text_area :description, rows: 4, class: "form-control" %>
-  </div>
-
-  <div>
-    <%= form.submit class: "btn btn-primary" %>
-    <%= link_to "Cancelar", admin_marcas_path, class: "btn btn-secondary ms-2" %>
-  </div>
-<% end %>
+</div>

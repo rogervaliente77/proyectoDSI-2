@@ -1,10 +1,13 @@
 <div class="container mt-4">
-  <h1 class="mb-4"><i class="fas fa-undo-alt me-2 text-primary"></i> Nueva Devolución</h1>
+  <!-- Título con icono -->
+  <h1 class="mb-4">🔄 Nueva Devolución</h1>
 
-  <%= form_with(model: @devolucion, url: admin_devoluciones_path, data: { turbo: false }, local: true) do |f| %>
+  <%= form_with(model: @devolucion, url: admin_devoluciones_path, data: { turbo: false }, local: true, html: { class: "needs-validation", novalidate: true }) do |f| %>
+    
+    <!-- Errores -->
     <% if @devolucion.errors.any? %>
-      <div class="alert alert-danger">
-        <h4><i class="fas fa-exclamation-triangle me-2"></i> Errores:</h4>
+      <div class="alert alert-danger" role="alert">
+        <h4>⚠️ Errores:</h4>
         <ul>
           <% @devolucion.errors.full_messages.each do |msg| %>
             <li><%= msg %></li>
@@ -14,12 +17,12 @@
     <% end %>
 
     <!-- Buscar venta por código -->
-    <div class="form-group mb-3">
-      <label for="sale_code"><i class="fas fa-search me-1"></i> Buscar venta por código</label>
+    <div class="mb-3">
+      <label for="sale_code" class="form-label">🛒 Buscar venta por código</label>
       <div class="input-group">
-        <input type="text" id="sale_code" class="form-control" placeholder="Ingrese código de venta">
-        <button type="button" id="search_sale_btn" class="btn btn-primary">
-          <i class="fas fa-search me-1"></i> Buscar
+        <input type="text" id="sale_code" class="form-control" placeholder="Ingrese código de venta" required>
+        <button type="button" id="search_sale_btn" class="btn btn-info text-white">
+          🔍 Buscar
         </button>
       </div>
       <small id="sale_search_message" class="text-muted"></small>
@@ -27,70 +30,71 @@
 
     <%= f.hidden_field :sale_id, id: "sale_id" %>
 
-    <div class="form-group mb-3">
-      <%= f.label :client_name, "<i class='fas fa-user me-1'></i> Cliente".html_safe %>
+    <!-- Cliente -->
+    <div class="mb-3">
+      <%= f.label :client_name, "👤 Cliente".html_safe %>
       <%= f.text_field :client_name, class: "form-control", readonly: true, id: "client_name" %>
     </div>
 
     <!-- Productos disponibles a devolver -->
-    <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title text-secondary mb-3">
-          <i class="fas fa-boxes me-2"></i> Productos para devolución
-        </h5>
-        <table class="table table-striped table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th><i class="fas fa-tag me-1"></i> Producto</th>
-              <th><i class="fas fa-dollar-sign me-1"></i> Precio unitario ($)</th>
-              <th><i class="fas fa-layer-group me-1"></i> Cantidad disponible</th>
-              <th><i class="fas fa-clipboard-list me-1"></i> Cantidad a devolver</th>
-              <th><i class="fas fa-calculator me-1"></i> Subtotal ($)</th>
-            </tr>
-          </thead>
-          <tbody id="products_container">
-            <tr>
-              <td colspan="5" class="text-muted text-center">Busque una venta primero para ver los productos</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <h5 class="mb-2">📦 Productos para devolución</h5>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered align-middle">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Producto</th>
+            <th>Precio unitario ($)</th>
+            <th>Cantidad disponible</th>
+            <th>Cantidad a devolver</th>
+            <th>Subtotal ($)</th>
+          </tr>
+        </thead>
+        <tbody id="products_container">
+          <tr>
+            <td colspan="5" class="text-muted text-center">Busque una venta primero para ver los productos</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Total general -->
-    <div class="form-group mb-4">
-      <label class="form-label fw-bold"><i class="fas fa-coins me-1"></i> Total a devolver ($)</label>
-      <input type="text" id="total_devolver" class="form-control fw-bold fs-5 text-success" value="0" readonly>
+    <div class="mb-4 mt-3">
+      <label class="form-label fw-bold">💰 Total a devolver ($)</label>
+      <input type="text" id="total_devolver" class="form-control fw-bold fs-5 text-primary bg-light" value="0" readonly>
     </div>
 
     <!-- Caja y Cajero -->
     <div class="row mb-3">
-      <div class="col-md-6">
-        <%= f.label :caja_id, "<i class='fas fa-cash-register me-1'></i> Caja".html_safe %>
-        <%= f.collection_select :caja_id, Caja.all, :id, :nombre, { prompt: "Seleccione la caja" }, { class: "form-control" } %>
+      <div class="col-md-6 mb-3 mb-md-0">
+        <%= f.label :caja_id, "🏦 Caja".html_safe %>
+        <%= f.collection_select :caja_id, Caja.all, :id, :nombre, { prompt: "Seleccione la caja" }, { class: "form-control", required: true } %>
       </div>
       <div class="col-md-6">
-        <%= f.label :cajero_id, "<i class='fas fa-user-tie me-1'></i> Cajero".html_safe %>
-        <%= f.collection_select :cajero_id, Cajero.all, :id, :nombre, { prompt: "Seleccione el cajero" }, { class: "form-control" } %>
+        <%= f.label :cajero_id, "🧑‍💼 Cajero".html_safe %>
+        <%= f.collection_select :cajero_id, Cajero.all, :id, :nombre, { prompt: "Seleccione el cajero" }, { class: "form-control", required: true } %>
       </div>
     </div>
 
-    <div class="form-group mb-3">
-      <%= f.label :fecha_devolucion, "<i class='fas fa-calendar-alt me-1'></i> Fecha de Devolución".html_safe %>
-      <%= f.datetime_field :fecha_devolucion, class: "form-control" %>
+    <!-- Fecha -->
+    <div class="mb-3">
+      <%= f.label :fecha_devolucion, "📅 Fecha de Devolución".html_safe %>
+      <%= f.datetime_field :fecha_devolucion, class: "form-control", required: true %>
     </div>
 
-    <div class="form-group mb-3">
-      <%= f.label :comments_devolucion, "<i class='fas fa-comment-dots me-1'></i> Comentarios".html_safe %>
+    <!-- Comentarios -->
+    <div class="mb-3">
+      <%= f.label :comments_devolucion, "💬 Comentarios".html_safe %>
       <%= f.text_area :comments_devolucion, class: "form-control", rows: 3 %>
     </div>
 
-    <div class="mt-4 d-flex">
-      <% if @current_user.role.name == "cajero"%>
-        <%= f.submit "Procesar Devolución", class: "btn btn-success me-2" %>
+    <!-- Botones -->
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <% if @current_user.role.name == "cajero" %>
+        <%= f.submit "Procesar Devolución", class: "btn btn-success" %>
       <% end %>
       <%= link_to "Cancelar", admin_devoluciones_path, class: "btn btn-secondary" %>
     </div>
+
   <% end %>
 </div>
 
@@ -103,12 +107,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const productsContainer = document.getElementById("products_container");
   const totalField = document.getElementById("total_devolver");
   const message = document.getElementById("sale_search_message");
+  const form = document.querySelector("form");
 
   function actualizarTotales() {
     let total = 0;
     productsContainer.querySelectorAll("tr.product-row").forEach(row => {
       const price = parseFloat(row.dataset.price);
-      const qty = parseInt(row.querySelector(".product-cantidad").value || 0);
+      let qty = parseInt(row.querySelector(".product-cantidad").value || 0);
+      const maxQty = parseInt(row.querySelector(".product-cantidad").max);
+
+      if(qty > maxQty) qty = maxQty;
+      if(qty < 0) qty = 0;
+      row.querySelector(".product-cantidad").value = qty;
+
       const subtotal = price * qty;
       row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
       total += subtotal;
@@ -118,9 +129,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   searchBtn.addEventListener("click", async () => {
     const code = codeInput.value.trim();
-    if (!code) { message.textContent = "Ingrese un código de venta."; return; }
+    if (!code) { 
+      message.textContent = "Ingrese un código de venta."; 
+      message.className = "text-danger"; 
+      return; 
+    }
 
     message.textContent = "Buscando...";
+    message.className = "text-info";
     productsContainer.innerHTML = "";
 
     try {
@@ -131,10 +147,17 @@ document.addEventListener("DOMContentLoaded", () => {
       saleIdField.value = data.id;
       clientNameField.value = data.client_name;
       message.textContent = "Venta encontrada ✅";
+      message.className = "text-success";
+
+      if(data.products.length === 0){
+        productsContainer.innerHTML = "<tr><td colspan='5' class='text-muted text-center'>No hay productos para devolver.</td></tr>";
+        totalField.value = "0";
+        return;
+      }
 
       data.products.forEach(product => {
         const row = document.createElement("tr");
-        row.className = "product-row";
+        row.className = "product-row text-center";
         row.dataset.price = product.price || 0;
         row.innerHTML = `
           <td>${product.name}</td>
@@ -158,11 +181,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       message.textContent = "Venta no encontrada o sin productos disponibles.";
+      message.className = "text-danger";
       clientNameField.value = "";
       saleIdField.value = "";
       productsContainer.innerHTML = "<tr><td colspan='5' class='text-danger text-center'>No se encontró la venta.</td></tr>";
       totalField.value = "0";
     }
+  });
+
+  form.addEventListener("submit", (event) => {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+      alert("Complete todos los campos requeridos.");
+    }
+    form.classList.add("was-validated");
   });
 });
 </script>

@@ -1,6 +1,6 @@
 <div class="container mt-4 mb-5">
   <h1 class="mb-4 text-center fw-bold text-dark">
-    <i class="fas fa-rotate-left me-2 text-warning"></i> Editar Devolución
+    🔄 Editar Devolución
   </h1>
 
   <div class="card shadow-lg border-0 rounded-4">
@@ -9,7 +9,7 @@
         
         <% if @devolucion.errors.any? %>
           <div class="alert alert-danger">
-            <h5><i class="fas fa-exclamation-circle me-2"></i> Se encontraron errores:</h5>
+            <h5>⚠️ Se encontraron errores:</h5>
             <ul class="mb-0">
               <% @devolucion.errors.full_messages.each do |msg| %>
                 <li><%= msg %></li>
@@ -21,12 +21,12 @@
         <!-- Buscar venta -->
         <div class="mb-4">
           <label for="sale_code" class="form-label fw-semibold">
-            <i class="fas fa-barcode me-2 text-primary"></i> Buscar venta por código
+            🛒 Buscar venta por código
           </label>
           <div class="input-group">
             <input type="text" id="sale_code" class="form-control" placeholder="Ingrese código de venta" value="<%= @devolucion.sale&.code %>">
             <button type="button" id="search_sale_btn" class="btn btn-primary">
-              <i class="fas fa-search me-1"></i> Buscar
+              🔍 Buscar
             </button>
           </div>
           <small id="sale_search_message" class="text-muted ms-1"></small>
@@ -36,17 +36,17 @@
 
         <!-- Cliente -->
         <div class="form-group mb-4">
-          <%= f.label :client_name, "<i class='fas fa-user me-2 text-secondary'></i> Cliente".html_safe, class: "fw-semibold" %>
+          <%= f.label :client_name, "👤 Cliente", class: "fw-semibold" %>
           <%= f.text_field :client_name, class: "form-control bg-light", readonly: true, id: "client_name", value: @devolucion.client_name %>
         </div>
 
         <!-- Productos -->
-        <div class="card mb-4 shadow-sm border-0 rounded-3">
-          <div class="card-body">
-            <h5 class="text-secondary fw-semibold mb-3">
-              <i class="fas fa-box-open me-2 text-info"></i> Productos para devolución
-            </h5>
+        <div class="mb-4">
+          <h5 class="text-secondary fw-semibold mb-3">
+            📦 Productos para devolución
+          </h5>
 
+          <div class="table-responsive">
             <table class="table table-hover align-middle text-center">
               <thead class="table-dark text-white">
                 <tr>
@@ -88,9 +88,7 @@
 
         <!-- Total -->
         <div class="form-group mb-4">
-          <label class="fw-bold">
-            <i class="fas fa-money-bill-wave me-2 text-success"></i> Total a devolver ($)
-          </label>
+          <label class="fw-bold">💰 Total a devolver ($)</label>
           <input type="text" id="total_devolver" class="form-control fs-5 text-success fw-bold bg-light" value="0.00" readonly>
         </div>
 
@@ -108,18 +106,18 @@
 
         <!-- Fecha y comentarios -->
         <div class="form-group mb-4">
-          <%= f.label :fecha_devolucion, "<i class='fas fa-calendar-alt me-2 text-info'></i> Fecha de Devolución".html_safe, class: "fw-semibold" %>
+          <%= f.label :fecha_devolucion, "📅 Fecha de Devolución", class: "fw-semibold" %>
           <%= f.datetime_field :fecha_devolucion, class: "form-control" %>
         </div>
 
         <div class="form-group mb-4">
-          <%= f.label :comments_devolucion, "<i class='fas fa-comment-dots me-2 text-secondary'></i> Comentarios".html_safe, class: "fw-semibold" %>
+          <%= f.label :comments_devolucion, "💬 Comentarios", class: "fw-semibold" %>
           <%= f.text_area :comments_devolucion, class: "form-control", rows: 3 %>
         </div>
 
         <!-- Botones -->
-        <div class="d-flex justify-content-end">
-          <%= link_to "<i class='fas fa-times-circle me-2'></i> Cancelar".html_safe, admin_devoluciones_path, class: "btn btn-outline-secondary me-2" %>
+        <div class="d-flex justify-content-end flex-wrap gap-2">
+          <%= link_to "❌ Cancelar", admin_devoluciones_path, class: "btn btn-outline-secondary" %>
           <%= f.submit "Actualizar Devolución", class: "btn btn-success px-4 fw-semibold" %>
         </div>
       <% end %>
@@ -141,7 +139,14 @@ document.addEventListener("turbo:load", () => {
     let total = 0;
     productsContainer.querySelectorAll("tr.product-row").forEach(row => {
       const price = parseFloat(row.dataset.price);
-      const qty = parseInt(row.querySelector(".product-cantidad").value || 0);
+      let qty = parseInt(row.querySelector(".product-cantidad").value || 0);
+      const maxQty = parseInt(row.querySelector(".product-cantidad").max);
+
+      // Validación de cantidad
+      if(qty > maxQty) qty = maxQty;
+      if(qty < 0) qty = 0;
+      row.querySelector(".product-cantidad").value = qty;
+
       const subtotal = price * qty;
       row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
       total += subtotal;

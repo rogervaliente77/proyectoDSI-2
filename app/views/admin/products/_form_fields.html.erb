@@ -8,53 +8,54 @@
   <div class="card-body">
     <!-- Fila 1: Nombre, Cantidad, Precio -->
     <div class="row g-3 mb-3">
-      <div class="col-md-6">
+      <div class="col-12 col-md-6">
         <%= form.input :name, required: true, label: "Nombre del producto", input_html: { class: "form-control" } %>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <%= form.input :quantity, required: true, label: "Cantidad", input_html: { class: "form-control" } %>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <%= form.input :price, required: true, label: "Precio ($)", input_html: { class: "form-control" } %>
       </div>
     </div>
 
-    <!-- Fila 2: Descuento, Tipo de Oferta, Fecha de Expiración -->
+    <!-- Fila 2: Descuento, Tipo de Oferta, Fecha de Expiración, Cantidad Mayoreo -->
     <div class="row g-3 mb-3 align-items-end">
-      <div class="col-md-2">
-        <label class="form-label fw-bold">Descuento (%)</label>
+      <div class="col-6 col-md-2">
+        <label for="product_discount" class="form-label fw-bold">Descuento (%)</label>
         <div class="input-group">
-          <%= form.number_field :discount, min: 0, max: 100, step: 1, class: "form-control" %>
+          <%= form.number_field :discount, id: "product_discount", min: 0, max: 100, step: 1, class: "form-control" %>
           <span class="input-group-text">%</span>
         </div>
       </div>
-      <div class="col-md-4">
-        <label class="form-label fw-bold">Tipo de oferta</label>
+      <div class="col-6 col-md-4">
+        <label for="product_offer_type" class="form-label fw-bold">Tipo de oferta</label>
         <%= form.select :offer_type,
           options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], @product.offer_type),
           { include_blank: "Selecciona tipo de oferta" },
+          id: "product_offer_type",
           class: "form-select" %>
       </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold">Fecha de expiración</label>
-        <%= form.date_field :offer_expires_at, class: "form-control" %>
+      <div class="col-6 col-md-3">
+        <label for="product_offer_expires_at" class="form-label fw-bold">Fecha de expiración</label>
+        <%= form.date_field :offer_expires_at, id: "product_offer_expires_at", class: "form-control" %>
       </div>
-      <div class="col-md-3">
-        <label class="form-label fw-bold">Cantidad mayoreo</label>
-        <%= form.number_field :wholesale_quantity, min: 0, max: 100, step: 1, class: "form-control" %>
+      <div class="col-6 col-md-3">
+        <label for="product_wholesale_quantity" class="form-label fw-bold">Cantidad mayoreo</label>
+        <%= form.number_field :wholesale_quantity, id: "product_wholesale_quantity", min: 0, max: 100, step: 1, class: "form-control" %>
       </div>
     </div>
 
     <!-- Fila 3: Categoría y Marca -->
     <div class="row g-3 mb-3">
-      <div class="col-md-6">
+      <div class="col-12 col-md-6">
         <%= form.input :category_id,
           collection: Category.all.map { |c| [c.name, c.id] },
           include_blank: "Selecciona categoría",
           label: "Categoría",
           input_html: { class: "form-select" } %>
       </div>
-      <div class="col-md-6">
+      <div class="col-12 col-md-6">
         <%= form.input :marca_id,
           collection: Marca.all.map { |m| [m.name, m.id] },
           include_blank: "Selecciona marca",
@@ -65,7 +66,7 @@
 
     <!-- Fila 4: Descripción -->
     <div class="row g-3 mb-3">
-      <div class="col">
+      <div class="col-12">
         <%= form.input :description, as: :text, required: true, label: "Descripción", input_html: { class: "form-control", rows: 4 } %>
       </div>
     </div>
@@ -80,14 +81,14 @@
   <div class="card-body">
     <div class="row g-3" id="product-images-container">
       <%= form.simple_fields_for :product_images do |img_form| %>
-        <div class="col-md-4 image-item">
+        <div class="col-12 col-sm-6 col-md-4 image-item">
           <div class="card h-100">
             <div class="card-body d-flex flex-column">
               <%= img_form.input :title, label: "Título", input_html: { class: "form-control mb-2" } %>
               <%= img_form.input :image_url, label: "URL de la imagen", input_html: { class: "form-control mb-2" } %>
               <% if img_form.object.image_url.present? %>
                 <div class="text-center mb-2">
-                  <%= image_tag(img_form.object.image_url, class: "img-fluid", style: "max-height:150px; object-fit:cover;") %>
+                  <%= image_tag(img_form.object.image_url, class: "img-fluid rounded", style: "max-height:150px; object-fit:cover;") %>
                 </div>
               <% end %>
               <%= img_form.input :image_index, label: "Orden", as: :integer, input_html: { class: "form-control mb-2", min: 0, step: 1 } %>
@@ -102,7 +103,7 @@
   </div>
 </div>
 
-<!-- Script para agregar/eliminar imágenes dinámicamente -->
+<!-- Script para agregar/eliminar imágenes dinámicamente (con labels accesibles) -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const container = document.getElementById("product-images-container");
@@ -111,13 +112,20 @@ document.addEventListener("DOMContentLoaded", function() {
   addBtn.addEventListener("click", function() {
     const index = container.querySelectorAll(".image-item").length;
     const newItem = document.createElement("div");
-    newItem.classList.add("col-md-4", "image-item");
+    newItem.classList.add("col-12", "col-sm-6", "col-md-4", "image-item");
+
     newItem.innerHTML = `
       <div class="card h-100">
         <div class="card-body d-flex flex-column">
-          <input class="form-control mb-2" name="product[product_images_attributes][${index}][title]" type="text" placeholder="Título">
-          <input class="form-control mb-2" name="product[product_images_attributes][${index}][image_url]" type="text" placeholder="URL de la imagen">
-          <input class="form-control mb-2" name="product[product_images_attributes][${index}][image_index]" type="number" placeholder="Orden" min="0" step="1">
+          <label for="product_images_${index}_title" class="form-label">Título</label>
+          <input id="product_images_${index}_title" class="form-control mb-2" name="product[product_images_attributes][${index}][title]" type="text" placeholder="Título">
+
+          <label for="product_images_${index}_url" class="form-label">URL de la imagen</label>
+          <input id="product_images_${index}_url" class="form-control mb-2" name="product[product_images_attributes][${index}][image_url]" type="text" placeholder="URL de la imagen">
+
+          <label for="product_images_${index}_index" class="form-label">Orden</label>
+          <input id="product_images_${index}_index" class="form-control mb-2" name="product[product_images_attributes][${index}][image_index]" type="number" placeholder="Orden" min="0" step="1">
+
           <input type="hidden" name="product[product_images_attributes][${index}][_destroy]" value="false">
           <button type="button" class="btn btn-danger btn-sm mt-auto remove-image">Eliminar</button>
         </div>

@@ -23,7 +23,7 @@
 
   <hr class="sidebar-divider my-0">
 
-  <!-- Nav Item - Dashboard -->
+  <!-- Dashboard -->
   <li class="nav-item active">
     <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
       <%= link_to admin_home_path, data: { turbo: false }, class: "nav-link" do %>
@@ -44,18 +44,19 @@
 
   <!-- Settings -->
   <li class="nav-item">
-    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-       aria-expanded="true" aria-controls="collapseTwo">
+    <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSettings"
+       aria-expanded="true" aria-controls="collapseSettings">
       <i class="fas fa-fw fa-cog"></i>
       <span>Settings</span>
     </a>
-    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+    <div id="collapseSettings" class="collapse" data-parent="#accordionSidebar">
       <div class="bg-white py-2 collapse-inner rounded">
-        <h6 class="collapse-header">Custom Components:</h6>
+        <h6 class="collapse-header">Cuenta:</h6>
         <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
           <a class="collapse-item" href="<%= admin_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
         <% else %>
           <a class="collapse-item" href="<%= portal_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
+          <a class="collapse-item" href="<%= portal_profile_path(id: @current_user.id) %>" data-turbo="false">Editar Perfil</a>
         <% end %>
       </div>
     </div>
@@ -69,7 +70,7 @@
         <i class="fas fa-fw fa-folder"></i>
         <span>Productos</span>
       </a>
-      <div id="collapseProductos" class="collapse" aria-labelledby="headingProductos" data-parent="#accordionSidebar">
+      <div id="collapseProductos" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Productos:</h6>
           <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
@@ -88,7 +89,7 @@
         <i class="fas fa-tags"></i>
         <span>Marcas</span>
       </a>
-      <div id="collapseMarcas" class="collapse" aria-labelledby="headingMarcas" data-parent="#accordionSidebar">
+      <div id="collapseMarcas" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Gestión de Marcas:</h6>
           <a class="collapse-item" href="<%= admin_marcas_path %>" data-turbo="false">Ver Marcas</a>
@@ -98,7 +99,7 @@
     </li>
   <% end %>
 
-  <!-- Users (solo super_admin) -->
+  <!-- Usuarios -->
   <% if @current_user.role.name == "super_admin" %>
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsers"
@@ -106,7 +107,7 @@
         <i class="fas fa-users"></i>
         <span>Users</span>
       </a>
-      <div id="collapseUsers" class="collapse" aria-labelledby="headingUsers" data-parent="#accordionSidebar">
+      <div id="collapseUsers" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Usuarios:</h6>
           <a class="collapse-item" href="<%= admin_users_path %>" data-turbo="false">Usuarios</a>
@@ -117,7 +118,7 @@
     </li>
   <% end %>
 
-  <!-- Cajas y Cajeros -->
+  <!-- Cajas -->
   <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
@@ -125,7 +126,7 @@
         <i class="fas fa-store"></i>
         <span>Cajas</span>
       </a>
-      <div id="collapseCajas" class="collapse" aria-labelledby="headingCajas" data-parent="#accordionSidebar">
+      <div id="collapseCajas" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Cajas:</h6>
           <a class="collapse-item" href="<%= admin_cajas_path %>" data-turbo="false">Cajas</a>
@@ -134,13 +135,14 @@
       </div>
     </li>
 
+    <!-- Cajeros -->
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
          aria-expanded="true" aria-controls="collapseCajeros">
-        <i class="fas fa-store"></i>
+        <i class="fas fa-user-tie"></i>
         <span>Cajeros</span>
       </a>
-      <div id="collapseCajeros" class="collapse" aria-labelledby="headingCajeros" data-parent="#accordionSidebar">
+      <div id="collapseCajeros" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Cajeros:</h6>
           <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
@@ -155,31 +157,55 @@
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales"
          aria-expanded="true" aria-controls="collapseSales">
-        <i class="fas fa-store"></i>
+        <i class="fas fa-shopping-cart"></i>
         <span>Ventas</span>
       </a>
-      <div id="collapseSales" class="collapse" aria-labelledby="headingSales" data-parent="#accordionSidebar">
+      <div id="collapseSales" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Ventas:</h6>
           <a class="collapse-item" href="<%= admin_sales_path %>" data-turbo="false">Ventas</a>
           <a class="collapse-item" href="<%= admin_sales_new_path %>" data-turbo="false">Crear nueva venta</a>
-          <a class="collapse-item" href="<%= admin_discount_codes_path %>" data-turbo="false">Codigos de descuento</a>
+          <% if @current_user.role.name != "cajero" %>
+            <a class="collapse-item" href="<%= admin_discount_codes_path %>" data-turbo="false">Codigos de descuento</a>
+          <% end %>
         </div>
       </div>
     </li>
   <% end %>
-  
-  <!-- MIs compras - Cliente -->
- <% if @current_user.role.name == 'cliente' %>
+
+  <!-- Reportes -->
+  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
     <li class="nav-item">
-      <%= link_to portal_purchases_path, class: "nav-link d-flex align-items-center" do %>
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReports"
+         aria-expanded="true" aria-controls="collapseReports">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reportes</span>
+      </a>
+      <div id="collapseReports" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Gestión de Reportes:</h6>
+          <a class="collapse-item" href="/admin/reports">Lista de reportes</a>
+          <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
+            <a class="collapse-item" href="/admin/reports/top_products">Producto Más Vendido</a>
+            <a class="collapse-item" href="/admin/reports/top_brands">Marca Más Vendida</a>
+          <% end %>
+          <a class="collapse-item" href="/admin/reports/best_seller">Mejor Vendedor</a>
+        </div>
+      </div>
+    </li>
+  <% end %>
+
+  <!-- Mis compras - Cliente -->
+  <% if @current_user.role.name == 'cliente' %>
+    <li class="nav-item">
+      <%= link_to portal_purchases_path,
+          class: "nav-link d-flex align-items-center",
+          data: { turbo: false } do %>
         <i class="fas fa-shopping-bag me-2"></i>
         Mis compras
       <% end %>
     </li>
   <% end %>
-
-
 
   <!-- Devoluciones -->
   <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
@@ -189,12 +215,14 @@
         <i class="fas fa-undo-alt"></i>
         <span>Devoluciones</span>
       </a>
-      <div id="collapseDevoluciones" class="collapse" aria-labelledby="headingDevoluciones" data-parent="#accordionSidebar">
+      <div id="collapseDevoluciones" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Gestión de Devoluciones:</h6>
           <a class="collapse-item" href="<%= admin_devoluciones_path %>" data-turbo="false">Ver Devoluciones</a>
           <a class="collapse-item" href="<%= new_admin_devolucione_path %>" data-turbo="false">Crear Nueva Devolución</a>
-          <a class="collapse-item" href="<%= admin_admin_returned_products_path %>" data-turbo="false">Productos devueltos</a>
+          <% if @current_user.role.name != "cajero" %>
+            <a class="collapse-item" href="<%= admin_admin_returned_products_path %>" data-turbo="false">Productos devueltos</a>
+          <% end %>
         </div>
       </div>
     </li>
@@ -208,7 +236,7 @@
         <i class="fas fa-motorcycle"></i>
         <span>Mensajeros</span>
       </a>
-      <div id="collapseMensajeros" class="collapse" aria-labelledby="headingMensajeros" data-parent="#accordionSidebar">
+      <div id="collapseMensajeros" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Gestión de mensajeros:</h6>
           <a class="collapse-item" href="<%= admin_delivery_drivers_path %>" data-turbo="false">Ver mensajeros</a>
@@ -248,7 +276,6 @@
 
 
   <hr class="sidebar-divider d-none d-md-block">
-
   <div class="text-center d-none d-md-inline">
     <button class="rounded-circle border-0" id="sidebarToggle"></button>
   </div>

@@ -1,5 +1,6 @@
 class Portal::PurchasesController < ApplicationController
   before_action :set_current_user
+  before_action :set_header_variables  # <-- Esto es nuevo
   layout "dashboard"
 
   def index
@@ -49,6 +50,7 @@ class Portal::PurchasesController < ApplicationController
 
   private
 
+  # Mantener current_user
   def set_current_user
     @current_user = User.find_by(id: session[:user_id])
   end
@@ -56,9 +58,14 @@ class Portal::PurchasesController < ApplicationController
   def delivery_params
     params.require(:delivery).permit(:appointment_date, :appointment_hour, :delivery_address, :sale_id)
   end
+
+  # ----------------- NUEVO -----------------
+  # Variables necesarias para el headerbar
+  def set_header_variables
+    if @current_user&.role&.name == 'cliente'
+      @offer_products = Product.all.select(&:on_offer?)
+    else
+      @offer_products = []
+    end
+  end
 end
-
-
-
-
-#<ActionController::Parameters {"appointment_date"=>"2025-11-07", "appointment_hour"=>"10:00 AM", "delivery_address"=>"Address 1"} permitted: false>

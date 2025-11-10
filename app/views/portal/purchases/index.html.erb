@@ -20,17 +20,12 @@
         <% sale.product_sales.each do |ps| %>
           <div class="d-flex align-items-center border-top pt-3 mt-2">
             <!-- Imagen del producto -->
-            <% if ps.product && ps.product.product_images.any? %>
-              <%= image_tag ps.product.product_images.first.image_url, 
-                    class: "rounded me-4", 
-                    style: "width: 100px; height: 100px; object-fit: cover;" %>
-            <% else %>
-              <%= image_tag "placeholder.png", class: "rounded me-4", style: "width: 100px; height: 100px; object-fit: cover;" %>
-            <% end %>
+            <% image_url = ps.product&.product_images&.first&.image_url || "placeholder.png" %>
+            <%= image_tag image_url, class: "rounded me-4", style: "width: 100px; height: 100px; object-fit: cover;" %>
 
             <!-- Detalles del producto -->
             <div class="flex-grow-1">
-              <strong><%= ps.product&.name %></strong><br>
+              <strong><%= ps.product&.name || "Producto eliminado" %></strong><br>
               <span class="text-muted">Cantidad:</span> <%= ps.quantity %><br>
               <span class="text-success fw-bold">$<%= '%.2f' % ps.subtotal %></span>
             </div>
@@ -111,4 +106,3 @@
     <% end %>
   <% end %>
 </div>
-

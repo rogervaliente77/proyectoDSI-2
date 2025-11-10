@@ -1,5 +1,6 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
+
   <!-- Page Heading -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
@@ -8,128 +9,189 @@
     <% end %>
   </div>
 
-  <!-- Content Row -->
-  <div class="row">
-    <!-- Area Chart -->
-    <div class="col-12">
-      <div class="card shadow mb-4">
-        <!-- Card Header - Dropdown -->
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Gestion de ventas</h6>
-          <div class="dropdown no-arrow">
-            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-            </a>
-            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                 aria-labelledby="dropdownMenuLink">
-              <div class="dropdown-header">Dropdown Header:</div>
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </div>
-        </div>
-        <!-- Card Body -->
-        <div class="card-body">
-
-            <%# TOAST DE DEVOLUCIONES PENDIENTES %>
-            <% if @pending_devoluciones_count.to_i > 0 %>
-              <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-                <div id="pendingDevolucionesToast"
-                    class="toast align-items-center text-bg-warning border-0 shadow"
-                    role="alert" aria-live="assertive" aria-atomic="true">
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      🔔 Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                            data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                </div>
-              </div>
-
-              <%= javascript_tag do %>
-                document.addEventListener("DOMContentLoaded", function() {
-                  var toastEl = document.getElementById("pendingDevolucionesToast");
-                  if (toastEl) {
-                    var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                    toast.show();
-                  }
-                });
-              <% end %>
-            <% end %>      
-          <div class="mb-3">
-            <%= form_with url: admin_sales_path, method: :get, local: true, class: "form-inline" do |f| %>
-              <div class="form-group mr-2">
-                <%= f.label :code, "Código", class: "mr-1" %>
-                <%= f.text_field :code, value: params[:code], class: "form-control" %>
-              </div>
-
-              <div class="form-group mr-2">
-                <%= f.label :start_date, "Desde", class: "mr-1" %>
-                <%= f.date_field :start_date, value: params[:start_date], class: "form-control" %>
-              </div>
-
-              <div class="form-group mr-2">
-                <%= f.label :end_date, "Hasta", class: "mr-1" %>
-                <%= f.date_field :end_date, value: params[:end_date], class: "form-control" %>
-              </div>
-
-              <%= f.submit "Buscar", class: "btn btn-primary" %>
-              <%= link_to "Limpiar", admin_sales_path, class: "btn btn-secondary ml-2" %>
-            <% end %>
-          </div><br>
-
-          <table class="table table-bordered" id="usersTable">
-            <thead class="thead-light">
-              <tr>
-                <th>#</th>
-                <th>F. venta</th>
-                <th>Comp. venta</th>
-                <th>Cliente</th>
-                <th>Caja</th>
-                <th>Cajero</th>
-                <th>Monto</th>
-                <th>Tiene devoluciones?</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @sales.each_with_index do |sale, index| %>
-                <tr>
-                  <td><%= index + 1 %></td>
-                  <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
-                  <td><strong><%= sale&.code %></strong></td>
-                  <td><%= sale.cajero&.nombre || "Sin cajero" %></td>
-                  <td><%= sale.caja&.nombre || "Sin caja" %></td>
-                  <td><%= sale.client_name || "Sin cliente" %></td>
-                  <td>$<%= sale.total_amount || "0.00" %></td>
-                  <td class="text-center">
-                    <% if sale&.devoluciones.any? %>
-                      <button type="button" class="btn btn-success">SI</button>
-                    <% else %>
-                      <button type="button" class="btn btn-primary">NO</button>
-                    <% end %>
-                  </td>
-                 
-                  <td>
-                      <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-primary btn-sm" do %>
-                        <span>Ver detalle</span>
-                      <% end %>
-
-                      <%= link_to admin_generar_comprobante_venta_path(id: sale.id), target: "_blank", class: "btn btn-danger btn-sm" do %>
-                        <i class="fa fa-download"></i><span>Comprobante</span>
-                      <% end %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
+  <!-- Card: Gestión de Ventas -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Gestión de ventas</h6>
+      <div class="dropdown no-arrow">
+        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+          <div class="dropdown-header">Opciones:</div>
+          <a class="dropdown-item" href="#">Acción 1</a>
+          <a class="dropdown-item" href="#">Acción 2</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Otra acción</a>
         </div>
       </div>
     </div>
+
+    <!-- Card Body -->
+    <div class="card-body">
+
+      <%# TOAST DE DEVOLUCIONES PENDIENTES %>
+      <% if @pending_devoluciones_count.to_i > 0 %>
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+          <div id="pendingDevolucionesToast"
+              class="toast align-items-center text-bg-warning border-0 shadow"
+              role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body">
+                🔔 Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                      data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          </div>
+        </div>
+
+        <%= javascript_tag do %>
+          document.addEventListener("DOMContentLoaded", function() {
+            var toastEl = document.getElementById("pendingDevolucionesToast");
+            if (toastEl) {
+              var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+              toast.show();
+            }
+          });
+        <% end %>
+      <% end %>
+
+      <!-- Filtros estilo card flotante línea completa -->
+      <div class="row g-2 mb-3">
+        <%= form_with url: admin_sales_path, method: :get, local: true, class: "col-12 d-flex flex-wrap gap-2 align-items-end" do |f| %>
+
+          <div class="filter-card flex-fill">
+            <%= f.label :code, "Código", class: "form-label small" %>
+            <%= f.text_field :code, value: params[:code], class: "form-control form-control-sm" %>
+          </div>
+
+          <div class="filter-card flex-fill">
+            <%= f.label :start_date, "Desde", class: "form-label small" %>
+            <%= f.date_field :start_date, value: params[:start_date], class: "form-control form-control-sm" %>
+          </div>
+
+          <div class="filter-card flex-fill">
+            <%= f.label :end_date, "Hasta", class: "form-label small" %>
+            <%= f.date_field :end_date, value: params[:end_date], class: "form-control form-control-sm" %>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <%= f.submit "Buscar", class: "btn btn-primary btn-sm" %>
+            <%= link_to "Limpiar", admin_sales_path, class: "btn btn-secondary btn-sm" %>
+          </div>
+
+        <% end %>
+      </div>
+
+      <!-- Tabla autoajustable sin scroll -->
+      <div>
+        <table class="table table-bordered table-hover table-striped table-sm responsive-table">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>F. venta</th>
+              <th>Comp. venta</th>
+              <th>Cliente</th>
+              <th>Caja</th>
+              <th>Cajero</th>
+              <th>Monto</th>
+              <th>Devoluciones</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @sales.each_with_index do |sale, index| %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
+                <td><strong><%= sale&.code %></strong></td>
+                <td><%= sale.client_name || "Sin cliente" %></td>
+                <td><%= sale.caja&.nombre || "Sin caja" %></td>
+                <td><%= sale.cajero&.nombre || "Sin cajero" %></td>
+                <td>$<%= sale.total_amount || "0.00" %></td>
+                <td class="text-center">
+                  <% if sale&.devoluciones.any? %>
+                    <span class="badge bg-success">SI</span>
+                  <% else %>
+                    <span class="badge bg-primary">NO</span>
+                  <% end %>
+                </td>
+                <td>
+                  <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-sm btn-primary mb-1" do %>
+                    Ver detalle
+                  <% end %>
+                  <%= link_to admin_generar_comprobante_venta_path(id: sale.id), target: "_blank", class: "btn btn-sm btn-danger mb-1" do %>
+                    <i class="fa fa-download"></i> Comprobante
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
   </div>
+
 </div>
-<!-- /.container-fluid -->
+
+<!-- Estilos CSS -->
+<style>
+  body { font-size: 0.9rem; }
+  h1.h3 { font-size: 1.2rem; }
+
+  /* Filtros estilo card */
+  .filter-card {
+    background-color: #f8f9fa;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.35rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s;
+  }
+
+  .filter-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+  }
+
+  .form-label.small { font-size: 0.85rem; margin-bottom: 0.25rem; }
+  .form-control-sm { font-size: 0.85rem; padding: 0.4rem 0.5rem; }
+  .btn-sm { font-size: 0.8rem; padding: 0.35rem 0.6rem; }
+
+  /* Tabla autoajustable */
+  .responsive-table {
+    width: 100%;
+    table-layout: auto;
+    font-size: 1rem;
+  }
+
+  .responsive-table th,
+  .responsive-table td {
+    padding: 0.5rem 0.6rem;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  /* Ajuste responsive: columnas se envuelven y tabla se adapta */
+  @media (max-width: 768px) {
+    body { font-size: 0.8rem; }
+    h1.h3 { font-size: 1.1rem; }
+    .form-control-sm, .btn-sm { font-size: 0.75rem; padding: 0.3rem 0.5rem; }
+
+    .responsive-table {
+      font-size: 0.9rem;
+      table-layout: auto;
+      width: 100%;
+    }
+
+    .responsive-table th,
+    .responsive-table td {
+      white-space: normal; /* permite que el texto se ajuste */
+      word-wrap: break-word;
+    }
+  }
+</style>

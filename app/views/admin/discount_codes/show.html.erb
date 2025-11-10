@@ -1,10 +1,53 @@
 <div class="container mt-4">
-  <h2>Detalles del Código de Descuento</h2>
+  <div class="card shadow-sm rounded-4 border-0" style="background-color: #f5f6fa;">
+    <div class="card-body p-4">
+      <h3 class="mb-4 text-dark"><i class="fa fa-ticket-alt me-2"></i> Detalles del Código de Descuento</h3>
 
-  <p><strong>Código:</strong> <%= @discount_code.value %></p>
-  <p><strong>Descuento:</strong> <%= "#{@discount_code.discount}%" %></p>
-  <p><strong>Fecha de vencimiento:</strong> <%= @discount_code.due_date&.strftime("%d/%m/%Y") %></p>
-  <p><strong>Producto:</strong> <%= Product.where(id: @discount_code.product_id).first&.name || "Sin producto" %></p>
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <strong>Código:</strong>
+          <span class="text-dark"><%= @discount_code.value %></span>
+        </div>
+        <div class="col-12 col-md-6">
+          <strong>Descuento:</strong>
+          <span class="text-dark"><%= "#{@discount_code.discount}%" %></span>
+        </div>
+        <div class="col-12 col-md-6">
+          <strong>Vencimiento:</strong>
+          <% if @discount_code.due_date.present? && @discount_code.due_date < Date.today %>
+            <span class="text-danger"><%= @discount_code.due_date.strftime("%d/%m/%Y") %> (Vencido)</span>
+          <% else %>
+            <span class="text-muted"><%= @discount_code.due_date&.strftime("%d/%m/%Y") || "Sin fecha" %></span>
+          <% end %>
+        </div>
+        <div class="col-12 col-md-6">
+          <strong>Producto:</strong>
+          <span class="text-dark"><%= Product.where(id: @discount_code.product_id).first&.name || "Sin producto" %></span>
+        </div>
+      </div>
 
-  <%= link_to "Volver", admin_discount_codes_path, class: "btn btn-secondary" %>
+      <div class="mt-4">
+        <%= link_to admin_discount_codes_path, class: "btn btn-outline-secondary" do %>
+          <i class="fa fa-arrow-left me-1"></i> Volver
+        <% end %>
+      </div>
+    </div>
+  </div>
 </div>
+
+<style>
+  body { font-size: 0.9rem; }
+  h3 { font-size: 1.4rem; font-weight: 500; }
+
+  .card {
+    transition: all 0.2s;
+  }
+
+  .card:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
+
+  @media (max-width: 768px) {
+    h3 { font-size: 1.2rem; }
+  }
+</style>
