@@ -1,54 +1,60 @@
-<%= form_with(model: [:admin, @discount_code], local: true, data: { turbo: false }, html: { class: "needs-validation", novalidate: true }) do |f| %>
-  <% if @discount_code.errors.any? %>
-    <div class="alert alert-danger">
-      <h4>Errores:</h4>
-      <ul>
-        <% @discount_code.errors.full_messages.each do |msg| %>
-          <li><%= msg %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+<div class="container mt-4">
+  <div class="card shadow-lg rounded-4 p-4">
+    <h2 class="mb-4">Editar Código de Descuento</h2>
 
-  <!-- Descuento -->
-  <div class="mb-3">
-    <%= f.label :discount, "Descuento (%)", class: "form-label" %>
-    <%= f.number_field :discount, class: "form-control", min: 1, max: 100, required: true %>
-    <div class="invalid-feedback">
-      Por favor, ingrese un valor de descuento válido (1-100).
-    </div>
-  </div>
+    <%= form_with(model: [:admin, @discount_code], local: true, data: { turbo: false }, html: { class: "needs-validation", novalidate: true }) do |f| %>
+      <% if @discount_code.errors.any? %>
+        <div class="alert alert-danger">
+          <h5>Errores:</h5>
+          <ul>
+            <% @discount_code.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
 
-  <!-- Fecha de vencimiento -->
-  <div class="mb-3">
-    <%= f.label :offer_expires_at, "Fecha de expiración de la oferta", class: "form-label" %>
-    <%= f.datetime_local_field :offer_expires_at, class: "form-control", required: true,
-        value: (@discount_code.offer_expires_at.present? ? @discount_code.offer_expires_at.strftime("%Y-%m-%dT%H:%M") : nil) %>
-    <div class="invalid-feedback">
-      Seleccione una fecha de expiración válida.
-    </div>
-  </div>
+      <!-- Descuento -->
+      <div class="mb-3">
+        <%= f.label :discount, "Descuento (%)", class: "form-label" %>
+        <%= f.number_field :discount, class: "form-control", min: 1, max: 100, required: true %>
+        <div class="invalid-feedback">
+          Por favor, ingrese un valor de descuento válido (1-100).
+        </div>
+      </div>
 
-  <!-- Producto -->
-  <div class="mb-3">
-    <%= f.label :product_id, "Producto", class: "form-label" %>
-    <div class="input-group">
-      <%= f.hidden_field :product_id, id: "discount_code_product_id", value: @discount_code.product_id %>
-      <input type="text" id="selected_product_name" class="form-control" placeholder="Selecciona un producto" readonly
-             value="<%= @discount_code.product&.name %>" aria-label="Producto seleccionado">
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productModal">
-        Buscar
-      </button>
-    </div>
-    <div class="form-text">Seleccione el producto al que aplicará este código de descuento.</div>
-  </div>
+      <!-- Fecha de expiración -->
+      <div class="mb-3">
+        <%= f.label :offer_expires_at, "Fecha de expiración de la oferta", class: "form-label" %>
+        <%= f.datetime_local_field :offer_expires_at, class: "form-control", required: true,
+            value: (@discount_code.offer_expires_at.present? ? @discount_code.offer_expires_at.strftime("%Y-%m-%dT%H:%M") : nil) %>
+        <div class="invalid-feedback">
+          Seleccione una fecha de expiración válida.
+        </div>
+      </div>
 
-  <!-- Botones -->
-  <div class="mt-3 d-flex gap-2">
-    <%= f.submit "Guardar", class: "btn btn-success" %>
-    <%= link_to "Cancelar", admin_discount_codes_path, class: "btn btn-secondary" %>
+      <!-- Producto -->
+      <div class="mb-3">
+        <%= f.label :product_id, "Producto", class: "form-label" %>
+        <div class="input-group">
+          <%= f.hidden_field :product_id, id: "discount_code_product_id", value: @discount_code.product_id %>
+          <input type="text" id="selected_product_name" class="form-control" placeholder="Selecciona un producto" readonly
+                 value="<%= @discount_code.product&.name %>" aria-label="Producto seleccionado">
+          <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#productModal">
+            Buscar
+          </button>
+        </div>
+        <div class="form-text">Seleccione el producto al que aplicará este código de descuento.</div>
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-4 d-flex gap-2 flex-wrap">
+        <%= f.submit "Guardar", class: "btn btn-success" %>
+        <%= link_to "Cancelar", admin_discount_codes_path, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
   </div>
-<% end %>
+</div>
 
 <!-- Modal de búsqueda de productos -->
 <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
@@ -60,7 +66,7 @@
       </div>
       <div class="modal-body">
         <input type="text" id="product_search_input" class="form-control mb-3" placeholder="Escribe el nombre del producto..." aria-label="Buscar producto">
-        <ul id="product_search_results" class="list-group list-group-flush"></ul>
+        <ul id="product_search_results" class="list-group list-group-flush d-none"></ul>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -69,11 +75,15 @@
   </div>
 </div>
 
+<!-- JS funcional compatible Turbo y no Turbo -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
   const searchInput = document.getElementById("product_search_input");
   const resultsList = document.getElementById("product_search_results");
   const hiddenInput = document.getElementById("discount_code_product_id");
+  const selectedNameInput = document.getElementById("selected_product_name");
+
+  if (!searchInput || !resultsList) return;
 
   // Precargar productos
   const products = <%= raw(Product.all.map { |p| {id: p.id.to_s, name: p.name} }.to_json) %>;
@@ -83,10 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
   searchInput.addEventListener("input", () => {
     const query = searchInput.value.trim();
     resultsList.innerHTML = "";
-    if (!query) { resultsList.classList.add("d-none"); return; }
+    if (!query) {
+      resultsList.classList.add("d-none");
+      return;
+    }
 
     const filtered = filterProducts(query);
-    if (!filtered.length) {
+    if (filtered.length === 0) {
       const li = document.createElement("li");
       li.textContent = "No se encontraron productos.";
       li.className = "list-group-item text-muted";
@@ -100,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
         li.setAttribute("role", "button");
         li.addEventListener("click", () => {
           hiddenInput.value = product.id;
-          document.getElementById("selected_product_name").value = product.name;
+          selectedNameInput.value = product.name;
           resultsList.innerHTML = "";
           resultsList.classList.add("d-none");
           const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
@@ -119,3 +132,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
+<!-- Estilos profesionales -->
+<style>
+  body { font-size: 0.9rem; }
+  h2 { font-weight: 600; }
+
+  .card {
+    background-color: #f8f9fa;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+
+  .form-control[readonly] {
+    background-color: #e9ecef;
+  }
+
+  #product_search_results li:hover {
+    background-color: #e2e6ea;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    body { font-size: 0.85rem; }
+    .card { padding: 1rem; }
+  }
+</style>

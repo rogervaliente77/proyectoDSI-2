@@ -1,17 +1,19 @@
 <div class="container mt-4">
-  <h1 class="mb-3">Códigos de Descuento</h1>
+  <h1 class="mb-4">Códigos de Descuento</h1>
 
+  <!-- Botón Nuevo Código -->
   <div class="mb-3">
-    <% if @current_user.role.name != "cajero"%>
+    <% if @current_user.role.name != "cajero" %>
       <%= link_to "Nuevo Código", new_admin_discount_code_path, class: "btn btn-primary" %>
     <% end %>
   </div>
 
-  <div class="card shadow-lg border-0 rounded-4">
+  <!-- Tabla de códigos en Card -->
+  <div class="card shadow-sm rounded-4 border-0" style="background-color: #f8f9fa;">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle mb-0">
-          <thead class="bg-gradient text-white text-uppercase small">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="text-uppercase small text-dark" style="border-bottom: 2px solid #dee2e6;">
             <tr>
               <th>Código</th>
               <th>Descuento</th>
@@ -22,7 +24,7 @@
           </thead>
           <tbody>
             <% @discount_codes.each do |code| %>
-              <tr>
+              <tr class="align-middle" style="transition: all 0.2s;">
                 <td class="text-monospace"><%= code.value %></td>
                 <td>
                   <span class="badge bg-success text-white"><%= code.discount %>%</span>
@@ -33,27 +35,27 @@
                       <%= code.due_date.strftime("%d/%m/%Y") %> (Vencido)
                     </span>
                   <% else %>
-                    <span class="badge bg-warning text-dark">
+                    <span class="badge bg-secondary text-white">
                       <%= code.due_date&.strftime("%d/%m/%Y") || "Sin fecha" %>
                     </span>
                   <% end %>
                 </td>
                 <td><%= code.product&.name || "Sin producto" %></td>
                 <td class="text-center">
-                  <div class="d-flex gap-1 justify-content-center">
-                    <!-- Ver -->
-                    <% if @current_user.role.name != "cajero"%>
+                  <div class="d-flex justify-content-center gap-2 flex-nowrap">
+                    <% if @current_user.role.name != "cajero" %>
+                      <!-- Ver -->
                       <%= link_to admin_discount_code_path(code),
-                            class: "btn btn-sm btn-info flex-shrink-0",
+                            class: "btn btn-sm btn-outline-primary",
                             title: "Ver" do %>
                         <i class="fa fa-eye"></i>
                       <% end %>
 
                       <!-- Editar -->
                       <%= link_to edit_admin_discount_code_path(code),
-                            class: "btn btn-sm btn-warning flex-shrink-0",
+                            class: "btn btn-sm btn-outline-warning",
                             title: "Editar" do %>
-                        <i class="fa fa-pencil"></i>
+                        <i class="fa fa-pencil-alt"></i>
                       <% end %>
 
                       <!-- Eliminar -->
@@ -61,7 +63,7 @@
                             method: :delete,
                             form: { class: "d-inline" },
                             data: { turbo_confirm: "¿Estás seguro de eliminar este código?" },
-                            class: "btn btn-sm btn-danger flex-shrink-0",
+                            class: "btn btn-sm btn-outline-danger",
                             title: "Eliminar" do %>
                         <i class="fa fa-trash"></i>
                       <% end %>
@@ -77,18 +79,49 @@
   </div>
 </div>
 
-<!-- 🔹 Estilos adicionales -->
+<!-- 🔹 Estilos Profesionales -->
 <style>
-  thead.bg-gradient {
-    background: linear-gradient(90deg, #0d6efd, #6610f2);
+  body { font-size: 0.9rem; }
+  h1 { font-size: 1.5rem; font-weight: 600; }
+
+  /* Card hover */
+  .card:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
-  .badge {
-    font-size: 0.85rem;
-    padding: 0.45em 0.7em;
-    border-radius: 0.5rem;
+
+  /* Filas tabla al pasar el mouse */
+  .table-hover tbody tr:hover {
+    background-color: #e9ecef;
+    transform: translateX(1px);
   }
-  table.table-hover tbody tr:hover {
-    background-color: #e9f2ff;
-    transform: translateX(2px);
+
+  /* Botones de acción */
+  .btn-outline-primary,
+  .btn-outline-warning,
+  .btn-outline-danger {
+    transition: all 0.2s;
+  }
+  .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+  }
+  .btn-outline-warning:hover {
+    background-color: #ffc107;
+    color: #212529;
+    border-color: #ffc107;
+  }
+  .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+  }
+
+  /* Responsividad */
+  @media (max-width: 768px) {
+    body { font-size: 0.8rem; }
+    h1 { font-size: 1.3rem; }
+    .btn-sm { font-size: 0.75rem; padding: 0.3rem 0.5rem; }
+    .badge { font-size: 0.8rem; padding: 0.35em 0.6em; }
   }
 </style>
