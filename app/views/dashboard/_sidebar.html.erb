@@ -263,10 +263,21 @@
       <div id="collapsePedidos" class="collapse" aria-labelledby="headingPedidos" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Pedidos</h6>
-          <a class="collapse-item" href="<%= admin_pedidos_path %>" data-turbo="false">Todos los pedidos</a>
-          <a class="collapse-item" href="<%= new_admin_delivery_driver_path %>" data-turbo="false">Pedidos no asignados</a>
-          <a class="collapse-item" href="<%= new_admin_delivery_driver_path %>" data-turbo="false">Pedidos en ruta</a>
-          <a class="collapse-item" href="<%= new_admin_delivery_driver_path %>" data-turbo="false">Pedidos entregados</a>
+          <a class="collapse-item" href="<%= admin_pedidos_path %>" data-turbo="false">
+            Todos los pedidos
+          </a>
+
+          <a class="collapse-item" href="<%= admin_pedidos_path(delivery_status: 'unassigned') %>" data-turbo="false">
+            Pedidos no asignados
+          </a>
+
+          <a class="collapse-item" href="<%= admin_pedidos_path(delivery_status: 'in_route') %>" data-turbo="false">
+            Pedidos en ruta
+          </a>
+
+          <a class="collapse-item" href="<%= admin_pedidos_path(delivery_status: 'delivered') %>" data-turbo="false">
+            Pedidos entregados
+          </a>
         </div>
       </div>
     </li>

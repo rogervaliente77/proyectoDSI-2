@@ -11,7 +11,12 @@ module Admin
         mensajero = DeliveryDriver.where(user_id: current_user.id).first
         @deliveries = Delivery.where(delivery_driver_id: mensajero.id)
       else
-        @deliveries = Delivery.all
+        if params.present?
+          @deliveries = Delivery.where(delivery_status: params[:delivery_status])
+        else
+          @deliveries = Delivery.all
+        end
+        
       end
       
     end
