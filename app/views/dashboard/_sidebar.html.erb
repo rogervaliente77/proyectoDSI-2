@@ -58,6 +58,13 @@
           <a class="collapse-item" href="<%= portal_users_edit_password_path(id: @current_user.id) %>" data-turbo="false">Cambiar contraseña</a>
           <a class="collapse-item" href="<%= portal_profile_path(id: @current_user.id) %>" data-turbo="false">Editar Perfil</a>
         <% end %>
+       <% if @current_user.role.name == "super_admin" %>
+        <div class="dropdown-divider"></div>
+        <h6 class="collapse-header">Configuraciones del sitio:</h6>
+        <a class="collapse-item" href="<%= admin_site_configuration_path %>" data-turbo="false">Configuración general</a>
+        <a class="collapse-item" href="<%= admin_update_site_configuration_path %>" data-turbo="false">Notificaciones y ofertas</a>
+        <a class="collapse-item" href="<%= admin_mass_mail_path %>" data-turbo="false">Correos masivos</a>
+      <% end %>
       </div>
     </div>
   </li>
