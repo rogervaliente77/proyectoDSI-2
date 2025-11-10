@@ -9,14 +9,43 @@ class Delivery
   field :client_id, type: BSON::ObjectId
   field :package_status, type: String, default: "in_warehouse" #picked_up
   field :delivery_status, type: String, default: "unassigned"  #assigned, picked_up, in_route, onsite, delivered, rejected, returned_to_warehouse
-  field :appointment_date, type: DateTime
+  field :appointment_date, type: Date
+  field :appointment_hour, type: String
   field :has_appointment, type: Boolean, default: false
   field :status_log_changes, type: Array, default: []
+  field :sale_id, type: BSON::ObjectId
+  field :delivery_address, type: String
+  field :was_delivered, type: Boolean, default: false
+  field :number_of_attempt, type: Integer, default: 1
+  field :picked_up_at, type: DateTime
+  field :in_route_at, type: DateTime
+  field :onsite_at, type: DateTime
+  field :delivered_at, type: DateTime
+  field :rejected_at, type: DateTime
+  field :returned_to_warehouse_at, type: DateTime
+  
 
   belongs_to :sale
-  belongs_to :delivery_driver
+  belongs_to :delivery_driver, optional: true
+
+  before_create :assign_delivery_code
 
   # Validaciones
-  validates :sale_code, :delivery_code, presence: { message: "El codigo de venta y delivery son obligatorios" }, uniqueness: { message: "Codigo de venta o delivery ya existe" }
+  validates :sale_code, presence: { message: "El codigo de venta y delivery son obligatorios" }, uniqueness: { message: "Codigo de venta o delivery ya existe" }
 
+  private
+
+  def assign_delivery_code
+    return if delivery_code.present?
+
+    last_delivery = Delivery.order_by(created_at: :desc).limit(1).first
+
+    last_number = if last_delivery&.delivery_code
+      last_delivery.delivery_code.split("-").last.to_i
+    else
+      0
+    end
+
+    self.delivery_code = "D-#{format('%06d', last_number + 1)}"
+  end
 end

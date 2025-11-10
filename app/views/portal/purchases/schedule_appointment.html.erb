@@ -1,0 +1,172 @@
+<div class="container py-5 bg-light min-vh-100">
+  <h2 class="mb-4 text-center fw-bold text-uppercase">Agendar entrega</h2>
+      
+      <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+        <h4 class="fw-bold mb-3">Programar entrega</h4>
+
+        <%= form_with url: portal_purchase_confirm_appointment_path(@sale), method: :post, scope: :delivery do |f| %>
+
+          <!-- Fecha -->
+          <div class="mb-3">
+            <%= f.label :appointment_date, "Fecha de entrega", class: "form-label" %>
+            <%= f.date_field :appointment_date,
+                  class: "form-control",
+                  required: true,
+                  id: "appointment_date",
+                  min: Date.today %>
+          </div>
+
+          <!-- Hora (select quemado) -->
+          <div class="mb-3">
+            <%= f.label :appointment_hour, "Hora de entrega", class: "form-label" %>
+
+            <%= f.select :appointment_hour,
+              [
+                ["08:00 AM", "08:00 AM"],
+                ["09:00 AM", "09:00 AM"],
+                ["10:00 AM", "10:00 AM"],
+                ["11:00 AM", "11:00 AM"],
+                ["12:00 PM", "12:00 PM"],
+                ["01:00 PM", "01:00 PM"],
+                ["02:00 PM", "02:00 PM"],
+                ["03:00 PM", "03:00 PM"],
+                ["04:00 PM", "04:00 PM"],
+                ["05:00 PM", "05:00 PM"]
+              ],
+              { prompt: "Seleccione una hora" },
+              class: "form-select",
+              id: "appointment_hour",
+              required: true %>
+
+          </div>
+
+          <!-- Dirección -->
+          <div class="mb-3">
+            <%= f.label :delivery_address, "Dirección de entrega", class: "form-label" %>
+            <%= f.select :delivery_address,
+                  [["Address 1", "Address 1"],
+                  ["Address 2", "Address 2"],
+                  ["Address 3", "Address 3"]],
+                  {},
+                  class: "form-select",
+                  required: true %>
+          </div>
+
+          <%= f.hidden_field :sale_id, value: @sale.id.to_s %>
+          
+          <div class="d-grid">
+            <%= f.submit "Confirmar cita", class: "btn btn-primary btn-lg rounded-pill fw-bold" %>
+          </div>
+
+        <% end %>
+      </div>
+
+
+
+      <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <strong class="fs-6">Código: <%= @sale.code %></strong><br>
+            <small class="text-muted">Realizada el <%= l(@sale.sold_at, format: :long) %></small>
+          </div>
+        </div>
+
+        <% @sale.product_sales.each do |ps| %>
+          <div class="d-flex align-items-center border-top pt-3 mt-2">
+            <!-- Imagen del producto -->
+            <% if ps.product && ps.product.product_images.any? %>
+              <%= image_tag ps.product.product_images.first.image_url, 
+                    class: "rounded me-4", 
+                    style: "width: 100px; height: 100px; object-fit: cover;" %>
+            <% else %>
+              <%= image_tag "placeholder.png", class: "rounded me-4", style: "width: 100px; height: 100px; object-fit: cover;" %>
+            <% end %>
+
+            <!-- Detalles del producto -->
+            <div class="flex-grow-1">
+              <strong><%= ps.product&.name %></strong><br>
+              <span class="text-muted">Cantidad:</span> <%= ps.quantity %><br>
+              <span class="text-success fw-bold">$<%= '%.2f' % ps.subtotal %></span>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="mt-3">
+          <p class="mb-1">
+            <strong>Método de envío:</strong>
+            <%= @sale&.delivery_method.present? ? @sale.delivery_method.titleize : "Recoger en tienda" %>
+          </p>
+          <% if @sale.delivery_method == "delivery"%>
+            <% if @sale.was_delivered == false %>
+              <span class="badge badge-warning">No entregado</span>
+              <% if @sale.delivery.present? %>
+                <span class="badge badge-info"><%= @sale.delivery.package_status %></span>
+              <% else %>
+                <span class="badge badge-danger">Proceso de entrega no iniciado</span>
+              <% end %>
+            <% else %>
+              <span></span>
+            <% end %>
+          <% end %>
+          <p class="mb-1 text-muted"><small>El pago se realizará al recoger el producto.</small></p>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
+          <span class="fw-bold fs-5 text-success">Total: $<%= '%.2f' % @sale.total_amount %></span>
+        </div>
+      </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+  const dateField = document.querySelector("#appointment_date");
+  const hourField = document.querySelector("#appointment_hour");
+
+  function updateAvailableHours() {
+    if (!dateField || !hourField) return;
+
+    const selectedDate = new Date(dateField.value);
+    const today = new Date();
+
+    // Primero, habilitar todas las opciones
+    for (let option of hourField.options) {
+      option.disabled = false;
+    }
+
+    // Si la fecha no es hoy, no hay que limitar nada
+    if (!dateField.value || selectedDate.toDateString() !== today.toDateString()) {
+      return;
+    }
+
+    // Obtener la hora actual (redondeada a minutos)
+    const now = today.getHours() * 60 + today.getMinutes();
+
+    // Deshabilitar las horas pasadas
+    for (let option of hourField.options) {
+      if (!option.value) continue;
+
+      const [time, meridian] = option.value.split(" ");
+      let [hour, minute] = time.split(":").map(Number);
+
+      if (meridian === "PM" && hour !== 12) hour += 12;
+      if (meridian === "AM" && hour === 12) hour = 0;
+
+      const optionMinutes = hour * 60 + minute;
+
+      if (optionMinutes <= now) {
+        option.disabled = true;
+      }
+    }
+
+    // Si la hora seleccionada quedó deshabilitada, reset
+    if (hourField.value && hourField.selectedOptions[0].disabled) {
+      hourField.value = "";
+    }
+  }
+
+  // Eventos
+  dateField.addEventListener("change", updateAvailableHours);
+  updateAvailableHours(); // Ejecutar al cargar
+});
+</script>

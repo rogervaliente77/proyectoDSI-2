@@ -47,7 +47,12 @@ Rails.application.routes.draw do
     post "checkout", to: "carts#create_purchase", as: 'create_purchase'
 
     # Compras
-    resources :purchases, only: [:index, :show]
+    resources :purchases, only: [:index, :show] do
+      get "schedule_appointment", to: "purchases#schedule_appointment"
+      post "confirm_appointment", to: "purchases#confirm_appointment"
+      get "estado_entrega", to: "purchases#delivery_status_real_time"
+      get "refresh_delivery_status", to: "purchases#refresh_delivery_status"
+    end
 
     root "landing#index"
   end
@@ -128,6 +133,12 @@ Rails.application.routes.draw do
 
     # Mensajero
     resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]
+
+    #Deliveries
+    get "pedidos", to: "deliveries#index"
+    get "assign_to_delivery_driver", to: "deliveries#assign_to_delivery_driver"
+    patch "assign_to_delivery_driver", to: "deliveries#save_delivery_driver_in_delivery"
+    patch "change_delivery_status", to: "deliveries#change_delivery_status"
 
     # Devoluciones
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do

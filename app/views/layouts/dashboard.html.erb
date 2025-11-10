@@ -15,6 +15,7 @@
   <%= stylesheet_link_tag "application", "sb-admin-2", media: "all" %>
   <%= javascript_importmap_tags %>
   <%= javascript_include_tag "dashboard", "data-turbo-track": "reload" %>
+  <%= action_cable_meta_tag %>
   <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
@@ -85,7 +86,7 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
                     
-                    <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero"%>
+                    <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" || @current_user.role.name == "mensajero"%>
                         <%= link_to admin_logout_path, data: { turbo_method: :put }, class: "btn btn-primary" do %>
                             Cerrar sesión
                         <% end %>

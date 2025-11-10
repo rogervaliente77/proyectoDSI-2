@@ -6,5 +6,6 @@ import "jquery"
 import "sb_admin_2"
 import "jquery-easing"
 import "bootstrap"
+//import "channels"
 import * as bootstrap from "bootstrap"
 
