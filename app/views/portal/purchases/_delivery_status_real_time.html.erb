@@ -3,7 +3,7 @@
 
     <div class="container py-5 bg-light min-vh-100">
 
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Estado del pedido</h1>
             
             <%= link_to portal_purchases_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
@@ -12,48 +12,72 @@
         </div>
 
         <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
-            
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                    <th>Codigo del pedido</th>
-                    <th>Estado del paquete</th>
-                    <th>Estado del pedido</th>
-                    <th>Fecha programada</th>
-                    <th>Dirección</th>
-                    <th>Mensajero</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                    <td><%= sale.delivery.delivery_code %></td>
-                    <td>
-                        <% if sale.delivery.package_status == 'in_warehouse' %>
-                            <span class="badge badge-info">En bodega</span>
-                        <% else %>
-                            <span class="badge badge-info">Recogido por el mensajero</span>
-                        <% end %>
-                    </td>
-                    <td>
-                        <% if sale.delivery.delivery_status == 'unassigned' %>
-                            <span class="badge badge-secondary">No asignado</span>
-                        <% else %>
-                            <span class="badge badge-info">Recogido por el mensajero</span>
-                        <% end %>
-                    </td>
-                    <td><%= sale.delivery.appointment_date.strftime("%d/%m/%Y") %> <%= sale.delivery.appointment_hour%> </td>
-                    <td><%= sale.delivery.delivery_address %></td>
-                    <td>
-                        <% if !sale.delivery&.delivery_driver.present? %>
-                            <span class="badge badge-secondary">No asignado</span>
-                        <% else %>
-                            <%= sale.delivery.delivery_driver.user.first_name %>
-                        <% end %>
-                    </td>
-                    </tr>
-                </tbody>
-            </table>
-            
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                        <th>Codigo del pedido</th>
+                        <th>Estado del paquete</th>
+                        <th>Estado del pedido</th>
+                        <th>Fecha programada</th>
+                        <th>Dirección</th>
+                        <th>Mensajero</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                        <td><%= sale.delivery.delivery_code %></td>
+                        <td>
+                            <% if sale.delivery.package_status == 'in_warehouse' %>
+                                <span class="badge badge-info">En bodega</span>
+                            <% else %>
+                                <span class="badge badge-info">Recogido por el mensajero</span>
+                            <% end %>
+                        </td>
+                        <td>
+                            <% case sale.delivery.delivery_status %>
+                            <% when "unassigned" %>
+                                <span class="badge badge-secondary">No asignado</span>
+                            <% when "assigned" %>
+                                <span class="badge badge-info">Asignado</span>
+                                <div class="spinner-grow spinner-grow-sm text-primary ml-2" role="status">
+                                <span class="sr-only">Asignado</span>
+                                </div>
+                            <% when "picked_up" %>
+                                <span class="badge badge-info">Recogido</span>
+                                <div class="spinner-grow spinner-grow-sm text-warning ml-2" role="status">
+                                <span class="sr-only">Recogido</span>
+                                </div>
+                            <% when "in_route" %>
+                                <span class="badge badge-warning">En camino</span>
+                                <div class="spinner-grow spinner-grow-sm text-success ml-2" role="status">
+                                <span class="sr-only">En camino</span>
+                                </div>
+                            <% when "onsite" %>
+                                <span class="badge badge-dark">En el lugar</span>
+                                <div class="spinner-grow spinner-grow-sm text-success ml-2" role="status">
+                                <span class="sr-only">En el lugar</span>
+                                </div>
+                            <% when "delivered" %>
+                                <span class="badge badge-success">Entregado</span>
+                            <% when "rejected" %>
+                                <span class="badge badge-danger">Rechazado</span>
+                            <% end %>
+                        </td>
+
+                        <td><%= sale.delivery.appointment_date.strftime("%d/%m/%Y") %> <%= sale.delivery.appointment_hour%> </td>
+                        <td><%= sale.delivery.delivery_address %></td>
+                        <td>
+                            <% if !sale.delivery&.delivery_driver.present? %>
+                                <span class="badge badge-secondary">No asignado</span>
+                            <% else %>
+                                <%= sale.delivery.delivery_driver.user.first_name %>
+                            <% end %>
+                        </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
 

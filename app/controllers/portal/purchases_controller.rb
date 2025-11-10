@@ -9,20 +9,21 @@ class Portal::PurchasesController < ApplicationController
 
   def schedule_appointment
     @sale = Sale.find(params[:purchase_id])
+    @client = User.find(@sale.client_id)
   end
 
   def confirm_appointment
     @sale = Sale.find(params[:delivery][:sale_id])
     @client = User.find(@sale.client_id)
 
-    binding.pry
+    # binding.pry
     @delivery = Delivery.new(delivery_params)
     @delivery.client_id = @client.id
     @delivery.client_name = @client.full_name
     @delivery.sale_code = @sale.code
     @delivery.has_appointment = true
 
-    binding.pry
+    # binding.pry
     if @delivery.save
       flash[:success] = "Cita agendada correctamente"
       redirect_to portal_purchase_estado_entrega_path(@sale)
@@ -40,6 +41,11 @@ class Portal::PurchasesController < ApplicationController
   def update_delivery_status
      
   end
+
+  def refresh_delivery_status
+    @sale = Sale.find(params[:purchase_id])
+    render partial: "portal/purchases/delivery_status_real_time", locals: { sale: @sale }
+  end  
 
   private
 

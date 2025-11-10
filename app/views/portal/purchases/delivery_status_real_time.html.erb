@@ -1,1 +1,44 @@
 <%= render partial: "delivery_status_real_time", locals: { sale: @sale } %>
+
+<script>
+// document.addEventListener("DOMContentLoaded", () => {
+//   const wrapper = document.getElementById("delivery-status-wrapper");
+//   if (!wrapper) return;
+
+//   const saleId = wrapper.dataset.saleId;
+
+//   async function refreshDeliveryStatus() {
+//     try {
+//       const response = await fetch(`/portal/purchases/${saleId}/refresh_delivery_status`, {
+//         headers: {
+//           "Accept": "text/javascript"
+//         }
+//       });
+
+//       console.log("ENTRO AL REFRESH");
+//       if (response.ok) {
+//         const html = await response.text();
+//         wrapper.innerHTML = html;
+//       }
+//     } catch (error) {
+//       console.error("Error al actualizar el estado del pedido:", error);
+//     }
+//   }
+
+//   // Refrescar inmediatamente al cargar
+//   refreshDeliveryStatus();
+
+//   // Refrescar cada 30 segundos
+//   setInterval(refreshDeliveryStatus, 30000);
+// });
+
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Refresca la página cada 30 segundos (30000 ms)
+    setInterval(() => {
+      window.location.reload();
+    }, 10000);
+  });
+
+
+</script>

@@ -237,6 +237,16 @@
     </li>
   <% end %>
 
+  <% if @current_user.role.name == 'mensajero' %>
+    <li class="nav-item">
+      <%= link_to admin_pedidos_path, class: "nav-link d-flex align-items-center" do %>
+        <i class="fas fa-truck"></i>
+        Pedidos asignados
+      <% end %>
+    </li>
+  <% end %>
+
+
   <hr class="sidebar-divider d-none d-md-block">
 
   <div class="text-center d-none d-md-inline">

@@ -16,6 +16,14 @@ class Delivery
   field :sale_id, type: BSON::ObjectId
   field :delivery_address, type: String
   field :was_delivered, type: Boolean, default: false
+  field :number_of_attempt, type: Integer, default: 1
+  field :picked_up_at, type: DateTime
+  field :in_route_at, type: DateTime
+  field :onsite_at, type: DateTime
+  field :delivered_at, type: DateTime
+  field :rejected_at, type: DateTime
+  field :returned_to_warehouse_at, type: DateTime
+  
 
   belongs_to :sale
   belongs_to :delivery_driver, optional: true

@@ -1,10 +1,20 @@
 <div class="container py-5 bg-light min-vh-100">
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Admin / Pedidos</h1>
+        <% if @current_user.role.name == "mensajero"%>
+            <h1 class="h3 mb-0 text-gray-800">Admin / Mis pedidos asignados</h1>
+        <% else %>
+            <h1 class="h3 mb-0 text-gray-800">Admin / Pedidos</h1>
+        <% end %>
     </div>
 
     <div class="card mb-4 shadow-sm border-0 rounded-4 p-3">
+
+        <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+        <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+        <% end %>
         
         <table class="table table-bordered" id="categoriesTable">
             <thead class="thead-light">
@@ -16,6 +26,7 @@
                 <th>Fecha programada</th>
                 <th>Dirección</th>
                 <th>Mensajero</th>
+                <% if current_user.role.name == "mensajero" %><th>Actions</th><% end %>
                 </tr>
             </thead>
             <tbody>
@@ -27,14 +38,24 @@
                             <% if delivery.package_status == 'in_warehouse' %>
                                 <span class="badge badge-info">En bodega</span>
                             <% else %>
-                                <span class="badge badge-info">Recogido por el mensajero</span>
+                                <span class="badge badge-info">Recogido</span>
                             <% end %>
                         </td>
                         <td>
                             <% if delivery.delivery_status == 'unassigned' %>
                                 <span class="badge badge-secondary">No asignado</span>
-                            <% else %>
-                                <span class="badge badge-info">Recogido por el mensajero</span>
+                            <% elsif delivery.delivery_status == 'assigned' %>
+                                <span class="badge badge-info">Asignado</span>
+                            <% elsif delivery.delivery_status == 'picked_up' %>
+                                <span class="badge badge-info">Recogido</span>
+                            <% elsif delivery.delivery_status == 'in_route' %>
+                                <span class="badge badge-warning">En camino</span>
+                            <% elsif delivery.delivery_status == 'onsite' %>
+                                <span class="badge badge-dark">En el lugar</span>
+                            <% elsif delivery.delivery_status == 'delivered' %>
+                                <span class="badge badge-success">Pedido entregado</span>
+                            <% elsif delivery.delivery_status == 'rejected' %>
+                                <span class="badge badge-danger">Rechazado</span>
                             <% end %>
                         </td>
                         <td><%= delivery.appointment_date.strftime("%d/%m/%Y") %> <%= delivery.appointment_hour%> </td>
@@ -47,11 +68,37 @@
                             <% else %>
                                 <span class="badge badge-secondary d-block">No asignado</span>
 
-                                <%= link_to "Asignar mensajero",
-                                    admin_assign_to_delivery_driver_path(id: delivery.id),
-                                    class: "badge badge-primary d-block mt-1" %>
+                                <% if @current_user.role.name != "mensajero" %>
+                                    <%= link_to "Asignar mensajero",
+                                        admin_assign_to_delivery_driver_path(id: delivery.id),
+                                        class: "badge badge-primary d-block mt-1" %>
+                                <% end %>
                             <% end %>
                         </td>
+                        <% if current_user.role.name == "mensajero" %>
+                           <td>
+                                <% case delivery.delivery_status %>
+                                <% when "assigned" %>
+                                    <%= button_to "Recoger pedido", admin_change_delivery_status_path(id: delivery.id), method: :patch, class: "badge badge-primary" %>
+                                <% when "picked_up" %>
+                                    <%= button_to "En camino", admin_change_delivery_status_path(id: delivery.id), method: :patch, class: "badge badge-info" %>
+                                <% when "in_route" %>
+                                    <%= button_to "En el sitio", admin_change_delivery_status_path(id: delivery.id), method: :patch, class: "badge badge-info" %>
+                                <% when "onsite" %>
+                                    <div class="d-flex flex-column">
+                                    <%= button_to "Marcar como entregado",
+                                        admin_change_delivery_status_path(id: delivery.id),
+                                        method: :patch,
+                                        params: { delivery_action: "success" },
+                                        class: "badge badge-success mb-1" %>
+                                    <%= button_to "Marcar como rechazado", admin_change_delivery_status_path(id: delivery.id), method: :patch, class: "badge badge-danger" %>
+                                    </div>
+                                <% when "rejected" %>
+                                    <%= button_to "Marcar como retornado", admin_change_delivery_status_path(id: delivery.id), method: :patch, class: "badge badge-warning" %>
+                                <% end %>
+                            </td>
+                        <% end %>
+
                     </tr>
                 <% end %>
             </tbody>
