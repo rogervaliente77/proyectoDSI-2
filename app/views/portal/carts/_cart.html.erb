@@ -44,8 +44,8 @@
 
   <div class="border-top pt-3 mt-3 text-end">
     <h5>Total: <span class="text-success"><%= number_to_currency(total) %></span></h5>
-   <div class="text-end mt-3">
-      <%= link_to "Realizar compra", portal_checkout_path, class: "btn btn-primary" %>
+    <div class="text-end mt-3">
+      <%= link_to "Realizar compra", portal_checkout_path, class: "btn btn-primary", data: { turbo: false } %>
     </div>
 
   </div>

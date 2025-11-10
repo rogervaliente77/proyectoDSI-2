@@ -77,9 +77,32 @@
             <%= f.date_field :end_date, value: params[:end_date], class: "form-control form-control-sm" %>
           </div>
 
-          <div class="table-responsive">
-<table class="table table-bordered" id="usersTable">
-            <thead class="thead-light">
+          <div class="d-flex gap-2 mt-2">
+            <%= f.submit "Buscar", class: "btn btn-primary btn-sm" %>
+            <%= link_to "Limpiar", admin_sales_path, class: "btn btn-secondary btn-sm" %>
+          </div>
+
+        <% end %>
+      </div>
+
+      <!-- Tabla autoajustable sin scroll -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped table-sm responsive-table">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>F. venta</th>
+              <th>Comp. venta</th>
+              <th>Cliente</th>
+              <th>Caja</th>
+              <th>Cajero</th>
+              <th>Monto</th>
+              <th>Devoluciones</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @sales.each_with_index do |sale, index| %>
               <tr>
                 <td><%= index + 1 %></td>
                 <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
@@ -113,7 +136,6 @@
   </div>
 
 </div>
-
 <!-- Estilos CSS -->
 <style>
   body { font-size: 0.9rem; }

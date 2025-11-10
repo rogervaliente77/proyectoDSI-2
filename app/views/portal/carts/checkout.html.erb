@@ -107,7 +107,7 @@
             <span id="total-amount" class="text-success">$<%= '%.2f' % @total %></span>
           </div>
 
-          <%= form_with url: portal_checkout_path, method: :post, local: false, id: "checkout-form" do |f| %>
+          <%= form_with url: portal_checkout_path, method: :post, id: "checkout-form" do |f| %>
             <%= hidden_field_tag :shipping_method, "pickup", id: "hidden-shipping-method" %>
             <%= hidden_field_tag :store_branch, "", id: "hidden-store-branch" %>
             <div class="mt-4 text-center">

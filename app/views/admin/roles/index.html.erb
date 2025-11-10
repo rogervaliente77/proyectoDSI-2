@@ -23,37 +23,35 @@
           <% elsif flash[:alert] %>
             <div class="alert alert-danger"><%= flash[:alert] %></div>
           <% end %>
-    
-<div class="table-responsive">
-  <table class="table table-striped table-hover align-middle shadow-sm rounded  id="rolesTable">
-            <thead class="thead-light">
-              <tr>
-                <th>Nombre del Rol</th>
-                <th>Descripción</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @roles.each do |role| %>
+          <div class="table-responsive">
+            <table class="table table-bordered" id="rolesTable">
+              <thead class="thead-light">
                 <tr>
-                  <td><%= role.name %></td>
-                  <td><%= role.description %></td>
-                  <td>
-          <!-- Editar -->
-      <%= link_to edit_admin_role_path(role.id), class: "btn btn-primary btn-sm" do %>
-        <i class="fa fa-edit"></i> Editar
-      <% end %>
-          
-      <%= link_to admin_role_path(role.id), class: "btn btn-danger btn-sm", data: { turbo_method: :delete }, onclick: "return confirm('¿Eliminar rol?');" do %>
-        <i class="fa fa-trash"></i> Eliminar
-      <% end %>
-            </td>
+                  <th>Nombre del Rol</th>
+                  <th>Descripción</th>
+                  <th>Acciones</th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
-</div>
-</div>
+              </thead>
+              <tbody>
+                <% @roles.each do |role| %>
+                  <tr>
+                    <td><%= role.name %></td>
+                    <td><%= role.description %></td>
+                    <td>
+                    <!-- Editar -->
+                              <%= link_to edit_admin_role_path(role.id), class: "btn btn-primary btn-sm" do %>
+                                <i class="fa fa-edit"></i> Editar
+                              <% end %>
+                                  
+                              <%= link_to admin_role_path(role.id), class: "btn btn-danger btn-sm", data: { turbo_method: :delete }, onclick: "return confirm('¿Eliminar rol?');" do %>
+                                <i class="fa fa-trash"></i> Eliminar
+                              <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

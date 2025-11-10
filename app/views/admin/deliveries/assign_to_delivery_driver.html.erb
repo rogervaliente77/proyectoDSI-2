@@ -75,7 +75,7 @@
               <% if @delivery.sale.delivery.present? %>
                 <span class="badge badge-info"><%= @delivery.sale.delivery.package_status %></span>
               <% else %>
-                <span class="badge badge-danger">Proceso de entrega no iniciado</span>
+                <span class="badge badge-secondary">Proceso de entrega no iniciado</span>
               <% end %>
             <% else %>
               <span></span>

@@ -1,6 +1,12 @@
 <div class="container py-5 bg-light min-vh-100">
-  <h2 class="mb-4 text-center fw-bold text-uppercase">Agendar entrega</h2>
-      
+      <div class="d-sm-flex align-items-center justify-content-between mb-4">
+          <h3 class="h3 mb-0 text-gray-800">Agendar entrega</h3>
+          
+          <%= link_to portal_purchases_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+          <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a mis compras
+          <% end %>
+      </div>
+
       <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
         <h4 class="fw-bold mb-3">Programar entrega</h4>
 
@@ -43,13 +49,18 @@
           <!-- Dirección -->
           <div class="mb-3">
             <%= f.label :delivery_address, "Dirección de entrega", class: "form-label" %>
-            <%= f.select :delivery_address,
-                  [["Address 1", "Address 1"],
-                  ["Address 2", "Address 2"],
-                  ["Address 3", "Address 3"]],
-                  {},
-                  class: "form-select",
-                  required: true %>
+
+            <% if @client.addresses.any? %>
+              <%= f.select :delivery_address,
+                    @client.addresses.map { |a| ["#{a.street} #{a.house}, #{a.municipality}, #{a.department}", a.id] },
+                    { include_blank: "Selecciona una dirección" },
+                    class: "form-select",
+                    required: true %>
+            <% else %>
+              <p class="text-danger">
+                Este usuario no tiene direcciones registradas. Por favor, agregue al menos una dirección en los ajustes de su perfil.
+              </p>
+            <% end %>
           </div>
 
           <%= f.hidden_field :sale_id, value: @sale.id.to_s %>
@@ -102,7 +113,7 @@
               <% if @sale.delivery.present? %>
                 <span class="badge badge-info"><%= @sale.delivery.package_status %></span>
               <% else %>
-                <span class="badge badge-danger">Proceso de entrega no iniciado</span>
+                <span class="badge badge-secondary">Proceso de entrega no iniciado</span>
               <% end %>
             <% else %>
               <span></span>

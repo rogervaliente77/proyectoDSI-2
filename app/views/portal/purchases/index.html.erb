@@ -43,7 +43,7 @@
           </p>
 
           <% if sale.delivery_method == "delivery" %>
-            <% if !sale&.delivery.delivered_at&.present? %>
+            <% if !sale&.delivery&.delivered_at&.present? %>
               <span class="badge bg-warning text-dark">No entregado</span>
               <% if sale.delivery.present? %>
                 <% if sale.delivery.delivery_status == 'unassigned' %>
@@ -62,7 +62,7 @@
                                 <span class="badge badge-danger">Rechazado</span>
                             <% end %>
               <% else %>
-                <span class="badge bg-danger">Proceso de entrega no iniciado</span>
+                <span class="badge bg-secondary">Proceso de entrega no iniciado</span>
               <% end %>
 
               <% if !sale&.delivery&.has_appointment?%>
