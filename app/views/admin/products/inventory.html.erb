@@ -20,74 +20,74 @@
     <% end %>
   </div>
 
-  <!-- Tabla de inventario -->
+  <!-- Tabla de inventario responsiva -->
   <div class="card shadow-sm rounded">
     <div class="table-responsive">
-<table class="table table-hover table-bordered align-middle mb-0">
-      <thead class="table-dark text-white">
-        <tr>
-          <th class="fw-semibold text-uppercase text-center">Código</th>
-          <th class="fw-semibold text-uppercase">Nombre</th>
-          <th class="fw-semibold text-uppercase">Categoría</th>
-          <th class="fw-semibold text-uppercase">Marca</th>
-          <th class="fw-semibold text-uppercase text-center">Precio</th>
-          <th class="fw-semibold text-uppercase text-center">Stock</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% low_stock_products = [] %> <!-- Inicializamos siempre -->
-        <% total_valor = 0 %>
+      <table class="table table-hover table-bordered align-middle mb-0">
+        <thead class="table-dark text-white">
+          <tr>
+            <th class="fw-semibold text-uppercase text-center">Código</th>
+            <th class="fw-semibold text-uppercase">Nombre</th>
+            <th class="fw-semibold text-uppercase">Categoría</th>
+            <th class="fw-semibold text-uppercase">Marca</th>
+            <th class="fw-semibold text-uppercase text-center">Precio</th>
+            <th class="fw-semibold text-uppercase text-center">Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% low_stock_products = [] %> <!-- Inicializamos siempre -->
+          <% total_valor = 0 %>
 
-        <% if @products.present? %>
-          <% @products.each do |product| %>
-            <% total_valor += product.price.to_f * product.quantity.to_i %>
-            <% low_stock_products << product if product.quantity.to_i <= 25 %>
+          <% if @products.present? %>
+            <% @products.each do |product| %>
+              <% total_valor += product.price.to_f * product.quantity.to_i %>
+              <% low_stock_products << product if product.quantity.to_i <= 25 %>
 
-            <tr class="align-middle">
-              <td class="text-muted text-center"><%= product.code %></td>
-              <td class="fw-semibold"><%= product.name %></td>
-              <td><%= product.category&.name || "—" %></td>
-              <td><%= product.marca&.name || "—" %></td>
-              <td class="text-center">
-                <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
-                  <%= number_to_currency(product.price) %>
-                </span>
+              <tr class="align-middle">
+                <td class="text-muted text-center"><%= product.code %></td>
+                <td class="fw-semibold"><%= product.name %></td>
+                <td><%= product.category&.name || "—" %></td>
+                <td><%= product.marca&.name || "—" %></td>
+                <td class="text-center">
+                  <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
+                    <%= number_to_currency(product.price) %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <% if product.quantity.to_i > 100 %>
+                    <span class="badge px-3 py-2 shadow-sm" style="background-color:#d4edda; color:#155724;">
+                      ✅ <%= product.quantity %>
+                    </span>
+                  <% elsif product.quantity.to_i > 25 %>
+                    <span class="badge px-3 py-2 shadow-sm" style="background-color:#fff3cd; color:#856404;">
+                      ⚠️ <%= product.quantity %>
+                    </span>
+                  <% else %>
+                    <span class="badge px-3 py-2 shadow-sm" style="background-color:#f8d7da; color:#721c24;">
+                      ❌ <%= product.quantity %>
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+
+            <!-- Fila resumen -->
+            <tr class="table-secondary fw-bold">
+              <td colspan="4" class="text-end">Valor total en inventario:</td>
+              <td colspan="2" class="text-center">
+                <%= number_to_currency(total_valor) %>
               </td>
-              <td class="text-center">
-                <% if product.quantity.to_i > 100 %>
-                  <span class="badge px-3 py-2 shadow-sm" style="background-color:#d4edda; color:#155724;">
-                    ✅ <%= product.quantity %>
-                  </span>
-                <% elsif product.quantity.to_i > 25 %>
-                  <span class="badge px-3 py-2 shadow-sm" style="background-color:#fff3cd; color:#856404;">
-                    ⚠️ <%= product.quantity %>
-                  </span>
-                <% else %>
-                  <span class="badge px-3 py-2 shadow-sm" style="background-color:#f8d7da; color:#721c24;">
-                    ❌ <%= product.quantity %>
-                  </span>
-                <% end %>
+            </tr>
+          <% else %>
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                No hay productos disponibles
               </td>
             </tr>
           <% end %>
-
-          <!-- Fila resumen -->
-          <tr class="table-secondary fw-bold">
-            <td colspan="4" class="text-end">Valor total en inventario:</td>
-            <td colspan="2" class="text-center">
-              <%= number_to_currency(total_valor) %>
-            </td>
-          </tr>
-        <% else %>
-          <tr>
-            <td colspan="6" class="text-center text-muted py-4">
-              No hay productos disponibles
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-</div>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

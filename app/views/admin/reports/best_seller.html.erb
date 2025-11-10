@@ -2,39 +2,44 @@
 
   <!-- Título y subtítulo -->
   <div class="mb-4 text-center text-md-start">
-    <h1 class="mb-1">Reporte de Mejores Vendedores</h1>
-    <p class="text-muted mb-0">Consulta los vendedores con mayor volumen de ventas e ingresos generados.</p>
+    <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
+      <h1 class="mb-1">Reporte de Mejores Vendedores</h1>
+      <p class="text-muted mb-0">Consulta los vendedores con mayor volumen de ventas e ingresos generados.</p>
+    <% else %>
+      <h1 class="mb-1">Mis Ventas</h1>
+      <p class="text-muted mb-0">Visualiza tus ventas realizadas y tu rendimiento personal.</p>
+    <% end %>
   </div>
 
   <!-- Botón regresar -->
-  <div class="mb-3">
-    <a href="/admin/reports" class="btn btn-outline-secondary">&larr; Volver a Reportes</a>
+  <div class="mb-3 text-start">
+    <a href="/admin/reports" class="btn btn-outline-secondary" data-turbo="false">&larr; Volver a Reportes</a>
   </div>
 
   <!-- Filtros -->
   <div class="row g-3 mb-4 align-items-end">
-    <div class="col-md-8">
+    <div class="col-lg-8 col-md-12">
       <%= form_with url: '/admin/reports/best_seller', method: :get, local: true, class: 'row g-2 align-items-end' do |f| %>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label>Fecha inicio</label>
           <%= f.date_field :start_date, value: params[:start_date], class: 'form-control' %>
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
           <label>Fecha fin</label>
           <%= f.date_field :end_date, value: params[:end_date], class: 'form-control' %>
         </div>
-        <div class="col-md-4 d-flex gap-2">
-          <%= f.submit 'Aplicar filtros', class: 'btn btn-primary w-50' %>
-          <a href="/admin/reports/best_seller" class="btn btn-secondary w-50">Reiniciar filtros</a>
+        <div class="col-12 col-md-4 d-flex gap-2 flex-wrap">
+          <%= f.submit 'Aplicar filtros', class: 'btn btn-primary flex-grow-1' %>
+          <a href="/admin/reports/best_seller" class="btn btn-secondary flex-grow-1" data-turbo="false">Reiniciar filtros</a>
         </div>
       <% end %>
     </div>
 
-    <div class="col-md-4 text-md-end">
-      <button class="btn btn-success" onclick="exportTableToExcel('sellersTable', 'mejores_vendedores')">
+    <div class="col-lg-4 col-md-12 text-md-end text-start mt-2 mt-md-0">
+      <button class="btn btn-success mb-2 mb-md-0" onclick="exportTableToExcel('sellersTable', 'ventas')">
         Exportar a Excel
       </button>
-      <button class="btn btn-danger ms-2" onclick="exportTableAndChartToPDF('sellersTable', 'topSellersChart', 'mejores_vendedores')">
+      <button class="btn btn-danger ms-md-2" onclick="exportTableAndChartToPDF('sellersTable', 'topSellersChart', 'ventas')">
         Descargar PDF
       </button>
     </div>
@@ -42,20 +47,20 @@
 
   <!-- Gráfico -->
   <div class="card mb-4 shadow-sm">
-    <div class="card-body">
-      <canvas id="topSellersChart" width="1000" height="400"></canvas>
+    <div class="card-body" style="position: relative; height:400px; width:100%;">
+      <canvas id="topSellersChart" style="width:100%; height:100%;"></canvas>
     </div>
   </div>
 
   <!-- Resumen -->
   <div class="row mb-4">
-    <div class="col-md-6 mb-2">
+    <div class="col-12 col-md-6 mb-2">
       <div class="card shadow-sm border-light text-center p-3">
         <h6>Total de unidades vendidas</h6>
         <p class="fs-5 mb-0"><%= @total_units_sold %></p>
       </div>
     </div>
-    <div class="col-md-6 mb-2">
+    <div class="col-12 col-md-6 mb-2">
       <div class="card shadow-sm border-light text-center p-3">
         <h6>Total de ingresos</h6>
         <p class="fs-5 mb-0">$<%= number_with_precision(@total_revenue, precision: 2) %></p>
@@ -103,7 +108,6 @@
 <script>
   window.topSellersChart = window.topSellersChart || null;
 
-  // Exportar tabla a Excel
   function exportTableToExcel(tableID, filename='') {
     const table = document.getElementById(tableID);
     const template = `<html xmlns:o="urn:schemas-microsoft-com:office:office" 
@@ -117,12 +121,10 @@
     link.click();
   }
 
-  // Exportar tabla + gráfico a PDF (igual que Top Brands)
   function exportTableAndChartToPDF(tableID, canvasID, filename='') {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'pt', 'a4');
 
-    // Tabla
     const table = document.getElementById(tableID);
     const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
     const data = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
@@ -138,7 +140,6 @@
       styles: { fontSize: 10 }
     });
 
-    // Gráfico
     const canvas = document.getElementById(canvasID);
     if (canvas) {
       const imgData = canvas.toDataURL('image/png');
@@ -151,7 +152,6 @@
     doc.save(filename ? filename + '.pdf' : 'reporte.pdf');
   }
 
-  // Inicializar gráfico
   function initializeSellersChart() {
     const table = document.getElementById('sellersTable');
     const canvas = document.getElementById('topSellersChart');
@@ -174,12 +174,14 @@
     }
 
     const ctx = canvas.getContext('2d');
+    const isAdmin = <%= @current_user.role.name.in?(["super_admin", "admin"]) ? 'true' : 'false' %>;
+
     window.topSellersChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Unidades Vendidas',
+          label: isAdmin ? 'Unidades Vendidas' : 'Mis Unidades Vendidas',
           data: data,
           backgroundColor: labels.map(() => `rgba(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*200)}, ${Math.floor(Math.random()*255)}, 0.7)`),
           borderColor: '#333',
@@ -191,7 +193,7 @@
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: 'Mejores Vendedores' },
+          title: { display: true, text: isAdmin ? 'Mejores Vendedores' : 'Mis Ventas' },
           tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw} unidades` } }
         },
         scales: { y: { beginAtZero: true, max: maxValue } }
@@ -231,5 +233,15 @@
     else rows.forEach(r=>r.style.display='');
   }
 
-  document.addEventListener('DOMContentLoaded', () => setTimeout(initializeSellersChart, 100));
+  //document.addEventListener('DOMContentLoaded', () => setTimeout(initializeSellersChart, 100));
+  function safeInitTopSellers() {
+    setTimeout(() => {
+      if (typeof initializeSellersChart === "function") {
+        initializeSellersChart();
+      }
+    }, 50);
+  }
+
+  document.addEventListener("DOMContentLoaded", safeInitTopSellers);
+  document.addEventListener("turbo:load", safeInitTopSellers);
 </script>

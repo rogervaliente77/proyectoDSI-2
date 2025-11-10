@@ -26,6 +26,12 @@ Rails.application.routes.draw do
     # Usuarios
     patch "/users/update", to: "users#update"
     get "/users/edit_password", to: "users#edit_password"
+    resource :profile, only: [:show, :update]
+    resources :addresses, only: [:show,:update,:destroy]
+      
+
+
+
 
     # Carrito y compras
     resource :cart, only: [:show] do
@@ -41,7 +47,12 @@ Rails.application.routes.draw do
     post "checkout", to: "carts#create_purchase", as: 'create_purchase'
 
     # Compras
-    resources :purchases, only: [:index, :show]
+    resources :purchases, only: [:index, :show] do
+      get "schedule_appointment", to: "purchases#schedule_appointment"
+      post "confirm_appointment", to: "purchases#confirm_appointment"
+      get "estado_entrega", to: "purchases#delivery_status_real_time"
+      get "refresh_delivery_status", to: "purchases#refresh_delivery_status"
+    end
 
     root "landing#index"
   end
@@ -123,6 +134,12 @@ Rails.application.routes.draw do
     # Mensajero
     resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]
 
+    #Deliveries
+    get "pedidos", to: "deliveries#index"
+    get "assign_to_delivery_driver", to: "deliveries#assign_to_delivery_driver"
+    patch "assign_to_delivery_driver", to: "deliveries#save_delivery_driver_in_delivery"
+    patch "change_delivery_status", to: "deliveries#change_delivery_status"
+
     # Devoluciones
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
       member do
@@ -148,12 +165,19 @@ Rails.application.routes.draw do
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
 
     # 🔹 Reportes
-# 🔹 Reportes
-get 'reports', to: 'reports#index', as: :admin_reports
-get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
-get 'reports/top_brands', to: 'reports#top_brands', as: :top_brands_admin_reports
-get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
-get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
+    # 🔹 Reportes
+    get 'reports', to: 'reports#index', as: :admin_reports
+    get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
+    get 'reports/top_brands', to: 'reports#top_brands', as: :top_brands_admin_reports
+    get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
+    get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
+
+   # 🔹 Configuraciones del sitio
+  get "configuraciones", to: "site_configurations#show", as: :site_configuration
+  patch "configuraciones/update", to: "site_configurations#update", as: :update_site_configuration
+  post "configuraciones/mass_mail", to: "site_configurations#mass_mail", as: :mass_mail
+  #get "configuraciones/not", to: "site_configurations#not", as: :site_notifications_alerts  
+  
   end
 
   # Health check y landing

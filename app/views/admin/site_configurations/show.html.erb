@@ -1,0 +1,106 @@
+<!-- app/views/admin/site_configurations/show.html.erb -->
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Configuraciones Generales del Sitio</h1>
+
+    <%= link_to admin_home_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver al panel
+    <% end %>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Ajustes Generales</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Opciones:</div>
+              <a class="dropdown-item" href="#">Ver documentación</a>
+              <a class="dropdown-item" href="#">Soporte técnico</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <%= simple_form_for @config,
+              url: admin_site_configuration_path,
+              method: :patch,
+              html: { class: "needs-validation", id: "form-configuracion-general", novalidate: false },
+              data: { turbo: false } do |f| %>
+
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <%= f.input :session_timeout,
+                      label: "Tiempo de inactividad (minutos)",
+                      required: true,
+                      input_html: { class: "form-control", min: 1 } %>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <%= f.input :company_name,
+                      label: "Nombre de la empresa",
+                      input_html: { class: "form-control" } %>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <%= f.input :currency_symbol,
+                      label: "Símbolo de moneda predeterminado",
+                      input_html: { class: "form-control", maxlength: 3 } %>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <%= f.input :timezone,
+                      label: "Zona horaria del sistema",
+                      collection: ActiveSupport::TimeZone.all.map(&:name),
+                      prompt: "Seleccione zona horaria",
+                      input_html: { class: "form-control" } %>
+                </div>
+
+                <div class="col-md-4 mb-3 d-flex align-items-center">
+                  <div class="form-check mt-4">
+                    <%= f.check_box :maintenance_mode, class: "form-check-input", id: "maintenance_mode" %>
+                    <%= f.label :maintenance_mode, "Activar modo mantenimiento", class: "form-check-label" %>
+                  </div>
+                </div>
+
+                <div class="col-md-4 mb-3 d-flex align-items-center">
+                  <div class="form-check mt-4">
+                    <%= f.check_box :debug_mode, class: "form-check-input", id: "debug_mode" %>
+                    <%= f.label :debug_mode, "Activar modo desarrollador", class: "form-check-label" %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                  <%= f.submit '💾 Guardar Cambios', class: 'btn btn-success px-4' %>
+                </div>
+              </div>
+
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.container-fluid -->

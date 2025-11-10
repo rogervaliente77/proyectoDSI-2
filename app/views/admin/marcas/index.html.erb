@@ -1,10 +1,10 @@
 <!-- app/views/admin/marcas/index.html.erb -->
 <div class="container-fluid">
   <!-- Encabezado y botón de nueva marca -->
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Admin - Marcas</h1>
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
+    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Admin - Marcas</h1>
     <%= link_to new_admin_marca_path, class: "btn btn-sm btn-primary shadow-sm" do %>
-      <i class="fas fa-plus"></i> Crear Marca
+      <i class="fas fa-plus me-1"></i> Crear Marca
     <% end %>
   </div>
 
@@ -50,12 +50,8 @@
             </td>
           </tr>
         <% end %>
-      <% else %>
-        <tr>
-          <td colspan="4" class="text-center">No hay marcas registradas.</td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </div>
 </div>
 </div>

@@ -1,5 +1,12 @@
 <div class="container-fluid py-4">
-  <h1 class="h3 text-dark fw-bold mb-4">📦 Productos devueltos</h1>
+  <!-- Título con emoji -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 text-dark fw-bold">📦 Productos devueltos</h1>
+    <div class="d-flex gap-2">
+      <button class="btn btn-success btn-sm" id="exportExcel">📊 Excel</button>
+      <button class="btn btn-danger btn-sm" id="exportPDF">📄 PDF</button>
+    </div>
+  </div>
 
   <div class="card shadow-sm rounded">
     <div class="table-responsive">
@@ -20,27 +27,20 @@
         <% if @returned_products.any? %>
           <% @returned_products.each do |rp| %>
             <tr>
-              <td class="text-center"><%= rp.product.code %></td>
-              <td class="fw-semibold"><%= rp.product.name %></td>
-              <td><%= rp.product.category&.name || "—" %></td>
-              <td><%= rp.product.marca&.name || "—" %></td>
-              <td class="text-center"><%= number_to_currency(rp.unit_price) %></td>
-              <td class="text-center"><%= rp.discount || 0 %>%</td>
-              <td class="text-center">
-                <input type="number"
-                       class="form-control form-control-sm text-center returned-quantity"
-                       value="<%= rp.quantity %>"
-                       readonly>
+              <td colspan="8" class="text-center text-muted py-4">
+                No hay productos devueltos
               </td>
-              <td class="text-center subtotal"><%= number_to_currency(rp.unit_price * rp.quantity) %></td>
             </tr>
           <% end %>
-        <% else %>
-          <tr>
-            <td colspan="8" class="text-center text-muted py-4">
-              No hay productos devueltos
-            </td>
-          </tr>
+        </tbody>
+        <% if @returned_products.any? %>
+          <tfoot class="table-light fw-bold text-center">
+            <tr>
+              <td colspan="6" class="text-end">Totales:</td>
+              <td id="total_cantidad">📦 <%= @total_cantidad %></td>
+              <td id="total_valor">💰 <%= number_to_currency(@total_valor) %></td>
+            </tr>
+          </tfoot>
         <% end %>
       </tbody>
       <% if @returned_products.any? %>
@@ -57,29 +57,45 @@
   </div>
 </div>
 
-<!-- Opcional: Script para actualizar totales si alguna cantidad cambia dinámicamente -->
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    function actualizarTotales() {
-      let totalCantidad = 0;
-      let totalValor = 0;
-      document.querySelectorAll("#returned_products_body tr").forEach(row => {
-        const qtyInput = row.querySelector(".returned-quantity");
-        if (!qtyInput) return;
-        const qty = parseFloat(qtyInput.value) || 0;
-        const precio = parseFloat(row.querySelector(".subtotal").textContent.replace(/[^0-9.-]+/g,"")) / qty || 0;
-        const subtotal = qty * precio;
-        row.querySelector(".subtotal").textContent = "$" + subtotal.toFixed(2);
-        totalCantidad += qty;
-        totalValor += subtotal;
-      });
-      document.getElementById("total_cantidad").textContent = totalCantidad;
-      document.getElementById("total_valor").textContent = "$" + totalValor.toFixed(2);
-    }
+<!-- Librerías para Excel y PDF -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-    // Escuchar cambios en cantidad si se quiere permitir edición
-    document.querySelectorAll(".returned-quantity").forEach(input => {
-      input.addEventListener("input", actualizarTotales);
-    });
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Función para Excel
+  document.getElementById("exportExcel").addEventListener("click", () => {
+    const table = document.getElementById("returnedProductsTable");
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Productos devueltos" });
+    XLSX.writeFile(wb, `productos_devueltos_${new Date().toISOString().slice(0,10)}.xlsx`);
   });
+
+  // Función para PDF
+  document.getElementById("exportPDF").addEventListener("click", () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(14);
+    doc.text("Productos devueltos", 10, 15);
+
+    const rows = [];
+    const table = document.getElementById("returnedProductsTable");
+    Array.from(table.tBodies[0].rows).forEach(row => {
+      const rowData = Array.from(row.cells).map(cell => cell.innerText.trim());
+      rows.push(rowData);
+    });
+
+    doc.autoTable({
+      head: [Array.from(table.tHead.rows[0].cells).map(c => c.innerText)],
+      body: rows,
+      startY: 25,
+      theme: "grid",
+      headStyles: { fillColor: [54, 162, 235] },
+      styles: { fontSize: 10 }
+    });
+
+    doc.save(`productos_devueltos_${new Date().toISOString().slice(0,10)}.pdf`);
+  });
+});
 </script>
