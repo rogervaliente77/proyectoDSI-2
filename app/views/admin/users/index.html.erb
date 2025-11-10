@@ -38,41 +38,27 @@
           <% end %>
 
           <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover mb-0 text-truncate" style="table-layout: auto;">
-              <thead class="thead-light">
+<table class="table table-bordered" id="usersTable">
+            <thead class="thead-light">
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol actual</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @users.each do |user| %>
                 <tr>
                   <th style="width: 25%;">Nombre</th>
                   <th style="width: 30%;">Email</th>
                   <th style="width: 20%;">Rol actual</th>
                   <th style="width: 25%;">Acción</th>
                 </tr>
-              </thead>
-              <tbody>
-                <% @users.each do |user| %>
-                  <tr>
-                    <td class="text-truncate"><%= user.full_name %></td>
-                    <td class="text-truncate"><%= user.email %></td>
-                    <td>
-                      <% role = user&.role&.name %>
-                      <% badge_class = case role
-                        when "super_admin" then "success"
-                        when "admin" then "info"
-                        when "cajero" then "primary"
-                        when "mensajero" then "warning"
-                        else "secondary"
-                      end %>
-                      <span class="badge bg-<%= badge_class %>"><%= role&.humanize || "Cliente" %></span>
-                    </td>
-                    <td>
-                      <%= link_to edit_admin_user_path(id: user.id), class: "btn btn-primary btn-sm w-100 w-md-auto mb-1 mb-md-0", data: { turbo: false } do %>
-                        <i class="fa fa-edit me-1"></i> Editar
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
+              <% end %>
+            </tbody>
+          </table>
+</div>
         </div>
 
       </div>

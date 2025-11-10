@@ -37,24 +37,30 @@
     </div>
 
     <!-- Productos disponibles a devolver -->
-    <h5 class="mb-2">📦 Productos para devolución</h5>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered align-middle">
-        <thead class="table-light text-center">
-          <tr>
-            <th>Producto</th>
-            <th>Precio unitario ($)</th>
-            <th>Cantidad disponible</th>
-            <th>Cantidad a devolver</th>
-            <th>Subtotal ($)</th>
-          </tr>
-        </thead>
-        <tbody id="products_container">
-          <tr>
-            <td colspan="5" class="text-muted text-center">Busque una venta primero para ver los productos</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title text-secondary mb-3">
+          <i class="fas fa-boxes me-2"></i> Productos para devolución
+        </h5>
+        <div class="table-responsive">
+<table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th><i class="fas fa-tag me-1"></i> Producto</th>
+              <th><i class="fas fa-dollar-sign me-1"></i> Precio unitario ($)</th>
+              <th><i class="fas fa-layer-group me-1"></i> Cantidad disponible</th>
+              <th><i class="fas fa-clipboard-list me-1"></i> Cantidad a devolver</th>
+              <th><i class="fas fa-calculator me-1"></i> Subtotal ($)</th>
+            </tr>
+          </thead>
+          <tbody id="products_container">
+            <tr>
+              <td colspan="5" class="text-muted text-center">Busque una venta primero para ver los productos</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+      </div>
     </div>
 
     <!-- Total general -->
