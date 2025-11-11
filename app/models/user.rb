@@ -12,6 +12,7 @@ class User
   field :phone_number,     type: String
   field :password_digest,  type: String
   field :is_valid,         type: Mongoid::Boolean, default: true
+  field :enabled, type: Boolean, default: true
   field :session_token_id, type: String
   field :otp_code,         type: Integer
   field :is_admin,         type: Mongoid::Boolean, default: false

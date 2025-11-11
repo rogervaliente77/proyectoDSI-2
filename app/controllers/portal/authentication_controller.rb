@@ -89,6 +89,7 @@ module Portal
       @user.otp_code = generate_otp_code # Genera un código aleatorio de 6 dígitos
       @user.jwt_token = SecureRandom.hex(20)
       @user.role = Role.where(name: 'cliente').first
+      @user.enabled = false
   
       if @user.save
         # Si el registro es exitoso
@@ -117,7 +118,7 @@ module Portal
       # Encuentra al usuario por jwt_token y valida su otp_code
       user = User.find_by(jwt_token: params[:user][:jwt_token])
       if user && user.otp_code == params[:user][:otp_code].to_i
-        user.update(is_valid: true)
+        user.update(enabled: true)
 
         # Crea un nuevo token de sesión
         session_token = SecureRandom.hex(32)
