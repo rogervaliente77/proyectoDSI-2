@@ -16,7 +16,7 @@ Rails.application.configure do
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local = false
   config.action_controller.perform_caching = true
-  config.active_job.queue_adapter = :async
+  # config.active_job.queue_adapter = :async
 
   # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
@@ -107,6 +107,8 @@ Rails.application.configure do
      enable_starttls_auto: true,
      user_name: ENV['SENDER_EMAIL'], # Correo configurado en .env
      password: ENV['APP_PASSWORD']   # Contraseña de aplicación configurada en .env
+     open_timeout: 20,
+     read_timeout: 20
    }
 end
 
