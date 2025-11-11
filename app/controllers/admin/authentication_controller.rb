@@ -100,7 +100,7 @@ module Admin
       if @user.save
         # Si el registro es exitoso
         session[:jwt_token] = @user.jwt_token
-        UserVerificationMailer.send_otp_email(@user).deliver_now
+        UserVerificationMailer.send_otp_email(@user).deliver_later
         redirect_to portal_validating_user_path, notice: "Solicitud recibida con exito"
       else
         # Si hay errores, renderiza el formulario nuevamente
