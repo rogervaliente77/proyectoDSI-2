@@ -106,7 +106,7 @@ Rails.application.configure do
      authentication: "plain",
      enable_starttls_auto: true,
      user_name: ENV['SENDER_EMAIL'], # Correo configurado en .env
-     password: ENV['APP_PASSWORD']   # Contraseña de aplicación configurada en .env
+     password: ENV['APP_PASSWORD'],   # Contraseña de aplicación configurada en .env
      open_timeout: 20,
      read_timeout: 20
    }
