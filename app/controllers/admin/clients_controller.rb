@@ -7,11 +7,11 @@ module Admin
     
     def index
       # binding.pry
-      @cajas = Caja.all 
+      @clients = Client.all
     end
 
     def new
-      @caja = Caja.new
+      @client = Client.new
     end
 
     def create

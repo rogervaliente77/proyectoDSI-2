@@ -3,8 +3,8 @@
   <!-- Page Heading -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <%= link_to admin_cajas_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
-      <i class="fas fa-plus fa-sm text-white-50"></i> Crear caja
+    <%= link_to new_admin_client_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear cliente
     <% end %>
   </div>
 
@@ -15,7 +15,7 @@
       <div class="card shadow mb-4">
         <!-- Card Header - Dropdown -->
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Gestion de cajas</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Gestion de clientes</h6>
           <div class="dropdown no-arrow">
             <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -43,23 +43,41 @@
           <h1 class="h3 mb-4 text-gray-800"></h1>
 
           <div class="table-responsive">
-<table class="table table-bordered" id="usersTable">
-            <thead class="thead-light">
-              <tr>
-                <th>No</th>
-                <th>Caja</th>
-                <th>F. de creacion</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              
-            </tbody>
-          </table>
-</div>
+            <table class="table table-bordered" id="usersTable">
+              <thead class="thead-light">
+                <tr>
+                  <th>No</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Code</th>
+                  <th>F. Registro</th>
+                  <th>Categoria</th>
+                  <th>Main Direccion</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @clients&.each_with_index do |client, index| %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= client.full_name %></td>
+                    <td><%= client.email %></td>
+                    <td><%= client.code %></td>
+                    <td><%= client.created_at %></td>
+                    <td><%= client.main_address %></td>
+                    <td><%= client.created_at %></td>
+                    <td>
+                      <%= link_to edit_admin_client_path(id: client.id), class: "btn btn-primary btn-sm" do %>
+                                  <i class="fa fa-edit" title="Editar"></i><span>
+                                <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-<!-- /.container-fluid -->

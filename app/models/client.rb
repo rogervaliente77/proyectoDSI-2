@@ -4,7 +4,8 @@ class Client
 
   # Campos
   field :first_name, type: String
-  field :second_name, type: String
+  field :last_name, type: String
+  field :full_name, type: String
   field :email, type: String
   field :phone_number, type: String
   field :main_address, type: String
@@ -17,8 +18,8 @@ class Client
   field :dui, type: String
   field :fecha_registro, type: DateTime
   field :categoria_mora, type: String
+  field :tipo_cliente, type: String
 
   # Validaciones
-  validates :name, presence: { message: "El nombre es obligatorio" }, uniqueness: { message: "Este nombre ya existe" }
 
 end
