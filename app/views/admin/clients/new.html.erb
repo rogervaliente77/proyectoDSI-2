@@ -17,7 +17,7 @@
                 <!-- Card Header - Dropdown -->
                 <div
                     class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Nueva caja</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Nuevo cliente <%= @tipo_cliente %></h6>
                     <div class="dropdown no-arrow">
                         <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -42,20 +42,40 @@
                     <div class="alert alert-danger"><%= flash[:alert] %></div>
                     <% end %>
                                         
-                    <%= simple_form_for :client, url: admin_clients_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <%= form.input :first_name, label: "Nombres", required: true, input_html: { class: "form-control", id: "title" } %>
-                            </div>
+                    <%= simple_form_for :client, url: admin_clients_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false }, data: { turbo: false } do |form| %> 
+                        <% if @tipo_cliente == 'natural' %>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <%= form.input :first_name, label: "Nombres", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
 
-                            <div class="col-sm-4">
-                                <%= form.input :last_name, label: "Apellidos", required: true, input_html: { class: "form-control", id: "title" } %>
-                            </div>
+                                <div class="col-sm-3">
+                                    <%= form.input :last_name, label: "Apellidos", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
 
-                            <div class="col-sm-4">
-                                <%= form.input :phone_number, label: "Telefono", required: true, input_html: { class: "form-control", id: "title" } %>
+                                <div class="col-sm-3">
+                                    <%= form.input :email, label: "Email", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <%= form.input :phone_number, label: "Telefono", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
                             </div>
-                        </div>
+                        <% elsif @tipo_cliente == 'juridico' %>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <%= form.input :full_name, label: "Nombre", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <%= form.input :email, label: "Email", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <%= form.input :phone_number, label: "Telefono", required: true, input_html: { class: "form-control", id: "title" } %>
+                                </div>
+                            </div>
+                        <% end %>
 
                         <div class="row">
                             <div class="col-sm-3">
@@ -71,25 +91,23 @@
                             </div>
 
                             <div class="col-sm-3">
-                                <%= form.input :tipo_cliente, label: "Tipo Cliente", required: true, input_html: { class: "form-control", id: "title" } %>
+                                <%= form.input :tipo_cliente, 
+                                        label: "Tipo Cliente", 
+                                        required: true, 
+                                        input_html: { 
+                                        class: "form-control", 
+                                        id: "title",
+                                        value: @tipo_cliente,      # valor por defecto
+                                        readonly: true             # solo lectura
+                                        } 
+                                %>
                             </div>
+
                         </div>
 
                         <div class="row">
                             <div class="col">
-                                <%= form.input :first_address, label: "Direccion 1", required: true, input_html: { class: "form-control", id: "title" } %>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <%= form.input :first_address, label: "Direccion 1", required: true, input_html: { class: "form-control", id: "title" } %>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <%= form.input :first_address, label: "Direccion 1", required: true, input_html: { class: "form-control", id: "title" } %>
+                                <%= form.input :address, label: "Direccion 1", required: true, input_html: { class: "form-control", id: "title" } %>
                             </div>
                         </div>
 

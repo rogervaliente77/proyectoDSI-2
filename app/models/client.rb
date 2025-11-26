@@ -9,7 +9,7 @@ class Client
   field :email, type: String
   field :phone_number, type: String
   field :main_address, type: String
-  field :first_address, type: String
+  field :address, type: String
   field :second_address, type: String
   field :third_address, type: String
   field :code, type: String

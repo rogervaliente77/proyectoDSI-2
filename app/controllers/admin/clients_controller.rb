@@ -1,6 +1,6 @@
 module Admin
   class ClientsController < Admin::ApplicationController
-    # before_action :set_current_user
+    before_action :set_current_user
     # before_action :check_admin_access
     # before_action :set_product, only: %i[ product_sales edit update destroy]
     layout 'dashboard'
@@ -12,17 +12,59 @@ module Admin
 
     def new
       @client = Client.new
+
+      if params[:tipo_cliente] == "natural"
+        @tipo_cliente = "natural"
+      else
+        @tipo_cliente = "juridico"
+      end
     end
 
     def create
-        @caja = Caja.new(caja_params)
-      
-        if @caja.save
-          redirect_to admin_cajas_path, notice: "Caja creada con éxito."
-        else
-          flash[:alert] = "Hubo un error al crear el producto"
-          render :new, status: :unprocessable_entity
+      @client = Client.new(client_params)
+
+      if @client.tipo_cliente == "natural"
+        # --- Validaciones ---
+        if params[:client][:first_name].blank?
+          flash[:alert] = "El nombre es obligatorio."
+          return redirect_to new_admin_client_path(tipo_cliente: "natural")
         end
+
+        if params[:client][:last_name].blank?
+          flash[:alert] = "El apellido es obligatorio."
+          return redirect_to new_admin_client_path(tipo_cliente: "natural")
+        end
+
+        # --- Construir full_name ---
+        @client.full_name = "#{params[:client][:first_name]} #{params[:client][:last_name]}"
+
+        # --- Generar código CN-xxxx ---
+        @client.code = next_codigo("CN")
+
+      else # JURÍDICO
+        # --- Validaciones ---
+        if params[:client][:full_name].blank?
+          flash[:alert] = "El nombre de la empresa es obligatorio."
+          return redirect_to new_admin_client_path(tipo_cliente: "juridico")
+        end
+
+        if params[:client][:nit].blank?
+          flash[:alert] = "El NIT es obligatorio."
+          return redirect_to new_admin_client_path(tipo_cliente: "juridico")
+        end
+
+        # --- Generar código CJ-xxxx ---
+        @client.code = next_codigo("CJ")
+      end
+
+      # Guardar
+      if @client.save
+        flash[:notice] = "Cliente creado correctamente."
+        redirect_to admin_clients_path
+      else
+        flash[:alert] = @client.errors.full_messages.join(", ")
+        render :new
+      end
     end
 
     def edit
@@ -69,7 +111,7 @@ module Admin
     #   end
     # end
 
-    # private
+    private
 
     # def check_admin_access
     #   if current_user.is_admin == false
@@ -81,12 +123,29 @@ module Admin
     #   @product = Product.find(params[:product_id]) || nil
     # end
 
-    # def set_current_user
-    #   @current_user = current_user
-    # end
-
-    def caja_params
-      params.require(:caja).permit(:nombre, :caja_number)
+    def set_current_user
+      @current_user = current_user
     end
+
+    def client_params
+      params.require(:client).permit(:first_name, :last_name, :full_name, :email, :phone_number, :address,
+                                   :giro, :nit, :dui, :tipo_cliente)
+    end
+
+    def next_codigo(prefijo)
+      # Busca el último documento cuyo codigo empiece por "CN-" o "CJ-"
+      regex = /^#{Regexp.escape(prefijo)}-/
+      ultimo = Client.where(code: regex).order_by(code: :desc).limit(1).pluck(:code).first
+
+      if ultimo.present?
+        numero = ultimo.split("-").last.to_i + 1
+      else
+        numero = 1
+      end
+
+      numero_formateado = numero.to_s.rjust(7, "0")
+      "#{prefijo}-#{numero_formateado}"
+    end
+
   end
 end

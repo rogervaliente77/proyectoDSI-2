@@ -3,9 +3,18 @@
   <!-- Page Heading -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <%= link_to new_admin_client_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
-      <i class="fas fa-plus fa-sm text-white-50"></i> Crear cliente
-    <% end %>
+
+    <div class="btn-group">
+      <button type="button" class="btn btn-sm btn-primary shadow-sm dropdown-toggle"
+              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-plus fa-sm text-white-50"></i> Crear cliente
+      </button>
+
+      <div class="dropdown-menu dropdown-menu-right">
+        <%= link_to "Natural", new_admin_client_path(tipo_cliente: "natural"), class: "dropdown-item" %>
+        <%= link_to "Jurídico", new_admin_client_path(tipo_cliente: "juridico"), class: "dropdown-item" %>
+      </div>
+    </div>
   </div>
 
   <!-- Content Row -->
@@ -51,8 +60,9 @@
                   <th>Email</th>
                   <th>Code</th>
                   <th>F. Registro</th>
-                  <th>Categoria</th>
-                  <th>Main Direccion</th>
+                  <th>Giro</th>
+                  <th>Tipo Cliente</th>
+                  <th>Direccion</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -60,12 +70,13 @@
                 <% @clients&.each_with_index do |client, index| %>
                   <tr>
                     <td><%= index + 1 %></td>
-                    <td><%= client.full_name %></td>
-                    <td><%= client.email %></td>
-                    <td><%= client.code %></td>
-                    <td><%= client.created_at %></td>
-                    <td><%= client.main_address %></td>
-                    <td><%= client.created_at %></td>
+                    <td><small> <%= client.full_name %> </small></td>
+                    <td><small><%= client.email %></small></td>
+                    <td style="white-space: nowrap;"><small><b><%= client.code %></b></small></td>
+                    <td><small><%= client.created_at.strftime("%d/%m/%Y") %></small></td>
+                    <td><small><%= client.giro %></small></td>
+                    <td><small><%= client.tipo_cliente %></small></td>
+                    <td><small><%= client.address %></small></td>
                     <td>
                       <%= link_to edit_admin_client_path(id: client.id), class: "btn btn-primary btn-sm" do %>
                                   <i class="fa fa-edit" title="Editar"></i><span>

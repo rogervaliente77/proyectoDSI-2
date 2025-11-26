@@ -1,5 +1,6 @@
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background-color: #2C3E50;">
-
+  
+  <br>
   <!-- Sidebar - Brand -->
   <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
     <a class="sidebar-brand d-flex align-items-center justify-content-center py-3" href="<%= admin_home_path %>" data-turbo="false">
@@ -89,6 +90,24 @@
       </div>
     </li>
 
+    <!-- Clientes -->
+    <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClientes"
+          aria-expanded="true" aria-controls="collapseClientes">
+          <i class="fas fa-motorcycle"></i>
+          <span>Clientes</span>
+        </a>
+        <div id="collapseClientes" class="collapse" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Gestión de mensajeros:</h6>
+            <a class="collapse-item" href="<%= admin_clients_path %>" data-turbo="false">Ver clientes</a>
+            <a class="collapse-item" href="<%= new_admin_client_path %>" data-turbo="false">Crear nuevo cliente</a>
+          </div>
+        </div>
+      </li>
+    <% end %>
+
     <!-- Marcas -->
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMarcas"
@@ -125,61 +144,6 @@
     </li>
   <% end %>
 
-  <!-- Cajas -->
-  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
-         aria-expanded="true" aria-controls="collapseCajas">
-        <i class="fas fa-store"></i>
-        <span>Cajas</span>
-      </a>
-      <div id="collapseCajas" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Cajas:</h6>
-          <a class="collapse-item" href="<%= admin_cajas_path %>" data-turbo="false">Cajas</a>
-          <a class="collapse-item" href="<%= admin_cajas_new_path %>" data-turbo="false">Crear nueva caja</a>
-        </div>
-      </div>
-    </li>
-
-    <!-- Cajeros -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
-         aria-expanded="true" aria-controls="collapseCajeros">
-        <i class="fas fa-user-tie"></i>
-        <span>Cajeros</span>
-      </a>
-      <div id="collapseCajeros" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Cajeros:</h6>
-          <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
-          <a class="collapse-item" href="<%= admin_cajeros_new_path %>" data-turbo="false">Crear nuevo cajero</a>
-        </div>
-      </div>
-    </li>
-  <% end %>
-
-  <!-- Ventas -->
-  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSales"
-         aria-expanded="true" aria-controls="collapseSales">
-        <i class="fas fa-shopping-cart"></i>
-        <span>Ventas</span>
-      </a>
-      <div id="collapseSales" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Ventas:</h6>
-          <a class="collapse-item" href="<%= admin_sales_path %>" data-turbo="false">Ventas</a>
-          <a class="collapse-item" href="<%= admin_sales_new_path %>" data-turbo="false">Crear nueva venta</a>
-          <% if @current_user.role.name != "cajero" %>
-            <a class="collapse-item" href="<%= admin_discount_codes_path %>" data-turbo="false">Codigos de descuento</a>
-          <% end %>
-        </div>
-      </div>
-    </li>
-  <% end %>
-
   <!-- Reportes -->
   <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
     <li class="nav-item">
@@ -211,27 +175,6 @@
         <i class="fas fa-shopping-bag me-2"></i>
         Mis compras
       <% end %>
-    </li>
-  <% end %>
-
-  <!-- Devoluciones -->
-  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseDevoluciones"
-         aria-expanded="true" aria-controls="collapseDevoluciones">
-        <i class="fas fa-undo-alt"></i>
-        <span>Devoluciones</span>
-      </a>
-      <div id="collapseDevoluciones" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Gestión de Devoluciones:</h6>
-          <a class="collapse-item" href="<%= admin_devoluciones_path %>" data-turbo="false">Ver Devoluciones</a>
-          <a class="collapse-item" href="<%= new_admin_devolucione_path %>" data-turbo="false">Crear Nueva Devolución</a>
-          <% if @current_user.role.name != "cajero" %>
-            <a class="collapse-item" href="<%= admin_admin_returned_products_path %>" data-turbo="false">Productos devueltos</a>
-          <% end %>
-        </div>
-      </div>
     </li>
   <% end %>
 
