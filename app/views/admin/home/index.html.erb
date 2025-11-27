@@ -1,7 +1,15 @@
 <!-- Begin Page Content -->
 <div class="container-fluid py-5 dashboard-bg">
   <!-- Page Heading -->
+  
   <h1 class="mb-3 text-dark fw-bold text-center text-md-start">Dashboard</h1>
+
+  <!-- Flash messages -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
 
   <!-- Metrics Cards Row (clicables, estilo reportes) -->
   <div class="row flex-nowrap overflow-auto g-4 px-2 px-md-0">

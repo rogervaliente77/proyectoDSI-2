@@ -61,6 +61,8 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :clients, only: [:index, :new, :create, :edit, :update, :destroy]
 
+    resources :product_services, only: [:index, :new, :create, :edit, :update, :destroy]
+
     resources :users, only: [:index, :edit, :destroy, :new]
     post "/users/create", to: "users#create"
     patch "/users/update", to: "users#update"

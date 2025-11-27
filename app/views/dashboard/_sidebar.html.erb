@@ -102,24 +102,25 @@
           <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Gestión de mensajeros:</h6>
             <a class="collapse-item" href="<%= admin_clients_path %>" data-turbo="false">Ver clientes</a>
-            <a class="collapse-item" href="<%= new_admin_client_path %>" data-turbo="false">Crear nuevo cliente</a>
+            <a class="collapse-item" href="<%= new_admin_client_path(tipo_cliente: 'natural') %>" data-turbo="false">Nuevo cliente natural</a>
+            <a class="collapse-item" href="<%= new_admin_client_path(tipo_cliente: 'juridico') %>" data-turbo="false">Nuevo cliente juridico</a>
           </div>
         </div>
       </li>
     <% end %>
 
-    <!-- Marcas -->
+    <!-- Serivicios -->
     <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMarcas"
-         aria-expanded="true" aria-controls="collapseMarcas">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServicios"
+         aria-expanded="true" aria-controls="collapseServicios">
         <i class="fas fa-tags"></i>
-        <span>Marcas</span>
+        <span>Servicios</span>
       </a>
-      <div id="collapseMarcas" class="collapse" data-parent="#accordionSidebar">
+      <div id="collapseServicios" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Gestión de Marcas:</h6>
-          <a class="collapse-item" href="<%= admin_marcas_path %>" data-turbo="false">Ver Marcas</a>
-          <a class="collapse-item" href="<%= new_admin_marca_path %>" data-turbo="false">Crear Nueva Marca</a>
+          <h6 class="collapse-header">Gestión de servicios:</h6>
+          <a class="collapse-item" href="<%= admin_product_services_path %>" data-turbo="false">Ver servicios</a>
+          <a class="collapse-item" href="<%= new_admin_product_service_path %>" data-turbo="false">Crear nuevo servicio</a>
         </div>
       </div>
     </li>

@@ -1,5 +1,5 @@
 module Admin
-  class ClientsController < Admin::ApplicationController
+  class ProductServicesController < Admin::ApplicationController
     before_action :set_current_user
     # before_action :check_admin_access
     # before_action :set_product, only: %i[ product_sales edit update destroy]
@@ -7,17 +7,11 @@ module Admin
     
     def index
       # binding.pry
-      @clients = Client.all
+      @product_services = ProductService.all
     end
 
     def new
-      @client = Client.new
-
-      if params[:tipo_cliente] == "natural"
-        @tipo_cliente = "natural"
-      else
-        @tipo_cliente = "juridico"
-      end
+      @product_service = ProductService.new
     end
 
     def create

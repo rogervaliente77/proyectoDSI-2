@@ -78,9 +78,18 @@
                     <td><small><%= client.tipo_cliente %></small></td>
                     <td><small><%= client.address %></small></td>
                     <td>
-                      <%= link_to edit_admin_client_path(id: client.id), class: "btn btn-primary btn-sm" do %>
-                                  <i class="fa fa-edit" title="Editar"></i><span>
-                                <% end %>
+                      <%= link_to edit_admin_client_path(id: client.id, tipo_cliente: client.tipo_cliente), class: "btn btn-primary btn-sm" do %>
+                        <i class="fa fa-edit" title="Editar"></i><span>
+                      <% end %>
+
+                      <%= button_to admin_client_path(id: client.id),
+                                    method: :delete,
+                                    form: { class: "d-inline" },
+                                    data: { turbo: false, turbo_confirm: "¿Estás seguro de eliminar este cliente?" },
+                                    class: "btn btn-sm btn-danger" do %>
+                        <i class="fa fa-trash"></i>
+                      <% end %>
+
                     </td>
                   </tr>
                 <% end %>
