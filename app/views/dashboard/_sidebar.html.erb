@@ -109,6 +109,20 @@
       </li>
     <% end %>
 
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmpleados"
+        aria-expanded="true" aria-controls="collapseEmpleados">
+        <i class="fas fa-fw fa-folder"></i>
+        <span>Empleados</span>
+      </a>
+      <div id="collapseEmpleados" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Empleados:</h6>
+          <a class="collapse-item" href="<%= admin_empleados_path %>" data-turbo="false">Empleados</a>
+        </div>
+      </div>
+    </li>
+
     <!-- Serivicios -->
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServicios"

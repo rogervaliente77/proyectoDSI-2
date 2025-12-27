@@ -29,10 +29,6 @@ Rails.application.routes.draw do
     resource :profile, only: [:show, :update]
     resources :addresses, only: [:show,:update,:destroy]
       
-
-
-
-
     # Carrito y compras
     resource :cart, only: [:show] do
       post 'add/:id', to: 'carts#add', as: 'add'
@@ -133,7 +129,9 @@ Rails.application.routes.draw do
     get "/sales/detalle_venta", to: "sales#detalle_venta"
     get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
     get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
-    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
+    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code0
+
+    get "empleados", to: "empleados#index"
 
     # Mensajero
     resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]
