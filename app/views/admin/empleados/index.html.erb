@@ -1,0 +1,99 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+
+    <%= link_to admin_empleados_new_path, class: "btn btn-primary shadow-sm" do %>
+      <i class="fas fa-plus me-1"></i> Nuevo Empleado
+    <% end %>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <!-- Area Chart -->
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Gestion de empleados</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                 aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Dropdown Header:</div>
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+
+          <% if flash[:notice] %>
+          <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+          <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <h1 class="h3 mb-4 text-gray-800"></h1>
+
+          <div class="table-responsive">
+            <table class="table table-bordered" id="usersTable">
+              <thead class="thead-light">
+                <tr>
+                  <th>No</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Code</th>
+                  <th>F. Contrato</th>
+                  <th>Status</th>
+                  <th>Dui</th>
+                  <th>Salario</th>
+                  <th>Departamento</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                <% @empleados&.each_with_index do |empleado, index| %>
+                    <tr>
+                        <td><%= index + 1 %></td>
+                        <td><small> <%=empleado.full_name %> </small></td>
+                        <td><small><%= empleado.email %></small></td>
+                        <td style="white-space: nowrap;"><small><b><%= empleado.employee_code %></b></small></td>
+                        <td><small><%= empleado.hire_date.strftime("%d/%m/%Y") %></small></td>
+                        <td><small><%= empleado.status %></small></td>
+                        <td><small><%= empleado.dui %></small></td>
+                        <td><small><%= empleado.salary %></small></td>
+                        <td><small><%= empleado.department_job_name %></small></td>
+                        <td>
+                        <%= link_to edit_admin_client_path(id: client.id, tipo_cliente: client.tipo_cliente), class: "btn btn-primary btn-sm" do %>
+                            <i class="fa fa-edit" title="Editar"></i><span>
+                        <% end %>
+
+                        <%= button_to admin_client_path(id: client.id),
+                                        method: :delete,
+                                        form: { class: "d-inline" },
+                                        data: { turbo: false, turbo_confirm: "¿Estás seguro de eliminar este cliente?" },
+                                        class: "btn btn-sm btn-danger" do %>
+                            <i class="fa fa-trash"></i>
+                        <% end %>
+
+                        </td>
+                    </tr>
+                <% end %>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
