@@ -11,123 +11,76 @@ module Admin
     end
 
     def new
-      @client = Client.new
-
-      if params[:tipo_cliente] == "natural"
-        @tipo_cliente = "natural"
-      else
-        @tipo_cliente = "juridico"
-      end
+      @empleado = Empleado.new
     end
 
     def create
-      @client = Client.new(client_params)
-
-      if @client.tipo_cliente == "natural"
-        # --- Validaciones ---
-        if params[:client][:first_name].blank?
-          flash[:alert] = "El nombre es obligatorio."
-          return redirect_to new_admin_client_path(tipo_cliente: "natural")
-        end
-
-        if params[:client][:last_name].blank?
-          flash[:alert] = "El apellido es obligatorio."
-          return redirect_to new_admin_client_path(tipo_cliente: "natural")
-        end
-
-        # --- Construir full_name ---
-        @client.full_name = "#{params[:client][:first_name]} #{params[:client][:last_name]}"
-
-        # --- Generar código CN-xxxx ---
-        @client.code = next_codigo("CN")
-
-      else # JURÍDICO
-        # --- Validaciones ---
-        if params[:client][:full_name].blank?
-          flash[:alert] = "El nombre de la empresa es obligatorio."
-          return redirect_to new_admin_client_path(tipo_cliente: "juridico")
-        end
-
-        if params[:client][:nit].blank?
-          flash[:alert] = "El NIT es obligatorio."
-          return redirect_to new_admin_client_path(tipo_cliente: "juridico")
-        end
-
-        # --- Generar código CJ-xxxx ---
-        @client.code = next_codigo("CJ")
-      end
-
-      # Guardar
-      if @client.save
-        flash[:notice] = "Cliente creado correctamente."
-        redirect_to admin_clients_path
+      @empleado = Empleado.new(empleado_params)
+  
+      if @empleado.save
+        redirect_to admin_empleados_path, notice: "Empleado creado exitosamente."
       else
-        flash[:alert] = @client.errors.full_messages.join(", ")
-        render :new
+        flash.now[:alert] = "Error al crear el empleado: #{@empleado.errors.full_messages.to_sentence}"
+        render :new, status: :unprocessable_entity
       end
     end
 
     def edit
-      @client = Client.find(params[:id])
-
-      if params[:tipo_cliente] == "natural"
-        @tipo_cliente = "natural"
-      else
-        @tipo_cliente = "juridico"
-      end
+      @empleado = Empleado.find(params[:id])
     end
-
-    # def product_sales
-    #   @products = @product&.product_sales
-    # end
-
-    # def edit
-    #   # binding.pry
-    # end
-
+    
     def update
-      @client = Client.find(params[:id])
-
-      respond_to do |format|
-        if @client.update(client_params)
-          format.html {redirect_to admin_clients_path, notice: "Cliente actualizado con éxito" }
-        else
-          format.html { redirect_to admin_clients_path, alert: "Ocurrio un error" }
-        end
+      @empleado = Empleado.find(params[:id])
+      if @empleado.update(empleado_params)
+        redirect_to admin_empleados_path, notice: "Información actualizada correctamente."
+      else
+        render :edit, status: :unprocessable_entity
       end
     end
 
-    # def mark_as_delivered
-    #   @product_sale = ProductSale.find(params[:product_sale_id])
-    
-    #   if @product_sale.update(was_delivered: !@product_sale.was_delivered, delivered_at: Time.now)
-    #     redirect_to admin_product_sales_path(product_id: @product_sale.product.id), notice: "Producto actualizado con éxito.", status: :see_other
-    #   else
-    #     redirect_to admin_product_sales_path(product_id: @product_sale.product.id), alert: "Hubo un problema al actualizar el producto", status: :see_other
-    #   end
-    # end
-    
+    # app/controllers/admin/empleados_controller.rb
+    def show
+      @empleado = Empleado.find(params[:id])
+    end
+
     def destroy
-      @client = Client.find(params[:id])
-      @client.destroy!
-  
-      respond_to do |format|
-        format.html { redirect_to admin_clients_path, status: :see_other, notice: "Cliente eliminado exitosamente" }
-        format.json { head :no_content }
+      @empleado = Empleado.find(params[:id])
+      if @empleado.destroy
+        redirect_to admin_empleados_path, notice: "Empleado eliminado correctamente."
+      else
+        redirect_to admin_empleados_path, alert: "No se pudo eliminar el empleado."
       end
     end
 
     private
-
-    # def check_admin_access
-    #   if current_user.is_admin == false
-    #     redirect_to portal_home_path, alert: "No tienes acceso a esta sección"
-    #   end
-    # end
-
-    # def set_product
-    #   @product = Product.find(params[:product_id]) || nil
-    # end
+  
+    # Strong Parameters: Permite solo los campos definidos en tu modelo
+    def empleado_params
+      params.require(:empleado).permit(
+        :first_name, 
+        :last_name, 
+        :full_name, 
+        :email, 
+        :phone_number, 
+        :address, 
+        :cargo_name, 
+        :nit, 
+        :dui, 
+        :fecha_inicio_trabajo, 
+        :fecha_nacimiento, 
+        :status, 
+        :banco_medio_pago, 
+        :cuenta_bancaria, 
+        :grado_academico, 
+        :nivel_educacion, 
+        :salario_mensual, 
+        :salario_quincenal,
+        :otros_ingresos1,
+        :otros_ingresos2,
+        :otros_ingresos3,
+        :detalle_otros_ingresos1
+      )
+    end
 
     def set_current_user
       @current_user = current_user

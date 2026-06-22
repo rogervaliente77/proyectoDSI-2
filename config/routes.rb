@@ -131,10 +131,22 @@ Rails.application.routes.draw do
     get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
     get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code0
 
-    # Empleados
-    get "/empleados", to: "empleados#index"
-    get "/empleados/new", to: "empleados#new"
-    post "/empleados/create", to: "empleados#create"
+
+    resources :empleados
+
+    # config/routes.rb dentro de namespace :admin
+    resources :asistencias, only: [:index] do
+      collection do
+        get :reporte_cortes
+        post :registrar
+        post :procesar_corte
+      end
+    end
+
+    resources :planillas, only: [:index, :new, :create, :show] do
+      # Si en el futuro quieres ver una boleta individual fuera del show de planilla:
+      # resources :boletas_de_pago, only: [:show]
+    end
 
     # Mensajero
     resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]

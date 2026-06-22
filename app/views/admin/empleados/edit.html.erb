@@ -1,0 +1,24 @@
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Editar Empleado</h1>
+        <%= link_to admin_empleados_path, class: "btn btn-sm btn-secondary shadow-sm" do %>
+          <i class="fas fa-arrow-left fa-sm text-white-50"></i> Cancelar
+        <% end %>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4 border-bottom-warning">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        Modificando perfil de: <%= "#{@empleado.first_name} #{@empleado.last_name}" %>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <%# Aquí llamamos al partial %>
+                    <%= render 'form', empleado: @empleado %>
+                </div>
+            </div>
+        </div>                     
+    </div>
+</div>

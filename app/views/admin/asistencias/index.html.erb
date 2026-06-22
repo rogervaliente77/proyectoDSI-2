@@ -1,0 +1,67 @@
+<%# app/views/admin/asistencias/index.html.erb %>
+<div class="container-fluid">
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Control de Asistencia: <%= @fecha %></h6>
+        
+        <%= form_with url: admin_asistencias_path, method: :get, local: true, class: "form-inline", data: { turbo: false } do |f| %>
+            <%= f.date_field :fecha, value: @fecha, class: "form-control form-control-sm mr-2", onchange: "this.form.submit();" %>
+            <%= f.submit "Ver Fecha", class: "btn btn-primary btn-sm" %>
+        <% end %>
+    </div>
+    <div class="card-body">
+      
+       <%# app/views/admin/asistencias/index.html.erb %>
+        <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Entrada / Salida</th>
+                <th>Estado / Justificación</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @empleados.each do |emp| %>
+                <% reg = @asistencias_hoy[emp.id] %>
+                <%= form_with url: registrar_admin_asistencias_path, method: :post, data: { turbo: false } do |f| %>
+                <%= f.hidden_field :empleado_id, value: emp.id %>
+                <%= f.hidden_field :fecha, value: @fecha %>
+                <tr>
+                    <td><%= emp.full_name %></td>
+                    <td>
+                    <div class="d-flex gap-1">
+                        <%= f.time_field :hora_entrada, value: reg&.hora_entrada&.strftime("%H:%M"), class: "form-control form-control-sm" %>
+                        <%= f.time_field :hora_salida, value: reg&.hora_salida&.strftime("%H:%M"), class: "form-control form-control-sm" %>
+                    </div>
+                    </td>
+                    <td>
+                    <%= f.select :estado, 
+                        [['Presente', 'Presente'], ['Falta Injustificada', 'Falta Injustificada'], ['Falta Justificada', 'Falta Justificada']], 
+                        { selected: reg&.estado }, 
+                        { class: "form-control form-control-sm" } %>
+                    <%= f.text_field :justificacion, placeholder: "Motivo...", value: reg&.justificacion, class: "form-control form-control-sm mt-1" %>
+                    </td>
+                    <td>
+                    <%= f.submit "Guardar", class: "btn btn-primary btn-sm" %>
+                    </td>
+                </tr>
+                <% end %>
+            <% end %>
+            </tbody>
+        </table>
+        </div>
+
+    </div>
+  </div>
+
+  <!-- Botón de Corte (Solo visible si es 10 o 25) -->
+  <% if [10, 25].include?(Date.today.day) %>
+    <div class="alert alert-warning shadow">
+      <h5>Cierre de Periodo Detectado</h5>
+      <p>Hoy es día de corte. Presiona el botón para calcular los descuentos de sueldo basados en las inasistencias del periodo.</p>
+      <%= button_to "Procesar Corte de Sueldos", procesar_corte_admin_asistencias_path(fecha_corte: Date.today), class: "btn btn-warning font-weight-bold" %>
+    </div>
+  <% end %>
+</div>

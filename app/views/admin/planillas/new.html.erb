@@ -1,0 +1,99 @@
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Generar Nueva Planilla</h1>
+    <%= link_to admin_planillas_path, class: "btn btn-sm btn-secondary shadow-sm" do %>
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver al Historial
+    <% end %>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-7">
+      <div class="card shadow mb-4 border-left-primary">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Configuración del Periodo de Pago</h6>
+        </div>
+        <div class="card-body">
+          <%= simple_form_for [:admin, @planilla], html: { class: "user" } do |f| %>
+            
+            <div class="form-group">
+              <%= f.input :nombre, 
+                  label: "Nombre de la Planilla", 
+                  placeholder: "Ej: Primera Quincena de Mayo 2026",
+                  input_html: { class: "form-control form-control-user" } %>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <%= f.input :fecha_desde, 
+                      label: "Desde", 
+                      as: :date, 
+                      html5: true,
+                      input_html: { class: "form-control" } %>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <%= f.input :fecha_hasta, 
+                      label: "Hasta", 
+                      as: :date, 
+                      html5: true,
+                      input_html: { class: "form-control" } %>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <%= f.input :tipo_periodo, 
+                      label: "Tipo de Periodo",
+                      collection: ['Quincenal', 'Mensual', 'Extraordinaria'], 
+                      selected: 'Quincenal',
+                      input_html: { class: "form-control custom-select" } %>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <%= f.input :fecha_pago, 
+                      label: "Fecha Programada de Pago", 
+                      as: :date, 
+                      html5: true,
+                      input_html: { class: "form-control" } %>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <%= f.button :submit, "Generar Planilla y Boletas masivas", class: "btn btn-primary btn-block btn-lg shadow-sm" %>
+            </div>
+
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel Informativo Lateral -->
+    <div class="col-lg-5">
+      <div class="card shadow mb-4 border-left-info">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-info">Información Importante</h6>
+        </div>
+        <div class="card-body">
+          <p>Al procesar esta planilla, el sistema realizará las siguientes acciones automáticamente:</p>
+          <ul class="small">
+            <li>Identificará a todos los empleados con estado <strong>Activo</strong>.</li>
+            <li>Consultará el <strong>porcentaje de asistencia</strong> calculado en el último corte.</li>
+            <li>Aplicará las retenciones de ley de El Salvador (<strong>ISSS, AFP y Renta</strong>).</li>
+            <li>Generará una boleta de pago individual por cada empleado.</li>
+          </ul>
+          <div class="text-center mt-4">
+            <i class="fas fa-calculator fa-4x text-gray-200"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

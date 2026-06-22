@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!-- Begin Page Content -->
 <div class="container-fluid">
   <!-- Page Heading -->
@@ -97,3 +98,92 @@
     </div>
   </div>
 </div>
+=======
+<div class="container-fluid">
+  <!-- Encabezado y botón de nuevo empleado -->
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
+    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Gestión de Empleados</h1>
+    <%= link_to new_admin_empleado_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-user-plus me-1"></i> Crear Empleado
+    <% end %>
+  </div>
+
+  <!-- Mensajes flash -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flash[:notice] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= sanitize(flash[:alert]) %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- Tabla responsiva -->
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>DUI</th>
+              <th>Nombre Completo</th>
+              <th>Cargo</th>
+              <th>Salario (Mensual)</th>
+              <th>Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @empleados.any? %>
+              <% @empleados.each do |empleado| %>
+                <tr>
+                  <td class="text-nowrap"><%= empleado.dui %></td>
+                  <td>
+                    <div class="fw-bold"><%= "#{empleado.first_name} #{empleado.last_name}" %></div>
+                    <small class="text-muted"><%= empleado.email %></small>
+                  </td>
+                  <td><%= empleado.cargo_name %></td>
+                  <td>$<%= number_with_precision(empleado.salario_mensual, precision: 2) %></td>
+                  <td>
+                    <% badge_class = empleado.status == 'Activo' ? 'bg-success' : 'bg-secondary' %>
+                    <span class="badge <%= badge_class %>">
+                      <%= empleado.status %>
+                    </span>
+                  </td>
+                  <td class="text-center text-nowrap">
+                    <div class="btn-group" role="group">
+                      <%= link_to admin_empleado_path(empleado), class: "btn btn-sm btn-info text-white", title: "Ver Detalle" do %>
+                        <i class="fa fa-eye"></i>
+                      <% end %>
+
+                      <%= link_to edit_admin_empleado_path(empleado), class: "btn btn-sm btn-warning", title: "Editar" do %>
+                        <i class="fa fa-pencil"></i>
+                      <% end %>
+
+                      <%= button_to admin_empleado_path(empleado),
+                            method: :delete,
+                            form: { class: "d-inline" },
+                            data: { turbo_confirm: "¿Estás seguro de eliminar a #{empleado.first_name}?" },
+                            class: "btn btn-sm btn-danger",
+                            title: "Eliminar" do %>
+                        <i class="fa fa-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">No hay empleados registrados en el sistema.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+>>>>>>> e32c4e0 (Cmbios para control de empleados y planillas)

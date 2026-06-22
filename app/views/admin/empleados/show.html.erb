@@ -1,0 +1,72 @@
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Ficha del Empleado</h1>
+    <div>
+      <%= link_to admin_empleados_path, class: "btn btn-sm btn-secondary shadow-sm" do %>
+        <i class="fas fa-arrow-left"></i> Volver
+      <% end %>
+      <%= link_to edit_admin_empleado_path(@empleado), class: "btn btn-sm btn-warning shadow-sm" do %>
+        <i class="fas fa-edit"></i> Editar Datos
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Resumen de Perfil -->
+    <div class="col-xl-4 col-md-5">
+      <div class="card shadow mb-4">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="fas fa-user-circle fa-7x text-gray-300"></i>
+          </div>
+          <h4 class="font-weight-bold text-primary"><%= @empleado.full_name %></h4>
+          <p class="text-muted"><%= @empleado.cargo_name %></p>
+          <span class="badge <%= @empleado.status == 'Activo' ? 'badge-success' : 'badge-danger' %> p-2">
+            <%= @empleado.status %>
+          </span>
+          <hr>
+          <div class="text-left">
+            <strong>DUI:</strong> <span class="float-right"><%= @empleado.dui %></span><br>
+            <strong>NIT:</strong> <span class="float-right"><%= @empleado.nit %></span><br>
+            <strong>Inicio:</strong> <span class="float-right"><%= @empleado.fecha_inicio_trabajo&.strftime("%d/%m/%Y") %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalles Completos -->
+    <div class="col-xl-8 col-md-7">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Información Detallada</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm-6">
+              <h6 class="text-xs font-weight-bold text-uppercase mb-1 text-info">Contacto</h6>
+              <p><strong>Email:</strong> <%= @empleado.email %></p>
+              <p><strong>Teléfono:</strong> <%= @empleado.phone_number %></p>
+              <p><strong>Dirección:</strong> <%= @empleado.address %></p>
+            </div>
+            <div class="col-sm-6">
+              <h6 class="text-xs font-weight-bold text-uppercase mb-1 text-info">Educación</h6>
+              <p><strong>Nivel:</strong> <%= @empleado.grado_academico %></p>
+              <p><strong>Detalle:</strong> <%= @empleado.nivel_educacion %></p>
+              <p><strong>Nacimiento:</strong> <%= @empleado.fecha_nacimiento&.strftime("%d/%m/%Y") %></p>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col-sm-6">
+              <h6 class="text-xs font-weight-bold text-uppercase mb-1 text-info">Finanzas y Pagos</h6>
+              <p><strong>Salario Mensual:</strong> $<%= number_with_precision(@empleado.salario_mensual, precision: 2) %></p>
+              <p><strong>Salario Quincenal:</strong> $<%= number_with_precision(@empleado.salario_quincenal, precision: 2) %></p>
+              <p><strong>Banco:</strong> <%= @empleado.banco_medio_pago %></p>
+              <p><strong>Cuenta:</strong> <%= @empleado.cuenta_bancaria %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

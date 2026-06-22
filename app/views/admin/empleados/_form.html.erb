@@ -1,0 +1,77 @@
+<%# app/views/admin/empleados/_form.html.erb %>
+<%= simple_form_for [:admin, empleado], html: { class: "needs-validation" }, defaults: { error: false } do |form| %> 
+    
+    <!-- SECCIÓN 1: DATOS PERSONALES -->
+    <div class="border-left-primary pl-3 mb-4">
+        <h5 class="text-primary">Datos Personales</h5>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <%= form.input :first_name, label: "Nombres", required: true, input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-4">
+            <%= form.input :last_name, label: "Apellidos", required: true, input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-4">
+            <%= form.input :email, label: "Correo Electrónico", input_html: { class: "form-control" } %>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-3">
+            <%= form.input :dui, label: "DUI", placeholder: "00000000-0", input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-3">
+            <%= form.input :nit, label: "NIT", input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-3">
+            <%= form.input :phone_number, label: "Teléfono", input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-3">
+            <%= form.input :fecha_nacimiento, label: "Fecha de Nacimiento", as: :date, html5: true, input_html: { class: "form-control" } %>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 2: DATOS LABORALES -->
+    <div class="border-left-success pl-3 mb-4 mt-5">
+        <h5 class="text-success">Información Laboral</h5>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <%= form.input :cargo_name, label: "Cargo / Puesto", input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-4">
+            <%= form.input :fecha_inicio_trabajo, label: "Fecha de Contratación", as: :date, html5: true, input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-4">
+            <%= form.input :status, label: "Estado", collection: ['Activo', 'Inactivo', 'Periodo de Prueba'], input_html: { class: "form-control" } %>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 3: COMPENSACIÓN -->
+    <div class="border-left-info pl-3 mb-4 mt-5">
+        <h5 class="text-info">Salarios y Pagos</h5>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <%= form.input :salario_mensual, label: "Salario Mensual ($)", as: :numeric, input_html: { class: "form-control", step: "0.01" } %>
+        </div>
+        <div class="col-md-4">
+            <%= form.input :banco_medio_pago, label: "Banco", input_html: { class: "form-control" } %>
+        </div>
+        <div class="col-md-4">
+            <%= form.input :cuenta_bancaria, label: "Número de Cuenta", input_html: { class: "form-control" } %>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <hr>
+            <%= form.submit empleado.new_record? ? 'Registrar Empleado' : 'Actualizar Información', 
+                class: "btn #{empleado.new_record? ? 'btn-success' : 'btn-warning'} btn-lg btn-block shadow" %>
+        </div>
+    </div>
+<% end %>
