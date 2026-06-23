@@ -1,120 +1,4 @@
-<<<<<<< HEAD
-<!-- Begin Page Content -->
-<div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Admin / Mensajeros / New</h1>
-        
-        <%= link_to admin_delivery_drivers_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
-          <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a mensajeros
-        <% end %>
-    </div>
 
-    <!-- Content Row -->
-
-    <div class="row">
-        <!-- Area Chart -->
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
-                <div
-                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Nuevo mensajero</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                            aria-labelledby="dropdownMenuLink">
-                            <div class="dropdown-header">Dropdown Header:</div>
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-
-                    <% if flash[:notice] %>
-                    <div class="alert alert-success"><%= flash[:notice] %></div>
-                    <% elsif flash[:alert] %>
-                    <div class="alert alert-danger"><%= flash[:alert] %></div>
-                    <% end %>
-                                        
-                    <%= simple_form_for :empleado, url: admin_empleados_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false } do |form| %> 
-                        <div class="row">
-                            <div class="col-sm-3">
-                                <div class="mb-4">
-                                    <%= form.input :first_name, label: "Nombres", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-3">
-                                <div class="mb-4">
-                                    <%= form.input :last_name, label: "Apellidos", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-3">
-                                <div class="mb-4">
-                                    <%= form.input :email, label: "Correo", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-
-                            <div class="col-sm-3">
-                                <div class="mb-4">
-                                    <%= form.input :phone_number, label: "Numero de telefono", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <div class="mb-4">
-                                    <%= form.input :address, label: "Direccion", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <div class="mb-3">
-                                    <%= form.input :dui, label: "Dui", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="mb-3">
-                                    <%= form.input :nit, label: "Nit", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="mb-3">
-                                    <%= form.input :fecha_nacimiento, label: "", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-
-                            <div class="col">
-                                <div class="mb-3">
-                                    <%= form.input :nit, label: "Edad", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
-                            </div>
-                        </div>
-
-                        <br>
-
-                        <div class="row">
-                            <div class="form-group mb-4">
-                            <%= form.submit 'Guardar', class: 'btn btn-success btn-block' %>
-                            </div>
-                        </div>
-                    <% end %>
-
-=======
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -134,14 +18,9 @@
                 <%# app/views/admin/empleados/new.html.erb %>
                 <div class="card-body">
                     <%= render 'form', empleado: @empleado %>
->>>>>>> e32c4e0 (Cmbios para control de empleados y planillas)
                 </div>
             </div>
         </div>                     
     </div>
-<<<<<<< HEAD
 </div>
-<!-- /.container-fluid -->
-=======
-</div>
->>>>>>> e32c4e0 (Cmbios para control de empleados y planillas)
+

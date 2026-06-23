@@ -16,6 +16,7 @@ class Empleado
   field :status, type: String, default: 'Activo'
   field :banco_medio_pago, type: String
   field :cuenta_bancaria, type: String
+  field :cargo_name, type: String
   field :nivel_educacion, type: String
   field :salario_quincenal, type: Float, default: 0.00
   field :salario_mensual, type: Float, default: 0.00
@@ -28,6 +29,7 @@ class Empleado
   field :grado_academico, type: String
   field :nivel_educacion, type: String
   field :porcentaje_pago_actual, type: Float, default: 1.0
+  field :fecha_inicio_trabajo, type: Date
 
 
   has_many :asistencias
