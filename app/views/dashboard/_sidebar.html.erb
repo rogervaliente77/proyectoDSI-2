@@ -71,75 +71,22 @@
   </li>
 
   <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-    <!-- Productos -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseProductos"
-        aria-expanded="true" aria-controls="collapseProductos">
-        <i class="fas fa-fw fa-folder"></i>
-        <span>Productos</span>
-      </a>
-      <div id="collapseProductos" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Productos:</h6>
-          <a class="collapse-item" href="<%= admin_productos_path %>" data-turbo="false">Productos</a>
-          <a class="collapse-item" href="<%= admin_productos_new_path %>" data-turbo="false">Crear nuevo producto</a>
-          <a class="collapse-item" href="<%= admin_categories_path %>" data-turbo="false">Categorias</a>
-          <a class="collapse-item" href="<%= admin_inventory_admin_products_path %>" data-turbo="false">Inventario</a>
-          <a class="collapse-item" href="<%= admin_product_histories_path %>" data-turbo="false">Movimientos de Inventario</a>
-        </div>
-      </div>
-    </li>
-
-    <!-- Clientes -->
-    <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseClientes"
-          aria-expanded="true" aria-controls="collapseClientes">
-          <i class="fas fa-motorcycle"></i>
-          <span>Clientes</span>
-        </a>
-        <div id="collapseClientes" class="collapse" data-parent="#accordionSidebar">
-          <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Gestión de mensajeros:</h6>
-            <a class="collapse-item" href="<%= admin_clients_path %>" data-turbo="false">Ver clientes</a>
-            <a class="collapse-item" href="<%= new_admin_client_path(tipo_cliente: 'natural') %>" data-turbo="false">Nuevo cliente natural</a>
-            <a class="collapse-item" href="<%= new_admin_client_path(tipo_cliente: 'juridico') %>" data-turbo="false">Nuevo cliente juridico</a>
-          </div>
-        </div>
-      </li>
-    <% end %>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmpleados"
         aria-expanded="true" aria-controls="collapseEmpleados">
         <i class="fas fa-fw fa-folder"></i>
-        <span>Empleados</span>
+        <span>RRHH</span>
       </a>
       <div id="collapseEmpleados" class="collapse" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Empleados:</h6>
           <a class="collapse-item" href="<%= admin_empleados_path %>" data-turbo="false">Empleados</a>
-          <a class="collapse-item" href="<%= admin_asistencias_path %>" data-turbo="false">Control de asistencia</a>
           <a class="collapse-item" href="<%= admin_planillas_path %>" data-turbo="false">Planillas</a>
         </div>
       </div>
     </li>
 
-    <!-- Serivicios -->
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServicios"
-         aria-expanded="true" aria-controls="collapseServicios">
-        <i class="fas fa-tags"></i>
-        <span>Servicios</span>
-      </a>
-      <div id="collapseServicios" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Gestión de servicios:</h6>
-          <a class="collapse-item" href="<%= admin_product_services_path %>" data-turbo="false">Ver servicios</a>
-          <a class="collapse-item" href="<%= new_admin_product_service_path %>" data-turbo="false">Crear nuevo servicio</a>
-        </div>
-      </div>
-    </li>
   <% end %>
 
   <!-- Usuarios -->
@@ -160,98 +107,6 @@
       </div>
     </li>
   <% end %>
-
-  <!-- Reportes -->
-  <% if @current_user.role.name.in?(["super_admin", "admin", "cajero"]) %>
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseReports"
-         aria-expanded="true" aria-controls="collapseReports">
-        <i class="fas fa-chart-bar"></i>
-        <span>Reportes</span>
-      </a>
-      <div id="collapseReports" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Gestión de Reportes:</h6>
-          <a class="collapse-item" href="/admin/reports">Lista de reportes</a>
-          <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-            <a class="collapse-item" href="/admin/reports/top_products">Producto Más Vendido</a>
-            <a class="collapse-item" href="/admin/reports/top_brands">Marca Más Vendida</a>
-          <% end %>
-          <a class="collapse-item" href="/admin/reports/best_seller">Mejor Vendedor</a>
-        </div>
-      </div>
-    </li>
-  <% end %>
-
-  <!-- Mis compras - Cliente -->
-  <% if @current_user.role.name == 'cliente' %>
-    <li class="nav-item">
-      <%= link_to portal_purchases_path,
-          class: "nav-link d-flex align-items-center",
-          data: { turbo: false } do %>
-        <i class="fas fa-shopping-bag me-2"></i>
-        Mis compras
-      <% end %>
-    </li>
-  <% end %>
-
-  <!-- Mensajeros -->
-  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMensajeros"
-         aria-expanded="true" aria-controls="collapseMensajeros">
-        <i class="fas fa-motorcycle"></i>
-        <span>Mensajeros</span>
-      </a>
-      <div id="collapseMensajeros" class="collapse" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Gestión de mensajeros:</h6>
-          <a class="collapse-item" href="<%= admin_delivery_drivers_path %>" data-turbo="false">Ver mensajeros</a>
-          <a class="collapse-item" href="<%= new_admin_delivery_driver_path %>" data-turbo="false">Crear nuevo mensajero</a>
-        </div>
-      </div>
-    </li>
-  <% end %>
-
-  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePedidos"
-         aria-expanded="true" aria-controls="collapsePedidos">
-        <i class="fas fa-truck"></i>
-        <span>Pedidos</span>
-      </a>
-      <div id="collapsePedidos" class="collapse" aria-labelledby="headingPedidos" data-parent="#accordionSidebar">
-        <div class="bg-white py-2 collapse-inner rounded">
-          <h6 class="collapse-header">Pedidos</h6>
-          <a class="collapse-item" href="<%= admin_pedidos_path %>" data-turbo="false">
-            Todos los pedidos
-          </a>
-
-          <a class="collapse-item" href="<%= admin_pedidos_path(delivery_status: 'unassigned') %>" data-turbo="false">
-            Pedidos no asignados
-          </a>
-
-          <a class="collapse-item" href="<%= admin_pedidos_path(delivery_status: 'in_route') %>" data-turbo="false">
-            Pedidos en ruta
-          </a>
-
-          <a class="collapse-item" href="<%= admin_pedidos_path(delivery_status: 'delivered') %>" data-turbo="false">
-            Pedidos entregados
-          </a>
-        </div>
-      </div>
-    </li>
-  <% end %>
-
-  <% if @current_user.role.name == 'mensajero' %>
-    <li class="nav-item">
-      <%= link_to admin_pedidos_path, class: "nav-link d-flex align-items-center" do %>
-        <i class="fas fa-truck"></i>
-        Pedidos asignados
-      <% end %>
-    </li>
-  <% end %>
-
 
   <hr class="sidebar-divider d-none d-md-block">
   <div class="text-center d-none d-md-inline">

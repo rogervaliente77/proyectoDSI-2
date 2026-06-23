@@ -30,7 +30,8 @@ class Empleado
   field :nivel_educacion, type: String
   field :porcentaje_pago_actual, type: Float, default: 1.0
   field :fecha_inicio_trabajo, type: Date
-
+  # Si es nil, hereda de ConfiguracionPlanilla. Si no, se define un array ej: [1,2,3,4,5]
+  field :dias_laborales_personalizados, type: Array, default: nil
 
   has_many :asistencias
   has_many :boletas_de_pago, class_name: "BoletaDePago"
@@ -54,6 +55,11 @@ class Empleado
   # --- CALLBACKS ---
   before_save :generate_full_name
   before_save :calculate_quincena
+
+  # Helper para saber qué días trabaja este empleado específico
+  def dias_laborales
+    dias_laborales_personalizados.present? ? dias_laborales_personalizados : ConfiguracionPlanilla.actual.dias_laborales_defecto
+  end
 
   private
 

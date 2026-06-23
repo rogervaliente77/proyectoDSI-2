@@ -27,9 +27,9 @@ class User
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
   belongs_to :role
   
-   has_many :addresses, inverse_of: :user, dependent: :destroy, autosave: true
+  #has_many :addresses, inverse_of: :user, dependent: :destroy, autosave: true
 
-  accepts_nested_attributes_for :addresses, allow_destroy: true, reject_if: :all_blank
+  #accepts_nested_attributes_for :addresses, allow_destroy: true, reject_if: :all_blank
 
   # Seguridad de contraseña
   has_secure_password
@@ -40,7 +40,7 @@ class User
   validates :jwt_token, uniqueness: { message: "Este token ya está en uso" }, allow_blank: true
   validates :password, presence: true, length: { minimum: 3 }, if: :password_required?
   validates :password_confirmation, presence: true, if: :password_required?
-  validate :max_three_addresses
+  # validate :max_three_addresses
 
 
   # Callbacks
@@ -56,7 +56,7 @@ class User
   end
 
   private
-  def max_three_addresses
-    errors.add(:addresses, "no puedes tener más de 3 direcciones") if addresses.count > 3
-  end
+  # def max_three_addresses
+  #   errors.add(:addresses, "no puedes tener más de 3 direcciones") if addresses.count > 3
+  # end
 end

@@ -1,9 +1,9 @@
 module Admin
   class ApplicationController < ::ApplicationController
     before_action :authenticate_user!
-    before_action :check_pending_devoluciones
-    before_action :load_low_stock_products
-    before_action :load_client_notifications # 👈 Notificaciones visibles para el cliente también
+    # before_action :check_pending_devoluciones
+    # before_action :load_low_stock_products
+    # before_action :load_client_notifications # 👈 Notificaciones visibles para el cliente también
 
     private
 

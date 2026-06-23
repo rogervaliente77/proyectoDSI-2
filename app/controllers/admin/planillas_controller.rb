@@ -1,68 +1,49 @@
-# app/controllers/admin/asistencias_controller.rb
 module Admin
   class PlanillasController < Admin::ApplicationController
-    before_action :set_current_user
     layout 'dashboard'
 
     def index
-      @planillas = Planilla.all.order(created_at: :desc)
+      @planillas = Planilla.all.order_by(fecha_desde: :desc)
     end
-  
+
     def new
       @planilla = Planilla.new
+      # Fechas sugeridas basadas en el día actual
+      config = ConfiguracionPlanilla.actual
+      hoy = Date.today
+      
+      # Pre-llenar fechas aproximadas según los cortes de El Salvador
+      if hoy.day <= config.dia_corte_quincena_1
+        @planilla.fecha_desde = (hoy - 1.month).change(day: config.dia_corte_quincena_2 + 1)
+        @planilla.fecha_hasta = hoy.change(day: config.dia_corte_quincena_1)
+      else
+        @planilla.fecha_desde = hoy.change(day: config.dia_corte_quincena_1 + 1)
+        @planilla.fecha_hasta = hoy.change(day: config.dia_corte_quincena_2)
+      end
     end
-  
+
     def create
       @planilla = Planilla.new(planilla_params)
+      @planilla.nombre = "Planilla #{@planilla.tipo_periodo} (#{@planilla.fecha_desde.strftime('%d/%m')} al #{@planilla.fecha_hasta.strftime('%d/%m/%Y')})"
+
       if @planilla.save
-        generar_boletas_masivas(@planilla)
-        redirect_to admin_planilla_path(@planilla), notice: "Planilla y Boletas generadas exitosamente."
+        @planilla.generar_planilla! # Ejecuta los cálculos del motor automáticamente
+        redirect_to admin_planillas_path, notice: "Planilla generada y procesada con éxito."
       else
+        flash.now[:alert] = @planilla.errors.full_messages.to_sentence
         render :new, status: :unprocessable_entity
       end
     end
-  
+
     def show
       @planilla = Planilla.find(params[:id])
       @boletas = @planilla.boletas_de_pago.includes(:empleado)
     end
-  
-    private
-  
-    def planilla_params
-      params.require(:planilla).permit(:nombre, :tipo_periodo, :fecha_desde, :fecha_hasta, :fecha_pago)
-    end
 
-    def set_current_user
-      @current_user = current_user
+    private
+
+    def planilla_params
+      params.require(:planilla).permit(:tipo_periodo, :fecha_desde, :fecha_hasta, :fecha_pago)
     end
-  
-    def generar_boletas_masivas(planilla)
-      Empleado.where(status: 'Activo').each do |emp|
-        # 1. Sueldo base quincenal (usando el porcentaje de asistencia que calculamos antes)
-        sueldo_bruto = emp.salario_quincenal * (emp.porcentaje_pago_actual || 1.0)
-        
-        # 2. Descuentos Pre-Renta
-        isss = CalculadoraSvService.calcular_isss(sueldo_bruto)
-        afp = CalculadoraSvService.calcular_afp(sueldo_bruto)
-        
-        # 3. Cálculo de Renta (Base gravable = Bruto - ISSS - AFP)
-        base_renta = sueldo_bruto - isss - afp
-        renta = CalculadoraSvService.calcular_renta(base_renta, :quincenal)
-        
-        # 4. Total Líquido
-        liquido = sueldo_bruto - isss - afp - renta
-  
-        planilla.boletas_de_pago.create!(
-          empleado: emp,
-          sueldo_base_momento: emp.salario_mensual,
-          isss_retencion: isss,
-          afp_retencion: afp,
-          renta_retencion: renta,
-          total_neto: liquido
-        )
-      end
-    end
-  
   end
 end

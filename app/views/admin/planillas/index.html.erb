@@ -1,67 +1,46 @@
 <div class="container-fluid">
-
-  <!-- Encabezado -->
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Gestión de Planillas</h1>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 text-gray-800">Historial de Planillas</h1>
     <%= link_to new_admin_planilla_path, class: "btn btn-sm btn-primary shadow-sm" do %>
-      <i class="fas fa-plus fa-sm text-white-50"></i> Generar Nueva Planilla
+      <i class="fas fa-plus me-1"></i> Generar Planilla
     <% end %>
   </div>
 
-  <!-- Tabla de Historial -->
   <div class="card shadow mb-4">
-    <div class="card-header py-3">
-      <h6 class="m-0 font-weight-bold text-primary">Historial de Pagos y Periodos</h6>
-    </div>
-    <div class="card-body">
+    <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-bordered" width="100%" cellspacing="0">
-          <thead class="bg-light">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
             <tr>
               <th>Nombre de Planilla</th>
-              <th>Periodo (Desde - Hasta)</th>
-              <th>Tipo</th>
+              <th>Periodo</th>
+              <th>Rango de Fechas</th>
               <th>Fecha de Pago</th>
-              <th>Boletas</th>
+              <th>Estado</th>
               <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <% if @planillas.any? %>
-              <% @planillas.each do |planilla| %>
+              <% @planillas.each do |p| %>
                 <tr>
-                  <td class="font-weight-bold text-dark"><%= planilla.nombre %></td>
+                  <td class="fw-bold text-primary"><%= p.nombre %></td>
+                  <td><span class="badge bg-secondary"><%= p.tipo_periodo %></span></td>
+                  <td><%= p.fecha_desde.strftime("%d/%m/%Y") %> al <%= p.fecha_hasta.strftime("%d/%m/%Y") %></td>
+                  <td><%= p.fecha_pago&.strftime("%d/%m/%Y") %></td>
                   <td>
-                    <small>
-                      <%= planilla.fecha_desde.strftime("%d/%m/%Y") %> - 
-                      <%= planilla.fecha_hasta.strftime("%d/%m/%Y") %>
-                    </small>
-                  </td>
-                  <td>
-                    <span class="badge badge-info"><%= planilla.tipo_periodo %></span>
-                  </td>
-                  <td><%= planilla.fecha_pago&.strftime("%d/%m/%Y") %></td>
-                  <td>
-                    <i class="fas fa-file-invoice-dollar mr-1"></i>
-                    <%= planilla.boletas_de_pago.count %> empleados
+                    <span class="badge bg-success"><i class="fas fa-lock me-1"></i> Procesada</span>
                   </td>
                   <td class="text-center">
-                    <%= link_to admin_planilla_path(planilla), class: "btn btn-info btn-circle btn-sm", title: "Ver Detalle y Boletas" do %>
-                      <i class="fas fa-eye"></i>
+                    <%= link_to admin_planilla_path(p), class: "btn btn-sm btn-info text-white" do %>
+                      <i class="fas fa-eye me-1"></i> Ver Boletas
                     <% end %>
-                    
-                    <button class="btn btn-secondary btn-circle btn-sm" title="Descargar Reporte General">
-                      <i class="fas fa-download"></i>
-                    </button>
                   </td>
                 </tr>
               <% end %>
             <% else %>
               <tr>
-                <td colspan="6" class="text-center py-4">
-                  <div class="text-muted">No hay planillas generadas aún.</div>
-                  <%= link_to "Generar la primera ahora", new_admin_planilla_path, class: "btn btn-link" %>
-                </td>
+                <td colspan="6" class="text-center py-4 text-muted">No se han procesado planillas aún.</td>
               </tr>
             <% end %>
           </tbody>
@@ -69,11 +48,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Resumen de Ayuda -->
-  <div class="alert alert-secondary shadow-sm">
-    <i class="fas fa-info-circle mr-2"></i>
-    <strong>Recordatorio:</strong> Las planillas se basan en el <strong>Porcentaje de Asistencia</strong> calculado durante el corte. Asegúrate de haber procesado el corte en el módulo de Asistencias antes de generar una nueva planilla.
-  </div>
-
 </div>
