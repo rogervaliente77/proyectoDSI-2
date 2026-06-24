@@ -35,6 +35,7 @@ class Empleado
 
   has_many :asistencias
   has_many :boletas_de_pago, class_name: "BoletaDePago"
+  has_many :movimientos_planilla, class_name: "MovimientoPlanilla", dependent: :destroy
 
   # Campos que no pueden estar vacíos
   validates :first_name, :last_name, :dui, :cargo_name, presence: { message: "es obligatorio" }

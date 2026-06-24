@@ -13,6 +13,7 @@ class BoletaDePago
   field :afp_retencion, type: Float, default: 0.0
   field :renta_retencion, type: Float, default: 0.0
   field :descuento_faltas, type: Float, default: 0.0 # Guarda Faltas + Minutos tarde de gracia
+  field :descuento_retrasos, type: Float, default: 0.0
   field :prestamos_internos, type: Float, default: 0.0
   field :total_neto, type: Float, default: 0.0
 end

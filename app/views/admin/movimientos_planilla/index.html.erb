@@ -1,0 +1,96 @@
+<div class="container-fluid">
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
+    <div>
+      <h1 class="h3 mb-0 text-gray-800">Otros Ingresos y Descuentos</h1>
+      <p class="text-muted mb-0">Empleado: <span class="fw-bold text-primary"><%= @empleado.full_name %></span></p>
+    </div>
+    <div>
+      <%= link_to admin_empleados_path, class: "btn btn-sm btn-secondary shadow-sm me-2" do %>
+        <i class="fas fa-arrow-left me-1"></i> Volver a Empleados
+      <% end %>
+      <%= link_to new_admin_empleado_movimientos_planilla_path(@empleado), class: "btn btn-sm btn-success shadow-sm" do %>
+        <i class="fas fa-plus me-1"></i> Agregar Movimiento Manual
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4 bg-light border-0">
+    <div class="card-body">
+      <%# CAMBIADO AQUÍ: Se agregó _index_ antes de _path %>
+      <%= form_with url: admin_empleado_movimientos_planilla_index_path(@empleado), method: :get, local: true, class: "row g-3 align-items-end" do %>
+        <div class="col-sm-4">
+          <label class="form-label fw-bold text-secondary fs-7">Fecha Inicio</label>
+          <%= date_field_tag :fecha_inicio, @fecha_inicio, class: "form-control form-control-sm" %>
+        </div>
+        <div class="col-sm-4">
+          <label class="form-label fw-bold text-secondary fs-7">Fecha Fin</label>
+          <%= date_field_tag :fecha_fin, @fecha_fin, class: "form-control form-control-sm" %>
+        </div>
+        <div class="col-sm-4">
+          <button type="submit" class="btn btn-primary btn-sm w-100 shadow-sm">
+            <i class="fas fa-filter me-1"></i> Filtrar Rango
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="table-responsive">
+      <table class="table table-hover table-striped align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Fecha Aplicación</th>
+            <th>Tipo de Registro</th>
+            <th>Descripción / Concepto</th>
+            <th class="text-end">Monto</th>
+            <th class="text-center">Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @movimientos.any? %>
+            <% @movimientos.each do |mov| %>
+              <tr>
+                <td><%= mov.fecha.strftime("%d/%m/%Y") %></td>
+                <td>
+                  <% case mov.tipo
+                     when 'Bono' %><span class="badge bg-success"><i class="fas fa-gift me-1"></i>Bono</span>
+                     <% when 'Viatico' %><span class="badge bg-info text-dark"><i class="fas fa-car me-1"></i>Viático</span>
+                     <% when 'Comision' %><span class="badge bg-primary"><i class="fas fa-percentage me-1"></i>Comisión</span>
+                     <% when 'Descuento' %><span class="badge bg-danger"><i class="fas fa-arrow-down me-1"></i>Descuento</span>
+                  <% end %>
+                </td>
+                <td><%= mov.descripcion.present? ? mov.descripcion : "---" %></td>
+                <td class="fw-bold text-end <%= mov.tipo == 'Descuento' ? 'text-danger' : 'text-success' %>">
+                  <%= mov.tipo == 'Descuento' ? "-" : "+" %>$<%= number_with_precision(mov.monto, precision: 2) %>
+                </td>
+                <td class="text-center">
+                  <% if mov.procesado %>
+                    <span class="badge bg-secondary" title="Ya pagado en planilla"><i class="fas fa-lock me-1"></i>Procesado</span>
+                  <% else %>
+                    <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pendiente</span>
+                  <% end %>
+                </td>
+                <td class="text-center">
+                  <% if mov.procesado %>
+                    <button class="btn btn-sm btn-light disabled" disabled><i class="fas fa-trash"></i></button>
+                  <% else %>
+                    <%# CAMBIADO: Se agregó la 's' a movimientos en el helper de la ruta %>
+                    <%= button_to admin_empleado_movimientos_planilla_path(@empleado, mov), method: :delete, data: { confirm: "¿Estás seguro de eliminar este registro?" }, class: "btn btn-sm btn-outline-danger" do %>
+                        <i class="fas fa-trash"></i>
+                    <% end %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No se encontraron registros en este rango de fechas.</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

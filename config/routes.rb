@@ -80,6 +80,8 @@ Rails.application.routes.draw do
           post :actualizar_semana
         end
       end
+
+      resources :movimientos_planilla, only: [:index, :new, :create, :destroy]
     end
 
     # # config/routes.rb dentro de namespace :admin

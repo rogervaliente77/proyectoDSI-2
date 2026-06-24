@@ -88,12 +88,19 @@
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.9rem;">
+        <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.85rem;">
           <thead class="table-light">
             <tr>
               <th>Empleado</th>
-              <th class="text-end">Sueldo Base Periodo</th>
-              <th class="text-end text-danger">Desc. Asistencia</th>
+              <th class="text-end">Sueldo Base</th>
+              <th class="text-end">Sueldo Periodo</th>
+              <th class="text-end text-success">Horas Extra</th>
+              <th class="text-end text-success">Bonos</th>
+              <th class="text-end text-success">Comisiones</th>
+              <th class="text-end text-success">Viáticos</th>
+              <th class="text-end text-danger">Desc. Faltas</th>
+              <th class="text-end text-danger">Desc. Tardías</th>
+              <th class="text-end text-danger">Otros Desc.</th>
               <th class="text-end">ISSS</th>
               <th class="text-end">AFP</th>
               <th class="text-end">Renta</th>
@@ -102,18 +109,56 @@
           </thead>
           <tbody>
             <% @boletas.each do |boleta| %>
+              <% 
+                # Buscamos los movimientos manuales asociados a esta planilla y empleado para desglosarlos en la vista
+                movimientos = boleta.empleado.movimientos_planilla.where(planilla_id: boleta.planilla_id)
+                
+                bonos_m = movimientos.where(tipo: 'Bono').sum(:monto) || 0.0
+                comisiones_m = movimientos.where(tipo: 'Comision').sum(:monto) || 0.0
+                viaticos_m = movimientos.where(tipo: 'Viatico').sum(:monto) || 0.0
+                descuentos_m = movimientos.where(tipo: 'Descuento').sum(:monto) || 0.0
+
+                # Calculamos las horas extra puras restando bonos y comisiones del acumulado guardado
+                horas_extra_puras = [boleta.monto_horas_extra - bonos_m - comisiones_m, 0.0].max
+
+                # El campo descuento_faltas de la boleta ahora incluye los descuentos manuales,
+                # restamos los manuales para mostrar las faltas de asistencia puras
+                faltas_puras = [boleta.descuento_faltas - descuentos_m, 0.0].max
+              %>
               <tr>
                 <td>
                   <div class="fw-bold text-gray-800"><%= boleta.empleado&.full_name %></div>
                   <small class="text-muted"><%= boleta.empleado&.cargo_name || "Sin Cargo" %></small>
                 </td>
-                <td class="text-end">$<%= number_with_precision(boleta.sueldo_base_momento, precision: 2) %></td>
+                <td class="text-end text-secondary">$<%= number_with_precision(boleta.empleado.salario_mensual, precision: 2) %></td>
+                <td class="text-end text-secondary fw-bold">$<%= number_with_precision(boleta.sueldo_base_momento, precision: 2) %></td>
                 
+                <td class="text-end text-success"><%= horas_extra_puras > 0 ? "$#{number_with_precision(horas_extra_puras, precision: 2)}" : "—" %></td>
+                <td class="text-end text-success"><%= bonos_m > 0 ? "$#{number_with_precision(bonos_m, precision: 2)}" : "—" %></td>
+                <td class="text-end text-success"><%= comisiones_m > 0 ? "$#{number_with_precision(comisiones_m, precision: 2)}" : "—" %></td>
+                <td class="text-end text-success"><%= viaticos_m > 0 ? "$#{number_with_precision(viaticos_m, precision: 2)}" : "—" %></td>
+
                 <td class="text-end text-danger fw-bold">
-                  <% if boleta.descuento_faltas > 0 %>
-                    $<%= number_with_precision(boleta.descuento_faltas, precision: 2) %>
+                  <% if faltas_puras > 0 %>
+                    $<%= number_with_precision(faltas_puras, precision: 2) %>
                   <% else %>
-                    <span class="text-muted" style="font-size: 0.8rem;">$0.00 (Perfecto)</span>
+                    <span class="text-muted" style="font-size: 0.75rem;">$0.00</span>
+                  <% end %>
+                </td>
+
+                <td class="text-end text-danger fw-bold">
+                  <% if boleta.descuento_retrasos > 0 %>
+                    $<%= number_with_precision(boleta.descuento_retrasos, precision: 2) %>
+                  <% else %>
+                    <span class="text-muted" style="font-size: 0.75rem;">$0.00</span>
+                  <% end %>
+                </td>
+
+                <td class="text-end text-danger fw-bold">
+                  <% if descuentos_m > 0 %>
+                    $<%= number_with_precision(descuentos_m, precision: 2) %>
+                  <% else %>
+                    <span class="text-muted" style="font-size: 0.75rem;">—</span>
                   <% end %>
                 </td>
                 
@@ -121,7 +166,7 @@
                 <td class="text-end text-muted">$<%= number_with_precision(boleta.afp_retencion, precision: 2) %></td>
                 <td class="text-end text-muted">$<%= number_with_precision(boleta.renta_retencion, precision: 2) %></td>
                 
-                <td class="text-end text-success fw-bold fs-6">
+                <td class="text-end text-success fw-bold fs-6 bg-light">
                   $<%= number_with_precision(boleta.total_neto, precision: 2) %>
                 </td>
               </tr>

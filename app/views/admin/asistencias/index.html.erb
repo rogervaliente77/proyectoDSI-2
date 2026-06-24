@@ -18,7 +18,7 @@
 
   <ul class="nav nav-tabs mb-4" id="asistenciaTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link <%= 'active' unless params[:vista] == 'calendario' %>" id="semana-tab" data-bs-toggle="tab" data-bs-target="#semana-pane" type="button" role="tab" aria-controls="semana-pane" aria-selected="<%= params[:vista] != 'calendario' %>">
+      <button class="nav-link <%= 'active' unless ['calendario', 'preview'].include?(params[:vista]) %>" id="semana-tab" data-bs-toggle="tab" data-bs-target="#semana-pane" type="button" role="tab" aria-controls="semana-pane" aria-selected="<%= !['calendario', 'preview'].include?(params[:vista]) %>">
         <i class="fas fa-calendar-week me-1"></i> Control Semanal (Editar)
       </button>
     </li>
@@ -27,11 +27,16 @@
         <i class="fas fa-calendar-alt me-1"></i> Vista Calendario Mensual
       </button>
     </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link <%= 'active' if params[:vista] == 'preview' %>" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-pane" type="button" role="tab" aria-controls="preview-pane" aria-selected="<%= params[:vista] == 'preview' %>">
+        <i class="fas fa-chart-line me-1"></i> Métricas y Preview de Planilla
+      </button>
+    </li>
   </ul>
 
   <div class="tab-content" id="asistenciaTabsContent">
     
-    <div class="tab-pane fade <%= 'show active' unless params[:vista] == 'calendario' %>" id="semana-pane" role="tabpanel" aria-labelledby="semana-tab">
+    <div class="tab-pane fade <%= 'show active' unless ['calendario', 'preview'].include?(params[:vista]) %>" id="semana-pane" role="tabpanel" aria-labelledby="semana-tab">
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
         <h5 class="mb-0 text-gray-700">Planilla de Registro Quincenal / Semanal</h5>
         <div class="btn-group shadow-sm">
@@ -64,77 +69,36 @@
                 </tr>
               </thead>
               <tbody>
-                <% 
-                  dias_laborales_empleado = @empleado.dias_laborales 
-                  hoy = Date.today
-                %>
-                
+                <% dias_laborales_empleado = @empleado.dias_laborales 
+                   hoy = Date.today %>
                 <% @dias_semana.each do |dia| %>
-                  <% 
-                    asistencia = @asistencias_hash[dia] || Asistencia.new(fecha: dia)
-                    
-                    # Validaciones de tiempo y horario laboral
-                    es_futuro = dia > hoy
-                    wday_ajustado = (dia.wday == 0) ? 7 : dia.wday
-                    es_laboral = dias_laborales_empleado.include?(wday_ajustado)
-                    
-                    # Control de bloqueo para inputs
-                    deshabilitado = es_futuro || !es_laboral
-                    
-                    # Manejo de clases visuales de Bootstrap
-                    clase_fila = ""
-                    if es_futuro
-                      clase_fila = "table-light text-muted opacity-75"
-                    elsif !es_laboral
-                      clase_fila = "table-warning text-dark font-italic"
-                    end
-                  %>
+                  <% asistencia = @asistencias_hash[dia] || Asistencia.new(fecha: dia)
+                     es_futuro = dia > hoy
+                     wday_ajustado = (dia.wday == 0) ? 7 : dia.wday
+                     es_laboral = dias_laborales_empleado.include?(wday_ajustado)
+                     deshabilitado = es_futuro || !es_laboral
+                     clase_fila = es_futuro ? "table-light text-muted opacity-75" : (!es_laboral ? "table-warning text-dark font-italic" : "") %>
 
                   <tr class="<%= clase_fila %>">
                     <td class="fw-bold">
                       <%= t('date.day_names')[dia.wday].capitalize %>
-                      <% if !es_laboral %>
-                        <small class="d-block text-danger font-monospace">(No Laboral)</small>
-                      <% end %>
-                      <% if es_futuro %>
-                        <small class="d-block text-muted font-monospace">(Futuro)</small>
-                      <% end %>
+                      <% if !es_laboral %><small class="d-block text-danger font-monospace">(No Laboral)</small><% end %>
+                      <% if es_futuro %><small class="d-block text-muted font-monospace">(Futuro)</small><% end %>
                     </td>
-                    
-                    <td class="text-nowrap">
-                      <%= dia.strftime("%d/%m/%Y") %>
-                    </td>
-                    
+                    <td class="text-nowrap"><%= dia.strftime("%d/%m/%Y") %></td>
                     <td>
                       <%= select_tag "asistencias[#{dia}][estado]", 
                           options_for_select(['Asistió', 'Falta', 'Permiso Con Goce', 'Permiso Sin Goce', 'Incapacidad', 'Vacación'], asistencia.estado), 
-                          class: "form-select form-control form-control-sm", 
-                          disabled: deshabilitado %>
+                          class: "form-select form-control form-control-sm", disabled: deshabilitado %>
                     </td>
-                    
                     <td>
-                      <input type="time" 
-                             name="asistencias[<%= dia %>][hora_entrada]" 
-                             value="<%= asistencia.hora_entrada&.strftime('%H:%M') %>" 
-                             class="form-control form-control-sm" 
-                             <%= 'disabled' if deshabilitado %>>
+                      <input type="time" name="asistencias[<%= dia %>][hora_entrada]" value="<%= asistencia.hora_entrada&.strftime('%H:%M') %>" class="form-control form-control-sm" <%= 'disabled' if deshabilitado %>>
                     </td>
-                    
                     <td>
-                      <input type="time" 
-                             name="asistencias[<%= dia %>][hora_salida]" 
-                             value="<%= asistencia.hora_salida&.strftime('%H:%M') %>" 
-                             class="form-control form-control-sm" 
-                             <%= 'disabled' if deshabilitado %>>
+                      <input type="time" name="asistencias[<%= dia %>][hora_salida]" value="<%= asistencia.hora_salida&.strftime('%H:%M') %>" class="form-control form-control-sm" <%= 'disabled' if deshabilitado %>>
                     </td>
-                    
                     <td>
-                      <input type="text" 
-                             name="asistencias[<%= dia %>][observaciones]" 
-                             value="<%= asistencia.observaciones %>" 
-                             placeholder="<%= !es_laboral ? 'Día de descanso asignado' : 'Ej: Permiso del seguro' %>" 
-                             class="form-control form-control-sm" 
-                             <%= 'disabled' if deshabilitado %>>
+                      <input type="text" name="asistencias[<%= dia %>][observaciones]" value="<%= asistencia.observaciones %>" placeholder="<%= !es_laboral ? 'Día de descanso asignado' : 'Ej: Permiso médico' %>" class="form-control form-control-sm" <%= 'disabled' if deshabilitado %>>
                     </td>
                   </tr>
                 <% end %>
@@ -179,47 +143,35 @@
               <% @todas_semanas_mes.each do |semana| %>
                 <tr style="min-height: 110px; height: 110px;">
                   <% semana.each do |dia| %>
-                    <% 
-                      asistencia = @asistencias_mes_hash[dia]
-                      fuera_de_mes = dia.month != @mes_base.month
-                      
-                      # Estilos de fondo y badges por estado
-                      bg_box = "bg-white"
-                      badge_color = "badge bg-light text-dark shadow-sm"
-                      
-                      if fuera_de_mes
-                        bg_box = "bg-light text-muted opacity-50"
-                      elsif asistencia.present?
-                        case asistencia.estado
-                        when 'Asistió'
-                          bg_box = "bg-success-subtle text-success-emphasis"
-                          badge_color = "badge bg-success shadow-sm"
-                        when 'Falta'
-                          bg_box = "bg-danger-subtle text-danger-emphasis"
-                          badge_color = "badge bg-danger shadow-sm"
-                        when 'Permiso Con Goce', 'Permiso Sin Goce', 'Incapacidad', 'Vacación'
-                          bg_box = "bg-info-subtle text-info-emphasis"
-                          badge_color = "badge bg-info text-dark shadow-sm"
-                        end
-                      end
-                    %>
+                    <% asistencia = @asistencias_mes_hash[dia]
+                       fuera_de_mes = dia.month != @mes_base.month
+                       bg_box = "bg-white"
+                       badge_color = "badge bg-light text-dark shadow-sm"
+                       if fuera_de_mes
+                         bg_box = "bg-light text-muted opacity-50"
+                       elsif asistencia.present?
+                         case asistencia.estado
+                         when 'Asistió'
+                           bg_box = "bg-success-subtle text-success-emphasis"
+                           badge_color = "badge bg-success shadow-sm"
+                         when 'Falta'
+                           bg_box = "bg-danger-subtle text-danger-emphasis"
+                           badge_color = "badge bg-danger shadow-sm"
+                         when 'Permiso Con Goce', 'Permiso Sin Goce', 'Incapacidad', 'Vacación'
+                           bg_box = "bg-info-subtle text-info-emphasis"
+                           badge_color = "badge bg-info text-dark shadow-sm"
+                         end
+                       end %>
                     <td class="<%= bg_box %> p-2 text-start align-top position-relative h-100">
                       <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-bold fs-6 <%= 'text-muted' if fuera_de_mes %>"><%= dia.day %></span>
-                        <% if dia == Date.today %>
-                          <span class="badge bg-primary text-white" style="font-size: 0.65rem;">Hoy</span>
-                        <% end %>
+                        <% if dia == Date.today %><span class="badge bg-primary text-white" style="font-size: 0.65rem;">Hoy</span><% end %>
                       </div>
-                      
                       <% if asistencia.present? && !fuera_de_mes %>
                         <div class="mt-2">
-                          <span class="<%= badge_color %> d-block text-truncate text-center py-1 w-100" style="font-size: 0.72rem;" title="<%= asistencia.estado %>">
-                            <%= asistencia.estado %>
-                          </span>
+                          <span class="<%= badge_color %> d-block text-truncate text-center py-1 w-100" style="font-size: 0.72rem;" title="<%= asistencia.estado %>"><%= asistencia.estado %></span>
                           <% if asistencia.hora_entrada.present? %>
-                            <small class="d-block text-muted text-center mt-1" style="font-size: 0.68rem; font-weight: 500;">
-                              <i class="far fa-clock me-1"></i><%= asistencia.hora_entrada.strftime("%I:%M%p") %>
-                            </small>
+                            <small class="d-block text-muted text-center mt-1" style="font-size: 0.68rem; font-weight: 500;"><i class="far fa-clock me-1"></i><%= asistencia.hora_entrada.strftime("%I:%M%p") %></small>
                           <% end %>
                         </div>
                       <% end %>
@@ -233,5 +185,164 @@
       </div>
     </div>
 
+    <div class="tab-pane fade <%= 'show active' if params[:vista] == 'preview' %>" id="preview-pane" role="tabpanel" aria-labelledby="preview-tab">
+      
+      <div class="card shadow-sm mb-4 bg-light border-0">
+        <div class="card-body">
+          <%= form_with url: admin_empleado_asistencias_path(@empleado), method: :get, local: true, class: "row g-3 align-items-end" do %>
+            <%= hidden_field_tag :vista, 'preview' %>
+            <div class="col-sm-4">
+              <label class="form-label fw-bold text-secondary fs-7">Fecha Inicio Consulta</label>
+              <%= date_field_tag :fecha_inicio_preview, @fecha_inicio_preview, class: "form-control form-control-sm border-secondary" %>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-bold text-secondary fs-7">Fecha Fin Consulta</label>
+              <%= date_field_tag :fecha_fin_preview, @fecha_fin_preview, class: "form-control form-control-sm border-secondary" %>
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-primary btn-sm w-100 shadow-sm">
+                <i class="fas fa-search me-1"></i> Calcular Vista Previa de Asistencia
+              </button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+          <div class="card shadow h-100 border-start border-4 border-success p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-xs text-uppercase fw-bold text-success d-block mb-1">Rendimiento de Asistencia</span>
+                <span class="h3 fw-bold text-gray-800"><%= @porcentaje_asistencia %>%</span>
+              </div>
+              <i class="fas fa-percentage fa-2x text-gray-300"></i>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width: <%= @porcentaje_asistencia %>%"></div>
+            </div>
+            <small class="text-muted mt-2 d-block">Asistió a <strong><%= @asistencias_efectivas %></strong> de <strong><%= @dias_que_debio_asistir %></strong> días que le correspondían.</small>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <% 
+            excede_gracia = @total_minutos_retraso_periodo > @limite_gracia
+            color_retraso = excede_gracia ? "danger" : "warning"
+          %>
+          <div class="card shadow h-100 border-start border-4 border-<%= color_retraso %> p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-xs text-uppercase fw-bold text-<%= color_retraso %> d-block mb-1">Bolsa de Minutos Tarde</span>
+                <span class="h3 fw-bold text-gray-800"><%= @total_minutos_retraso_periodo %> min</span>
+              </div>
+              <i class="fas fa-stopwatch fa-2x text-gray-300"></i>
+            </div>
+            <div class="progress mt-3" style="height: 6px;">
+              <% porc_gracia = [((@total_minutos_retraso_periodo.to_f / @limite_gracia) * 100), 100].min %>
+              <div class="progress-bar bg-<%= color_retraso %>" role="progressbar" style="width: <%= porc_gracia %>%"></div>
+            </div>
+            <small class="text-muted mt-2 d-block">
+              <% if excede_gracia %>
+                <span class="text-danger fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>Excedió por <%= @total_minutos_retraso_periodo - @limite_gracia %> mins</span> la gracia permitida (<%= @limite_gracia %> min).
+              <% else %>
+                <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>A salvo</span>, le restan <%= @limite_gracia - @total_minutos_retraso_periodo %> mins de tolerancia general.
+              <% end %>
+            </small>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+          <div class="card shadow h-100 border-start border-4 border-danger p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <span class="text-xs text-uppercase fw-bold text-danger d-block mb-1">Días de Falta/Inasistencia</span>
+                <span class="h3 fw-bold text-gray-800"><%= @faltas_detectadas %> días</span>
+              </div>
+              <i class="fas fa-user-times fa-2x text-gray-300"></i>
+            </div>
+            <small class="text-muted mt-4 d-block">Estos días se descontarán en su totalidad de manera ordinaria al procesar la planilla final.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-100">
+          <div class="card shadow mb-4">
+            <div class="card-header bg-white py-3">
+              <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar me-1"></i>Historial del Consumo de Minutos Tarde vs Salidas Tempranas</h6>
+            </div>
+            <div class="card-body">
+              <% if @fechas_grafica.any? %>
+                <div style="position: relative; height:300px; width:100%">
+                  <canvas id="retrasosChart"></canvas>
+                </div>
+              <% else %>
+                <div class="text-center py-5 text-muted">
+                  <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                  <p class="mb-0">¡Excelente! El empleado no registra retrasos de entrada ni salidas anticipadas en este rango de fechas.</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    <% if @fechas_grafica.any? %>
+      var ctx = document.getElementById('retrasosChart').getContext('2d');
+      var retrasosChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: <%= raw @fechas_grafica.to_json %>,
+          datasets: [
+            {
+              label: 'Minutos Tarde (Entrada)',
+              data: <%= raw @valores_grafica_entrada.to_json %>,
+              backgroundColor: 'rgba(231, 74, 59, 0.75)',
+              borderColor: 'rgba(231, 74, 59,  1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Minutos Salida Anticipada',
+              data: <%= raw @valores_grafica_salida.to_json %>,
+              backgroundColor: 'rgba(246, 194, 62, 0.75)',
+              borderColor: 'rgba(246, 194, 62, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Cantidad de Minutos'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Días de Asistencia Registrados'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            }
+          }
+        }
+      });
+    <% end %>
+  });
+</script>

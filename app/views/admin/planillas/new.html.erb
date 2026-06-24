@@ -1,43 +1,52 @@
 <div class="container-fluid">
   <div class="mb-4">
     <h1 class="h3 mb-0 text-gray-800">Generar Nueva Planilla</h1>
-    <p class="text-muted">El sistema procesará las asistencias e incapacidades dentro del rango asignado.</p>
+    <p class="text-muted">Selecciona la modalidad para calcular los rangos de asistencia de manera automática.</p>
   </div>
 
   <% if flash[:alert] %>
-    <div class="alert alert-danger"><%= flash[:alert] %></div>
+    <div class="alert alert-danger shadow-sm"><%= flash[:alert] %></div>
   <% end %>
 
   <div class="card shadow mb-4" style="max-width: 600px;">
     <div class="card-body">
-      <%= form_with model: [:admin, @planilla], local: true do |f| %>
+      <%= form_with model: [:admin, @planilla], local: true, id: "form-planilla" do |f| %>
         
+        <!-- Selector del Tipo de Planilla -->
         <div class="mb-3">
-          <%= f.label :tipo_periodo, "Tipo de Periodo", class: "form-label fw-bold" %>
-          <%= f.select :tipo_periodo, ['Semanal', 'Quincenal', 'Mensual'], {}, class: "form-select" %>
+          <%= f.label :tipo_periodo, "Tipo de Periodo / Frecuencia", class: "form-label fw-bold" %>
+          <%= f.select :tipo_periodo, ['Quincenal', 'Semanal', 'Mensual'], { selected: @tipo_actual }, { class: "form-select", id: "select-tipo-periodo" } %>
         </div>
 
-        <div class="row">
-          <div class="col-6 mb-3">
-            <%= f.label :fecha_desde, "Fecha Inicial (Corte)", class: "form-label fw-bold" %>
-            <%= f.date_field :fecha_desde, class: "form-control" %>
-          </div>
-          <div class="col-6 mb-3">
-            <%= f.label :fecha_hasta, "Fecha Final (Corte)", class: "form-label fw-bold" %>
-            <%= f.date_field :fecha_hasta, class: "form-control" %>
-          </div>
+        <!-- Rango de Fechas Automatizado Dinámico -->
+        <div class="mb-3">
+          <label class="form-label fw-bold text-primary">
+            <i class="fas fa-calendar-check me-1"></i> Periodo de Corte Detectado
+          </label>
+          <%= select_tag "planilla[periodo_automatico]", options_for_select(@periodos_disponibles), class: "form-select fw-bold border-primary" %>
+          <div class="form-text text-muted">Los rangos se calculan de manera inteligente según las configuraciones de cortes de la empresa.</div>
         </div>
 
+        <!-- Fecha de pago elegible -->
         <div class="mb-4">
-          <%= f.label :fecha_pago, "Fecha de Pago Estimada", class: "form-label fw-bold" %>
+          <%= f.label :fecha_pago, "Fecha Real de Pago", class: "form-label fw-bold" %>
           <%= f.date_field :fecha_pago, value: Date.today, class: "form-control" %>
         </div>
 
         <div class="d-flex justify-content-end gap-2">
           <%= link_to "Cancelar", admin_planillas_path, class: "btn btn-secondary btn-sm" %>
-          <%= f.submit "Procesar y Calcular Planilla", class: "btn btn-primary btn-sm", data: { turbo_confirm: "¿Estás seguro? Esto bloqueará las asistencias del rango." } %>
+          <%= f.submit "Procesar y Calcular Planilla", class: "btn btn-success btn-sm px-4", data: { confirm: "¿Confirmas el cierre y cálculo automático de este periodo?" } %>
         </div>
       <% end %>
     </div>
   </div>
 </div>
+
+<!-- JavaScript para recargar los periodos automáticamente al cambiar de pestaña/frecuencia -->
+<script>
+  document.getElementById('select-tipo-periodo').addEventListener('change', function() {
+    var tipo = this.value;
+    // Redirecciona agregando el parámetro para que el controlador recalcule la lista en el servidor
+    window.location.href = "<%= new_admin_planilla_path %>?tipo_periodo=" + tipo;
+  });
+</script>
