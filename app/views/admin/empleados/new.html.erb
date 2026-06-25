@@ -3,7 +3,7 @@
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Recursos Humanos</h1>
-        <%= link_to admin_empleados_path, class: "d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm" do %>
+        <%= link_to admin_empleados_path, data: { turbo: false }, class: "d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm" do %>
           <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a empleados
         <% end %>
     </div>

@@ -41,7 +41,7 @@
           <div class="row no-gutters align-items-center">
             <div class="col mr-2">
               <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Total Descuentos por Asistencia</div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= number_with_precision(@boletas.sum(:descuento_faltas), precision: 2) %></div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= number_with_precision(@boletas.sum(:descuento_faltas) + @boletas.sum(:descuento_retrasos), precision: 2) %></div>
             </div>
             <div class="col-auto">
               <i class="fas fa-user-clock fa-2x text-gray-300"></i>
@@ -101,7 +101,7 @@
               <th class="text-end text-success">Horas Extra</th>
               <th class="text-end text-success">Bonos</th>
               <th class="text-end text-success">Comisiones</th>
-              <th class="text-end text-success">Viáticos</th>
+              <th class="text-end text-success">Viáticos / Otros</th>
               <th class="text-end text-danger">Desc. Faltas</th>
               <th class="text-end text-danger">Desc. Tardías</th>
               <th class="text-end text-danger">Otros Desc.</th>
@@ -121,6 +121,11 @@
                 viaticos_m = movimientos.where(tipo: 'Viatico').sum(:monto) || 0.0
                 descuentos_m = movimientos.where(tipo: 'Descuento').sum(:monto) || 0.0
 
+                # CORRECCIÓN LOGICA: Capturamos cualquier valor directo en boleta.otros_ingresos 
+                # que no esté amarrado a un documento de movimiento manual
+                otros_ingresos_directos = [boleta.otros_ingresos - viaticos_m, 0.0].max
+                viaticos_totales_mostrar = viaticos_m + otros_ingresos_directos
+
                 horas_extra_puras = [boleta.monto_horas_extra - bonos_m - comisiones_m, 0.0].max
                 faltas_puras = [boleta.descuento_faltas - descuentos_m, 0.0].max
               %>
@@ -135,7 +140,8 @@
                 <td class="text-end text-success"><%= horas_extra_puras > 0 ? "$#{number_with_precision(horas_extra_puras, precision: 2)}" : "—" %></td>
                 <td class="text-end text-success"><%= bonos_m > 0 ? "$#{number_with_precision(bonos_m, precision: 2)}" : "—" %></td>
                 <td class="text-end text-success"><%= comisiones_m > 0 ? "$#{number_with_precision(comisiones_m, precision: 2)}" : "—" %></td>
-                <td class="text-end text-success"><%= viaticos_m > 0 ? "$#{number_with_precision(viaticos_m, precision: 2)}" : "—" %></td>
+                
+                <td class="text-end text-success fw-bold"><%= viaticos_totales_mostrar > 0 ? "$#{number_with_precision(viaticos_totales_mostrar, precision: 2)}" : "—" %></td>
 
                 <td class="text-end text-danger fw-bold">
                   <% if faltas_puras > 0 %>
@@ -186,10 +192,13 @@
       viaticos_m = movimientos.where(tipo: 'Viatico').sum(:monto) || 0.0
       descuentos_m = movimientos.where(tipo: 'Descuento').sum(:monto) || 0.0
 
+      otros_ingresos_directos = [boleta.otros_ingresos - viaticos_m, 0.0].max
+      viaticos_totales_mostrar = viaticos_m + otros_ingresos_directos
+
       horas_extra_puras = [boleta.monto_horas_extra - bonos_m - comisiones_m, 0.0].max
       faltas_puras = [boleta.descuento_faltas - descuentos_m, 0.0].max
       
-      total_ingresos_v = boleta.sueldo_base_momento + horas_extra_puras + bonos_m + comisiones_m + viaticos_m
+      total_ingresos_v = boleta.sueldo_base_momento + horas_extra_puras + bonos_m + comisiones_m + viaticos_totales_mostrar
       total_descuentos_v = faltas_puras + boleta.descuento_retrasos + descuentos_m + boleta.isss_retencion + boleta.afp_retencion + boleta.renta_retencion
     %>
     
@@ -256,8 +265,8 @@
             <td style="text-align: right; padding: 8px; color: #a94442;"><%= faltas_puras > 0 ? "$#{number_with_precision(faltas_puras, precision: 2)}" : "—" %></td>
           </tr>
           <tr style="border-bottom: 1px dashed #eee;">
-            <td style="padding: 8px;">Viáticos asignados (Exentos)</td>
-            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;"><%= viaticos_m > 0 ? "$#{number_with_precision(viaticos_m, precision: 2)}" : "—" %></td>
+            <td style="padding: 8px;">Viáticos y Otros Ingresos Exentos</td>
+            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;"><%= viaticos_totales_mostrar > 0 ? "$#{number_with_precision(viaticos_totales_mostrar, precision: 2)}" : "—" %></td>
             <td style="padding: 8px;">Descuentos por Tardías / Minutos</td>
             <td style="text-align: right; padding: 8px; color: #a94442;"><%= boleta.descuento_retrasos > 0 ? "$#{number_with_precision(boleta.descuento_retrasos, precision: 2)}" : "—" %></td>
           </tr>
@@ -303,7 +312,6 @@
   function generarBoletasPDF() {
     const elemento = document.getElementById('contenedor-boletas-pdf');
     
-    // Clonamos para renderizar de forma segura en memoria sin romper el DOM oculto
     const clonElemento = elemento.cloneNode(true);
     clonElemento.style.display = 'block';
 

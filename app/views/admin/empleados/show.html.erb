@@ -2,10 +2,10 @@
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Ficha del Empleado</h1>
     <div>
-      <%= link_to admin_empleados_path, class: "btn btn-sm btn-secondary shadow-sm" do %>
+      <%= link_to admin_empleados_path, data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm" do %>
         <i class="fas fa-arrow-left"></i> Volver
       <% end %>
-      <%= link_to edit_admin_empleado_path(@empleado), class: "btn btn-sm btn-warning shadow-sm" do %>
+      <%= link_to edit_admin_empleado_path(@empleado), data: { turbo: false }, class: "btn btn-sm btn-warning shadow-sm" do %>
         <i class="fas fa-edit"></i> Editar Datos
       <% end %>
     </div>

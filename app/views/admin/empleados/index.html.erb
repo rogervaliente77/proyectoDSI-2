@@ -2,7 +2,7 @@
   <!-- Encabezado y botón de nuevo empleado -->
   <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
     <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Gestión de Empleados</h1>
-    <%= link_to new_admin_empleado_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+    <%= link_to new_admin_empleado_path, data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
       <i class="fas fa-user-plus me-1"></i> Crear Empleado
     <% end %>
   </div>
@@ -54,11 +54,11 @@
                   </td>
                   <td class="text-center text-nowrap">
                     <div class="btn-group" role="group">
-                      <%= link_to admin_empleado_path(empleado), class: "btn btn-sm btn-info text-white", title: "Ver Detalle" do %>
+                      <%= link_to admin_empleado_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-info text-white", title: "Ver Detalle" do %>
                         <i class="fa fa-eye"></i>
                       <% end %>
 
-                      <%= link_to edit_admin_empleado_path(empleado), class: "btn btn-sm btn-warning", title: "Editar" do %>
+                      <%= link_to edit_admin_empleado_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-warning", title: "Editar" do %>
                         <i class="fa fa-pencil"></i>
                       <% end %>
 
@@ -71,11 +71,11 @@
                         <i class="fa fa-trash"></i>
                       <% end %>
 
-                      <%= link_to admin_empleado_asistencias_path(empleado), class: "btn btn-sm btn-success text-white", title: "Control de Asistencia" do %>
+                      <%= link_to admin_empleado_asistencias_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-success text-white", title: "Control de Asistencia" do %>
                         <i class="fa fa-calendar-alt"></i>
                       <% end %>
 
-                      <%= link_to admin_empleado_movimientos_planilla_index_path(empleado), class: "btn btn-xs btn-info shadow-sm", title: "Otros Ingresos/Descuentos" do %>
+                      <%= link_to admin_empleado_movimientos_planilla_index_path(empleado), data: { turbo: false }, class: "btn btn-xs btn-info shadow-sm", title: "Otros Ingresos/Descuentos" do %>
                         <i class="fas fa-hand-holding-usd"></i>
                       <% end %>
                     </div>

@@ -69,8 +69,8 @@ class Planilla
         base_renta_vacia = [sueldo_gravable_vacio - monto_isss_vacio - monto_afp_vacio, 0].max
         monto_renta_vacio = calcular_renta_sv(base_renta_vacia, config).round(2)
   
-        # Los viáticos se consolidan en otros ingresos sin pagar impuestos
-        otros_ing_vacio = (empleado.otros_ingresos1 || 0) + (empleado.otros_ingresos2 || 0) + total_viaticos
+        # CORRECCIÓN: Los viáticos se consolidan únicamente del movimiento dinámico del periodo
+        otros_ing_vacio = total_viaticos
   
         boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
         boleta.update!(
@@ -179,8 +179,8 @@ class Planilla
       base_renta = [sueldo_gravable - monto_isss - monto_afp, 0].max
       monto_renta = calcular_renta_sv(base_renta, config).round(2)
   
-      # Consolidación de ingresos exentos (Fijos de la ficha + Viáticos manuales del periodo)
-      otros_ing = (empleado.otros_ingresos1 || 0) + (empleado.otros_ingresos2 || 0) + total_viaticos
+      # CORRECCIÓN: Consolidación de ingresos exentos únicamente de los viáticos manuales del periodo
+      otros_ing = total_viaticos
       
       # Consolidación total de egresos (Descuentos de asistencia + Descuentos manuales de la vista)
       descuentos_totales_faltas = monto_descuento_faltas + total_descuentos_manuales

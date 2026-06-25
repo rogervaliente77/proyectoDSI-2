@@ -5,10 +5,10 @@
       <p class="text-muted mb-0">Empleado: <span class="fw-bold text-primary"><%= @empleado.full_name %></span></p>
     </div>
     <div>
-      <%= link_to admin_empleados_path, class: "btn btn-sm btn-secondary shadow-sm me-2" do %>
+      <%= link_to admin_empleados_path, data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm me-2" do %>
         <i class="fas fa-arrow-left me-1"></i> Volver a Empleados
       <% end %>
-      <%= link_to new_admin_empleado_movimientos_planilla_path(@empleado), class: "btn btn-sm btn-success shadow-sm" do %>
+      <%= link_to new_admin_empleado_movimientos_planilla_path(@empleado), data: { turbo: false }, class: "btn btn-sm btn-success shadow-sm" do %>
         <i class="fas fa-plus me-1"></i> Agregar Movimiento Manual
       <% end %>
     </div>
@@ -17,7 +17,7 @@
   <div class="card shadow-sm mb-4 bg-light border-0">
     <div class="card-body">
       <%# CAMBIADO AQUÍ: Se agregó _index_ antes de _path %>
-      <%= form_with url: admin_empleado_movimientos_planilla_index_path(@empleado), method: :get, local: true, class: "row g-3 align-items-end" do %>
+      <%= form_with url: admin_empleado_movimientos_planilla_index_path(@empleado), data: { turbo: false }, method: :get, local: true, class: "row g-3 align-items-end" do %>
         <div class="col-sm-4">
           <label class="form-label fw-bold text-secondary fs-7">Fecha Inicio</label>
           <%= date_field_tag :fecha_inicio, @fecha_inicio, class: "form-control form-control-sm" %>

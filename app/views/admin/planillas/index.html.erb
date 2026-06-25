@@ -4,24 +4,30 @@
       <h1 class="h3 mb-0 text-gray-800">Control de Planillas</h1>
       <p class="text-muted">Gestión de cierres salariales, prestaciones y periodos especiales.</p>
     </div>
-    <%= link_to new_admin_planilla_path(tipo: @tipo_actual), class: "btn btn-primary shadow-sm" do %>
+    <%= link_to new_admin_planilla_path(tipo: @tipo_actual), data: { turbo: false }, class: "btn btn-primary shadow-sm" do %>
       <i class="fas fa-plus-circle me-1"></i> Nueva Planilla de <%= @tipo_actual %>
     <% end %>
   </div>
 
   <ul class="nav nav-tabs mb-4" id="planillaTabs" role="tablist">
     <li class="nav-item">
-      <%= link_to admin_planillas_path(tipo: 'Salarial Ordinaria'), class: "nav-link #{'active fw-bold text-primary' if @tipo_actual == 'Salarial Ordinaria'}" do %>
+      <%= link_to admin_planillas_path(tipo: 'Salarial Ordinaria'), 
+                  data: { turbo: false }, 
+                  class: "nav-link #{'active fw-bold text-primary' if @tipo_actual == 'Salarial Ordinaria'}" do %>
         <i class="fas fa-wallet me-1"></i> Planillas Salariales
       <% end %>
     </li>
     <li class="nav-item">
-      <%= link_to admin_planillas_path(tipo: 'Aguinaldo'), class: "nav-link #{'active fw-bold text-success' if @tipo_actual == 'Aguinaldo'}" do %>
+      <%= link_to admin_planillas_path(tipo: 'Aguinaldo'), 
+                  data: { turbo: false }, 
+                  class: "nav-link #{'active fw-bold text-success' if @tipo_actual == 'Aguinaldo'}" do %>
         <i class="fas fa-gift me-1"></i> Planillas de Aguinaldo
       <% end %>
     </li>
     <li class="nav-item">
-      <%= link_to admin_planillas_path(tipo: 'Quincena 25'), class: "nav-link #{'active fw-bold text-info' if @tipo_actual == 'Quincena 25'}" do %>
+      <%= link_to admin_planillas_path(tipo: 'Quincena 25'), 
+                  data: { turbo: false }, 
+                  class: "nav-link #{'active fw-bold text-info' if @tipo_actual == 'Quincena 25'}" do %>
         <i class="fas fa-calendar-plus me-1"></i> Quincena 25 / Especiales
       <% end %>
     </li>
