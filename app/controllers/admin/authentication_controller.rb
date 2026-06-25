@@ -5,6 +5,8 @@ module Admin
       :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
     ]
 
+    layout "login_layout"
+
     # skip_before_action :check_admin_access, only: [
     # :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
     #] 

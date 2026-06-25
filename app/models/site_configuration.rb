@@ -4,7 +4,7 @@ class SiteConfiguration
   include Mongoid::Timestamps
 
   # Configuración de sesión y notificaciones
-  field :session_timeout, type: Integer, default: 30 # minutos
+  field :session_timeout, type: Integer, default: 60 # minutos
   field :offer_notifications_enabled, type: Boolean, default: true
   field :mass_mail_enabled, type: Boolean, default: false
 

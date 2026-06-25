@@ -1,52 +1,98 @@
 <div class="container-fluid">
   <div class="mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Generar Nueva Planilla</h1>
-    <p class="text-muted">Selecciona la modalidad para calcular los rangos de asistencia de manera automática.</p>
+    <h1 class="h3 mb-0 text-gray-800">Nueva Planilla</h1>
+    <p class="text-muted">Configure los parámetros básicos para la generación del periodo.</p>
   </div>
 
   <% if flash[:alert] %>
     <div class="alert alert-danger shadow-sm"><%= flash[:alert] %></div>
   <% end %>
 
-  <div class="card shadow mb-4" style="max-width: 600px;">
-    <div class="card-body">
-      <%= form_with model: [:admin, @planilla], local: true, id: "form-planilla" do |f| %>
-        
-        <!-- Selector del Tipo de Planilla -->
-        <div class="mb-3">
-          <%= f.label :tipo_periodo, "Tipo de Periodo / Frecuencia", class: "form-label fw-bold" %>
-          <%= f.select :tipo_periodo, ['Quincenal', 'Semanal', 'Mensual'], { selected: @tipo_actual }, { class: "form-select", id: "select-tipo-periodo" } %>
+  <%= form_with model: [:admin, @planilla], local: true, id: "form-planilla" do |f| %>
+    
+    <%# Campo oculto indispensable para mapear el tipo de planilla activo %>
+    <% tipo_planilla_activo = @planilla.tipo_planilla || params[:tipo] || 'Salarial Ordinaria' %>
+    <%= f.hidden_field :tipo_planilla, value: tipo_planilla_activo %>
+
+    <div class="card p-4 shadow-sm border-0" style="max-width: 650px;">
+      
+      <div class="mb-3">
+        <label class="form-label fw-bold text-secondary">Tipo de Planilla Activa</label>
+        <input type="text" class="form-control bg-light fw-bold text-dark" value="<%= tipo_planilla_activo %>" readonly>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold text-secondary">Nombre de la Planilla</label>
+        <%= f.text_field :nombre, class: "form-control", placeholder: "Ej: Planilla Ordinaria Primera Quincena", required: true %>
+      </div>
+
+      <% if (tipo_planilla_activo == 'Aguinaldo' || params[:tipo] == 'Aguinaldo') %>
+        <div class="alert alert-info border-0 shadow-sm my-4">
+          <div class="d-flex">
+            <div class="me-3 fs-3">
+              <i class="fas fa-info-circle text-info"></i>
+            </div>
+            <div>
+              <h5 class="alert-heading fw-bold">Proyección de Aguinaldos de Ley</h5>
+              <p class="mb-1 text-sm">
+                Se calculará la antigüedad de cada empleado activo tomando como fecha exacta de corte el <strong>12 de diciembre de <%= Time.now.year %></strong>.
+              </p>
+              <span class="badge bg-primary">Exento de ISSS y AFP por ley de El Salvador</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Rango de Fechas Automatizado Dinámico -->
         <div class="mb-3">
-          <label class="form-label fw-bold text-primary">
-            <i class="fas fa-calendar-check me-1"></i> Periodo de Corte Detectado
+          <label class="form-label fw-bold text-secondary">Fecha Estimada de Pago</label>
+          <%= f.date_field :fecha_pago, class: "form-control", value: Date.new(Time.now.year, 12, 12) %>
+        </div>
+
+      <% else %>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-secondary">Tipo de Periodo / Frecuencia</label>
+          <%# Añadido id para el Listener del script %>
+          <%= f.select :tipo_periodo, ['Quincenal', 'Mensual', 'Semanal'], { selected: @tipo_actual || @planilla.tipo_periodo }, { class: "form-select", id: "select-tipo-periodo" } %>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold text-primary fw-bold">
+            <i class="fas fa-calendar-check me-1"></i> Seleccione el Periodo de Corte (Asistencia Real)
           </label>
-          <%= select_tag "planilla[periodo_automatico]", options_for_select(@periodos_disponibles), class: "form-select fw-bold border-primary" %>
+          <%# Procesamiento del selector inteligente %>
+          <%= select_tag "planilla[periodo_automatico]", options_for_select(@periodos_disponibles || []), class: "form-select fw-bold border-primary text-primary" %>
           <div class="form-text text-muted">Los rangos se calculan de manera inteligente según las configuraciones de cortes de la empresa.</div>
         </div>
 
-        <!-- Fecha de pago elegible -->
-        <div class="mb-4">
-          <%= f.label :fecha_pago, "Fecha Real de Pago", class: "form-label fw-bold" %>
-          <%= f.date_field :fecha_pago, value: Date.today, class: "form-control" %>
-        </div>
-
-        <div class="d-flex justify-content-end gap-2">
-          <%= link_to "Cancelar", admin_planillas_path, class: "btn btn-secondary btn-sm" %>
-          <%= f.submit "Procesar y Calcular Planilla", class: "btn btn-success btn-sm px-4", data: { confirm: "¿Confirmas el cierre y cálculo automático de este periodo?" } %>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-secondary">Fecha Real de Pago</label>
+          <%= f.date_field :fecha_pago, class: "form-control", value: @planilla.fecha_pago || Date.today %>
         </div>
       <% end %>
+
+      <div class="text-end mt-4">
+        <%= link_to "Cancelar", admin_planillas_path(tipo: tipo_planilla_activo), class: "btn btn-light me-2" %>
+        <%= f.submit "Crear y Configurar Estructura", class: "btn btn-primary px-4", data: { confirm: "¿Confirmas el cierre y cálculo automático de este periodo?" } %>
+      </div>
     </div>
-  </div>
+  <% end %>
 </div>
 
-<!-- JavaScript para recargar los periodos automáticamente al cambiar de pestaña/frecuencia -->
+<!-- JavaScript para recargar los periodos automáticamente manteniendo las pestañas/tipo activas -->
+<!-- JavaScript para recargar los periodos automáticamente manteniendo las pestañas/tipo activas -->
 <script>
-  document.getElementById('select-tipo-periodo').addEventListener('change', function() {
-    var tipo = this.value;
-    // Redirecciona agregando el parámetro para que el controlador recalcule la lista en el servidor
-    window.location.href = "<%= new_admin_planilla_path %>?tipo_periodo=" + tipo;
+  document.addEventListener("DOMContentLoaded", function() {
+    const selectPeriodo = document.getElementById('select-tipo-periodo');
+    
+    if (selectPeriodo) {
+      selectPeriodo.addEventListener('change', function() {
+        var tipoPeriodo = this.value;
+        
+        // CORRECCIÓN: Leemos el valor directamente del campo oculto que generó Rails en el DOM
+        var tipoPlanilla = document.querySelector('input[name="planilla[tipo_planilla]"]').value;
+        
+        // Redireccionamos pasando AMBOS parámetros para que el controlador no pierda el contexto
+        window.location.href = "<%= new_admin_planilla_path %>?tipo=" + encodeURIComponent(tipoPlanilla) + "&tipo_periodo=" + encodeURIComponent(tipoPeriodo);
+      });
+    }
   });
 </script>

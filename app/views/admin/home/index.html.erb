@@ -11,52 +11,7 @@
     <div class="alert alert-danger"><%= flash[:alert] %></div>
   <% end %>
 
-  <!-- Metrics Cards Row (clicables, estilo reportes) -->
-  <div class="row flex-nowrap overflow-auto g-4 px-2 px-md-0">
-    <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
-      <!-- Reporte Producto Más Vendido -->
-      <div class="col-10 col-sm-6 col-md-4 flex-shrink-0">
-        <div class="card h-100 shadow-sm border-0 rounded-3 report-card bg-light-soft">
-          <div class="card-body d-flex flex-column justify-content-between text-center p-3 p-md-4">
-            <div class="mb-3 report-icon">🛠️</div>
-            <h5 class="card-title fw-bold">Producto Más Vendido</h5>
-            <p class="card-text text-muted" style="font-size: 0.9rem;">
-              Consulta los productos con mayor demanda para optimizar inventario y stock.
-            </p>
-            <%= link_to 'Abrir Reporte', '/admin/reports/top_products', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold', data: { turbo: false } %>
-          </div>
-        </div>
-      </div>
 
-      <!-- Reporte Marca Más Vendida -->
-      <div class="col-10 col-sm-6 col-md-4 flex-shrink-0">
-        <div class="card h-100 shadow-sm border-0 rounded-3 report-card bg-light-soft">
-          <div class="card-body d-flex flex-column justify-content-between text-center p-3 p-md-4">
-            <div class="mb-3 report-icon">⭐</div>
-            <h5 class="card-title fw-bold">Marca Más Vendida</h5>
-            <p class="card-text text-muted" style="font-size: 0.9rem;">
-              Visualiza las marcas con mejor rendimiento en ventas para decisiones estratégicas de marketing.
-            </p>
-            <%= link_to 'Abrir Reporte', '/admin/reports/top_brands', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold', data: { turbo: false } %>
-          </div>
-        </div>
-      </div>
-    <% end %>
-
-    <!-- Reporte Mejor Vendedor (visible para todos) -->
-    <div class="col-10 col-sm-6 col-md-4 flex-shrink-0">
-      <div class="card h-100 shadow-sm border-0 rounded-3 report-card bg-light-soft">
-        <div class="card-body d-flex flex-column justify-content-between text-center p-3 p-md-4">
-          <div class="mb-3 report-icon">🏆</div>
-          <h5 class="card-title fw-bold">Mejor Vendedor</h5>
-          <p class="card-text text-muted" style="font-size: 0.9rem;">
-            Identifica al empleado con mejor desempeño en ventas y fomenta buenas prácticas.
-          </p>
-          <%= link_to 'Abrir Reporte', '/admin/reports/best_seller', class: 'btn btn-outline-secondary mt-3 w-100 fw-bold', data: { turbo: false } %>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- CSS para el fondo y cards -->

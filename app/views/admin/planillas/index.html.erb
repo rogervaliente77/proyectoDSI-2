@@ -1,51 +1,82 @@
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 text-gray-800">Historial de Planillas</h1>
-    <%= link_to new_admin_planilla_path, class: "btn btn-sm btn-primary shadow-sm" do %>
-      <i class="fas fa-plus me-1"></i> Generar Planilla
+    <div>
+      <h1 class="h3 mb-0 text-gray-800">Control de Planillas</h1>
+      <p class="text-muted">Gestión de cierres salariales, prestaciones y periodos especiales.</p>
+    </div>
+    <%= link_to new_admin_planilla_path(tipo: @tipo_actual), class: "btn btn-primary shadow-sm" do %>
+      <i class="fas fa-plus-circle me-1"></i> Nueva Planilla de <%= @tipo_actual %>
     <% end %>
   </div>
 
-  <div class="card shadow mb-4">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Nombre de Planilla</th>
-              <th>Periodo</th>
-              <th>Rango de Fechas</th>
-              <th>Fecha de Pago</th>
-              <th>Estado</th>
-              <th class="text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if @planillas.any? %>
-              <% @planillas.each do |p| %>
-                <tr>
-                  <td class="fw-bold text-primary"><%= p.nombre %></td>
-                  <td><span class="badge bg-secondary"><%= p.tipo_periodo %></span></td>
-                  <td><%= p.fecha_desde.strftime("%d/%m/%Y") %> al <%= p.fecha_hasta.strftime("%d/%m/%Y") %></td>
-                  <td><%= p.fecha_pago&.strftime("%d/%m/%Y") %></td>
-                  <td>
-                    <span class="badge bg-success"><i class="fas fa-lock me-1"></i> Procesada</span>
-                  </td>
-                  <td class="text-center">
-                    <%= link_to admin_planilla_path(p), class: "btn btn-sm btn-info text-white" do %>
-                      <i class="fas fa-eye me-1"></i> Ver Boletas
-                    <% end %>
-                  </td>
-                </tr>
-              <% end %>
-            <% else %>
+  <ul class="nav nav-tabs mb-4" id="planillaTabs" role="tablist">
+    <li class="nav-item">
+      <%= link_to admin_planillas_path(tipo: 'Salarial Ordinaria'), class: "nav-link #{'active fw-bold text-primary' if @tipo_actual == 'Salarial Ordinaria'}" do %>
+        <i class="fas fa-wallet me-1"></i> Planillas Salariales
+      <% end %>
+    </li>
+    <li class="nav-item">
+      <%= link_to admin_planillas_path(tipo: 'Aguinaldo'), class: "nav-link #{'active fw-bold text-success' if @tipo_actual == 'Aguinaldo'}" do %>
+        <i class="fas fa-gift me-1"></i> Planillas de Aguinaldo
+      <% end %>
+    </li>
+    <li class="nav-item">
+      <%= link_to admin_planillas_path(tipo: 'Quincena 25'), class: "nav-link #{'active fw-bold text-info' if @tipo_actual == 'Quincena 25'}" do %>
+        <i class="fas fa-calendar-plus me-1"></i> Quincena 25 / Especiales
+      <% end %>
+    </li>
+  </ul>
+
+  <div class="card shadow mb-4 border-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th>Nombre del Periodo</th>
+            <th>Tipo Periodo</th>
+            <th>Rango de Fechas</th>
+            <th>Fecha Pago</th>
+            <th class="text-center">Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @planillas.any? %>
+            <% @planillas.each do |planilla| %>
               <tr>
-                <td colspan="6" class="text-center py-4 text-muted">No se han procesado planillas aún.</td>
+                <td class="fw-bold text-gray-800"><%= planilla.nombre %></td>
+                <td>
+                  <span class="badge bg-light text-dark border"><%= planilla.tipo_periodo %></span>
+                </td>
+                <td>
+                  <i class="far fa-calendar-alt text-muted me-1"></i>
+                  <%= planilla.fecha_desde.strftime("%d/%m/%Y") %> al <%= planilla.fecha_hasta.strftime("%d/%m/%Y") %>
+                </td>
+                <td><%= planilla.fecha_pago&.strftime("%d/%m/%Y") || '---' %></td>
+                <td class="text-center">
+                  <% if planilla.procesada %>
+                    <span class="badge bg-success shadow-sm"><i class="fas fa-check-circle me-1"></i>Procesada</span>
+                  <% else %>
+                    <span class="badge bg-warning text-dark shadow-sm"><i class="fas fa-clock me-1"></i>Abierta</span>
+                  <% end %>
+                </td>
+                <td class="text-center">
+                  <%= link_to admin_planilla_path(planilla), class: "btn btn-sm btn-outline-secondary shadow-sm" do %>
+                    <i class="fas fa-eye me-1"></i> Ver Boletas
+                  <% end %>
+                </td>
               </tr>
             <% end %>
-          </tbody>
-        </table>
-      </div>
+          <% else %>
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">
+                <i class="fas fa-folder-open fa-2x mb-3 text-gray-300"></i>
+                <p class="mb-0">No se encontraron registros de planillas de tipo <strong><%= @tipo_actual %></strong>.</p>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

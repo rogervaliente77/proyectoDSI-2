@@ -8,6 +8,10 @@
       </p>
     </div>
     <div class="d-flex gap-2">
+      <button onclick="generarBoletasPDF()" class="btn btn-sm btn-danger shadow-sm fw-bold">
+        <i class="fas fa-file-pdf me-1"></i> Exportar Boletas de Pago (PDF)
+      </button>
+
       <%= link_to admin_planillas_path, class: "btn btn-sm btn-secondary" do %>
         <i class="fas fa-arrow-left me-1"></i> Regresar al Historial
       <% end %>
@@ -110,7 +114,6 @@
           <tbody>
             <% @boletas.each do |boleta| %>
               <% 
-                # Buscamos los movimientos manuales asociados a esta planilla y empleado para desglosarlos en la vista
                 movimientos = boleta.empleado.movimientos_planilla.where(planilla_id: boleta.planilla_id)
                 
                 bonos_m = movimientos.where(tipo: 'Bono').sum(:monto) || 0.0
@@ -118,11 +121,7 @@
                 viaticos_m = movimientos.where(tipo: 'Viatico').sum(:monto) || 0.0
                 descuentos_m = movimientos.where(tipo: 'Descuento').sum(:monto) || 0.0
 
-                # Calculamos las horas extra puras restando bonos y comisiones del acumulado guardado
                 horas_extra_puras = [boleta.monto_horas_extra - bonos_m - comisiones_m, 0.0].max
-
-                # El campo descuento_faltas de la boleta ahora incluye los descuentos manuales,
-                # restamos los manuales para mostrar las faltas de asistencia puras
                 faltas_puras = [boleta.descuento_faltas - descuentos_m, 0.0].max
               %>
               <tr>
@@ -177,3 +176,151 @@
     </div>
   </div>
 </div>
+
+<div id="contenedor-boletas-pdf" style="display: none;">
+  <% @boletas.each_with_index do |boleta, index| %>
+    <% 
+      movimientos = boleta.empleado.movimientos_planilla.where(planilla_id: boleta.planilla_id)
+      bonos_m = movimientos.where(tipo: 'Bono').sum(:monto) || 0.0
+      comisiones_m = movimientos.where(tipo: 'Comision').sum(:monto) || 0.0
+      viaticos_m = movimientos.where(tipo: 'Viatico').sum(:monto) || 0.0
+      descuentos_m = movimientos.where(tipo: 'Descuento').sum(:monto) || 0.0
+
+      horas_extra_puras = [boleta.monto_horas_extra - bonos_m - comisiones_m, 0.0].max
+      faltas_puras = [boleta.descuento_faltas - descuentos_m, 0.0].max
+      
+      total_ingresos_v = boleta.sueldo_base_momento + horas_extra_puras + bonos_m + comisiones_m + viaticos_m
+      total_descuentos_v = faltas_puras + boleta.descuento_retrasos + descuentos_m + boleta.isss_retencion + boleta.afp_retencion + boleta.renta_retencion
+    %>
+    
+    <div class="boleta-recibo" style="padding: 30px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; <%= 'page-break-after: always;' if index < (@boletas.size - 1) %>">
+      
+      <div style="border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+        <table style="width: 100%;">
+          <tr>
+            <td>
+              <h2 style="margin: 0; font-size: 1.4rem; font-weight: bold; text-transform: uppercase;">COMPROBANTE DE PAGO DE SALARIO</h2>
+              <p style="margin: 3px 0 0 0; font-size: 0.85rem; color: #555;">Planilla: <strong><%= @planilla.nombre %></strong></p>
+            </td>
+            <td style="text-align: right; vertical-align: bottom;">
+              <p style="margin: 0; font-size: 0.85rem;">Fecha de Pago: <strong><%= @planilla.fecha_pago&.strftime("%d/%m/%Y") || Date.today.strftime("%d/%m/%Y") %></strong></p>
+              <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #666;">Periodo: <%= @planilla.fecha_desde.strftime("%d/%m/%Y") %> al <%= @planilla.fecha_hasta.strftime("%d/%m/%Y") %></p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <table style="width: 100%; background: #f9f9f9; padding: 12px; border-radius: 5px; margin-bottom: 25px; font-size: 0.9rem; border: 1px solid #e3e3e3;">
+        <tr>
+          <td style="width: 50%;">Colaborador: <strong><%= boleta.empleado&.full_name %></strong></td>
+          <td style="width: 50%;">Cargo: <strong><%= boleta.empleado&.cargo_name || "Planta" %></strong></td>
+        </tr>
+        <tr>
+          <td>Sueldo Base Mensual: <strong>$<%= number_with_precision(boleta.empleado.salario_mensual, precision: 2) %></strong></td>
+          <td>Días Liquidados en Periodo: <strong><%= boleta.dias_trabajados %></strong></td>
+        </tr>
+      </table>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 30px;">
+        <thead>
+          <tr style="background: #f1f1f1; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc;">
+            <th style="text-align: left; padding: 8px; width: 35%;">CONCEPTO DE INGRESOS</th>
+            <th style="text-align: right; padding: 8px; width: 15%; border-right: 1px solid #ddd;">MONTO</th>
+            <th style="text-align: left; padding: 8px; width: 35%;">CONCEPTO DE DEDUCCIONES</th>
+            <th style="text-align: right; padding: 8px; width: 15%;">MONTO</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px dashed #eee;">
+            <td style="padding: 8px;">Sueldo Base del Periodo</td>
+            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;">$<%= number_with_precision(boleta.sueldo_base_momento, precision: 2) %></td>
+            <td style="padding: 8px;">Retención ISSS</td>
+            <td style="text-align: right; padding: 8px; color: #a94442;">$<%= number_with_precision(boleta.isss_retencion, precision: 2) %></td>
+          </tr>
+          <tr style="border-bottom: 1px dashed #eee;">
+            <td style="padding: 8px;">Horas Extra Ordinarias / Nocturnas</td>
+            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;"><%= horas_extra_puras > 0 ? "$#{number_with_precision(horas_extra_puras, precision: 2)}" : "—" %></td>
+            <td style="padding: 8px;">Retención AFP</td>
+            <td style="text-align: right; padding: 8px; color: #a94442;">$<%= number_with_precision(boleta.afp_retencion, precision: 2) %></td>
+          </tr>
+          <tr style="border-bottom: 1px dashed #eee;">
+            <td style="padding: 8px;">Bonificaciones Especiales</td>
+            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;"><%= bonos_m > 0 ? "$#{number_with_precision(bonos_m, precision: 2)}" : "—" %></td>
+            <td style="padding: 8px;">Retención Impuesto sobre la Renta</td>
+            <td style="text-align: right; padding: 8px; color: #a94442;">$<%= number_with_precision(boleta.renta_retencion, precision: 2) %></td>
+          </tr>
+          <tr style="border-bottom: 1px dashed #eee;">
+            <td style="padding: 8px;">Comisiones por Venta / Metas</td>
+            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;"><%= comisiones_m > 0 ? "$#{number_with_precision(comisiones_m, precision: 2)}" : "—" %></td>
+            <td style="padding: 8px;">Descuentos por Inasistencia / Faltas</td>
+            <td style="text-align: right; padding: 8px; color: #a94442;"><%= faltas_puras > 0 ? "$#{number_with_precision(faltas_puras, precision: 2)}" : "—" %></td>
+          </tr>
+          <tr style="border-bottom: 1px dashed #eee;">
+            <td style="padding: 8px;">Viáticos asignados (Exentos)</td>
+            <td style="text-align: right; padding: 8px; border-right: 1px solid #ddd;"><%= viaticos_m > 0 ? "$#{number_with_precision(viaticos_m, precision: 2)}" : "—" %></td>
+            <td style="padding: 8px;">Descuentos por Tardías / Minutos</td>
+            <td style="text-align: right; padding: 8px; color: #a94442;"><%= boleta.descuento_retrasos > 0 ? "$#{number_with_precision(boleta.descuento_retrasos, precision: 2)}" : "—" %></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #ccc;">
+            <td style="padding: 8px; border-right: 1px solid #ddd;" colspan="2"></td>
+            <td style="padding: 8px;">Otros Descuentos Manuales</td>
+            <td style="text-align: right; padding: 8px; color: #a94442;"><%= descuentos_m > 0 ? "$#{number_with_precision(descuentos_m, precision: 2)}" : "—" %></td>
+          </tr>
+          <tr style="background: #fafafa; font-weight: bold;">
+            <td style="padding: 10px; border-right: 1px solid #ddd;">Total Ingresos Brutos</td>
+            <td style="text-align: right; padding: 10px; color: #3c763d; border-right: 1px solid #ddd;">$<%= number_with_precision(total_ingresos_v, precision: 2) %></td>
+            <td style="padding: 10px;">Total Deducciones</td>
+            <td style="text-align: right; padding: 10px; color: #a94442;">$<%= number_with_precision(total_descuentos_v, precision: 2) %></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table style="width: 100%; margin-top: 15px;">
+        <tr>
+          <td style="width: 45%; vertical-align: top;">
+            <div style="background: #dff0d8; border: 1px solid #d6e9c6; padding: 15px; border-radius: 4px; text-align: center;">
+              <span style="font-size: 0.8rem; text-transform: uppercase; color: #3c763d; display: block; margin-bottom: 2px;">NETO EFECTIVO A RECIBIR</span>
+              <strong style="font-size: 1.5rem; color: #3c763d;">$<%= number_with_precision(boleta.total_neto, precision: 2) %></strong>
+            </div>
+          </td>
+          <td style="width: 10%;"></td>
+          <td style="width: 45%; text-align: center; vertical-align: bottom;">
+            <div style="border-top: 1px solid #333; margin-top: 45px; padding-top: 5px; font-size: 0.8rem;">
+              Firma del Colaborador<br>
+              <span style="color: #777; font-size: 0.75rem;">Recibí conforme el pago de mis prestaciones</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+  <% end %>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+  function generarBoletasPDF() {
+    const elemento = document.getElementById('contenedor-boletas-pdf');
+    
+    // Clonamos para renderizar de forma segura en memoria sin romper el DOM oculto
+    const clonElemento = elemento.cloneNode(true);
+    clonElemento.style.display = 'block';
+
+    const opciones = {
+      margin:       15,
+      filename:     'Boletas_Pago_' + '<%= @planilla.nombre.gsub(/[^0-9A-Za-z]/, "_") %>' + '.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf()
+      .set(opciones)
+      .from(clonElemento)
+      .save()
+      .then(() => {
+         console.log("PDF exportado con éxito.");
+      });
+  }
+</script>

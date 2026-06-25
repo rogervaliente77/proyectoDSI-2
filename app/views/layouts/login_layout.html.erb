@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login RRHH - FerrePro</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  
+  <!-- Cargamos únicamente los estilos del login sin arrastrar los de la plantilla vieja -->
+  <%= stylesheet_link_tag "login", media: "all", "data-turbo-track": "reload" %>
+</head>
+<body>
+
+  <%= yield %>
+
+</body>
+</html>

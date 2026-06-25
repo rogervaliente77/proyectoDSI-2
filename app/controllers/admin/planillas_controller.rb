@@ -3,36 +3,94 @@ module Admin
     layout 'dashboard'
 
     def index
-      @planillas = Planilla.all.order_by(fecha_desde: :desc)
+      # Por defecto, si no viene parámetro, muestra las ordinarias
+      @tipo_actual = params[:tipo] || 'Salarial Ordinaria'
+      
+      # Filtramos las planillas según la pestaña activa
+      @planillas = Planilla.where(tipo_planilla: @tipo_actual).order_by(created_at: :desc)
     end
 
-    def new 
-      @planilla = Planilla.new
+    def new
+      # Con esto garantizamos que la instancia de @planilla nazca con el tipo correcto
+      @planilla = Planilla.new(
+        tipo_planilla: params[:tipo] || 'Salarial Ordinaria', 
+        fecha_desde: Date.today.beginning_of_month, 
+        fecha_hasta: Date.today
+      )
       @tipo_actual = params[:tipo_periodo] || 'Quincenal'
       @periodos_disponibles = generar_periodos_disponibles(@tipo_actual)
     end
 
-    def create
-      # Recuperamos el rango automático empaquetado en el selector de periodos
-      rango_seleccionado = params[:planilla][:periodo_automatico]
+    # def create
+    #   # Recuperamos el rango automático empaquetado en el selector de periodos
+    #   rango_seleccionado = params[:planilla][:periodo_automatico]
       
-      if rango_seleccionado.present?
-        desde_str, hasta_str = rango_seleccionado.split(" al ")
-        fecha_desde = Date.parse(desde_str)
-        fecha_hasta = Date.parse(hasta_str)
-      end
+    #   if rango_seleccionado.present?
+    #     desde_str, hasta_str = rango_seleccionado.split(" al ")
+    #     fecha_desde = Date.parse(desde_str)
+    #     fecha_hasta = Date.parse(hasta_str)
+    #   end
 
+    #   @planilla = Planilla.new(planilla_params)
+    #   @planilla.fecha_desde = fecha_desde
+    #   @planilla.fecha_hasta = fecha_hasta
+    #   @planilla.nombre = "Planilla #{@planilla.tipo_periodo} (#{fecha_desde.strftime('%d/%m')} al #{fecha_hasta.strftime('%d/%m/%Y')})"
+
+    #   if @planilla.save
+    #     @planilla.generar_planilla!
+    #     redirect_to admin_planillas_path, notice: "Planilla calculada exitosamente basándose en la asistencia real."
+    #   else
+    #     @tipo_actual = @planilla.tipo_periodo || 'Quincenal'
+    #     @periodos_disponibles = generar_periodos_disponibles(@tipo_actual)
+    #     flash.now[:alert] = @planilla.errors.full_messages.to_sentence
+    #     render :new, status: :unprocessable_entity
+    #   end
+    # end
+
+    def create
+      # Instanciamos la planilla primero para saber qué tipo es
       @planilla = Planilla.new(planilla_params)
-      @planilla.fecha_desde = fecha_desde
-      @planilla.fecha_hasta = fecha_hasta
-      @planilla.nombre = "Planilla #{@planilla.tipo_periodo} (#{fecha_desde.strftime('%d/%m')} al #{fecha_hasta.strftime('%d/%m/%Y')})"
-
+    
+      if @planilla.tipo_planilla == "Aguinaldo"
+        # =========================================================================
+        # FLUJO INDEPENDIENTE PARA AGUINALDOS (No toca tu lógica ordinaria)
+        # =========================================================================
+        ano_actual = Time.now.year
+        @planilla.tipo_periodo = "Mensual"
+        @planilla.fecha_desde  = Date.new(ano_actual, 1, 1)   # 01/01/2026
+        @planilla.fecha_hasta  = Date.new(ano_actual, 12, 12) # 12/12/2026 (Corte de Ley)
+        
+        # Mantiene el nombre que el usuario escribió en el input de la vista
+        @planilla.nombre = "#{@planilla.nombre} (#{ano_actual})" if @planilla.nombre.present?
+    
+      else
+        # =========================================================================
+        # TU LÓGICA ORIGINAL INTACTA (Para Ordinarias y Quincena 25)
+        # =========================================================================
+        rango_seleccionado = params[:planilla][:periodo_automatico]
+        
+        if rango_seleccionado.present?
+          desde_str, hasta_str = rango_seleccionado.split(" al ")
+          fecha_desde = Date.parse(desde_str)
+          fecha_hasta = Date.parse(hasta_str)
+        end
+    
+        @planilla.fecha_desde = fecha_desde
+        @planilla.fecha_hasta = fecha_hasta
+        @planilla.nombre = "Planilla #{@planilla.tipo_periodo} (#{fecha_desde.strftime('%d/%m')} al #{fecha_hasta.strftime('%d/%m/%Y')})"
+      end
+    
+      # =========================================================================
+      # GUARDADO Y REDIRECCIÓN (Adaptado para volver a la pestaña correcta)
+      # =========================================================================
       if @planilla.save
         @planilla.generar_planilla!
-        redirect_to admin_planillas_path, notice: "Planilla calculada exitosamente basándose en la asistencia real."
+        # Redirige especificando el tipo para que el usuario caiga en la pestaña correspondiente
+        redirect_to admin_planillas_path(tipo: @planilla.tipo_planilla), notice: "Planilla calculada exitosamente basándose en la asistencia real."
       else
+        # Tu lógica original de errores en caso de fallo
         @tipo_actual = @planilla.tipo_periodo || 'Quincenal'
-        @periodos_disponibles = generar_periodos_disponibles(@tipo_actual)
+        @periodos_disponibles = generar_periodos_disponibles(@tipo_actual) if defined?(generar_periodos_disponibles)
         flash.now[:alert] = @planilla.errors.full_messages.to_sentence
         render :new, status: :unprocessable_entity
       end
@@ -46,7 +104,8 @@ module Admin
     private
 
     def planilla_params
-      params.require(:planilla).permit(:tipo_periodo, :fecha_pago)
+      # CORRECCIÓN: Asegúrate de que :nombre sea el primer parámetro permitido
+      params.require(:planilla).permit(:nombre, :tipo_periodo, :tipo_planilla, :fecha_desde, :fecha_hasta, :fecha_pago)
     end
 
     # Método mágico para calcular los periodos exactos hacia atrás
