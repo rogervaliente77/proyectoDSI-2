@@ -19,196 +19,9 @@ class Planilla
 
   before_validation :configurar_fechas_aguinaldo, if: -> { tipo_planilla == 'Aguinaldo' }
 
-  # def generar_planilla!
-  #   return false if procesada
-  #   if tipo_planilla == 'Aguinaldo'
-  #     return generar_aguinaldo!
-  #   end
-    
-  #   config = ConfiguracionPlanilla.actual
-    
-  #   Empleado.where(status: 'Activo').each do |empleado|
-  #     sueldo_periodo = calcular_sueldo_base_periodo(empleado)
-      
-  #     # Base comercial quincenal/mensual fija en El Salvador
-  #     dias_base_calculo = tipo_periodo == 'Quincenal' ? 15.0 : 30.0
-  #     valor_dia = sueldo_periodo / dias_base_calculo
-  #     valor_hora = valor_dia / config.horas_laborales_dia
-  #     valor_minuto = valor_hora / 60.0
-  
-  #     dias_del_periodo = (fecha_hasta - fecha_desde).to_i + 1
-  
-  #     rango_fechas = fecha_desde.beginning_of_day..fecha_hasta.end_of_day
-  #     asistencias = empleado.asistencias.where(fecha: rango_fechas)
-  
-  #     # -------------------------------------------------------------------------
-  #     # EXTRACTOR DE MOVIMIENTOS MANUALES DEL PERIODO (NUEVO)
-  #     # -------------------------------------------------------------------------
-  #     movimientos_periodo = empleado.movimientos_planilla.where(
-  #       fecha: fecha_desde..fecha_hasta,
-  #       procesado: false
-  #     )
-  
-  #     total_bonos              = movimientos_periodo.where(tipo: 'Bono').sum(:monto) || 0.0
-  #     total_comisiones         = movimientos_periodo.where(tipo: 'Comision').sum(:monto) || 0.0
-  #     total_viaticos           = movimientos_periodo.where(tipo: 'Viatico').sum(:monto) || 0.0
-  #     total_descuentos_manuales = movimientos_periodo.where(tipo: 'Descuento').sum(:monto) || 0.0
-  #     # -------------------------------------------------------------------------
-  
-  #     # REGLA: Si no hay asistencias en el periodo seleccionado, genera el registro en cero cálculos de asistencia.
-  #     if asistencias.empty?
-  #       # Integración en base vacía: se incluyen bonos y comisiones en el cálculo impositivo si existiesen
-  #       sueldo_gravable_vacio = [sueldo_periodo + total_bonos + total_comisiones, 0].max
-  
-  #       techo_isss_vacio = tipo_periodo == 'Quincenal' ? (config.isss_techo_salarial / 2.0) : config.isss_techo_salarial
-  #       monto_isss_vacio = ([sueldo_gravable_vacio, techo_isss_vacio].min * config.isss_porcentaje_empleado).round(2)
-  
-  #       techo_afp_vacio = tipo_periodo == 'Quincenal' ? (config.afp_techo_salarial / 2.0) : config.afp_techo_salarial
-  #       monto_afp_vacio = ([sueldo_gravable_vacio, techo_afp_vacio].min * config.afp_porcentaje_empleado).round(2)
-  
-  #       base_renta_vacia = [sueldo_gravable_vacio - monto_isss_vacio - monto_afp_vacio, 0].max
-  #       monto_renta_vacio = calcular_renta_sv(base_renta_vacia, config).round(2)
-  
-  #       # CORRECCIÓN: Los viáticos se consolidan únicamente del movimiento dinámico del periodo
-  #       otros_ing_vacio = total_viaticos
-  
-  #       boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
-  #       boleta.update!(
-  #         sueldo_base_momento: sueldo_periodo.round(2),
-  #         dias_trabajados: dias_del_periodo,
-  #         monto_horas_extra: (total_bonos + total_comisiones).round(2), # Muestra el acumulado de incentivos manuales
-  #         otros_ingresos: otros_ing_vacio,
-  #         isss_retencion: monto_isss_vacio,
-  #         afp_retencion: monto_afp_vacio,
-  #         renta_retencion: monto_renta_vacio,
-  #         descuento_faltas: total_descuentos_manuales, # Se le cobra el descuento manual si posee
-  #         descuento_retrasos: 0.0,
-  #         prestamos_internos: 0.0,
-  #         total_neto: (sueldo_gravable_vacio + otros_ing_vacio - monto_isss_vacio - monto_afp_vacio - monto_renta_vacio - total_descuentos_manuales).round(2)
-  #       )
-  
-  #       # Marcar movimientos como procesados antes de saltar
-  #       movimientos_periodo.update_all(procesado: true, planilla_id: self.id)
-  #       next 
-  #     end
-  
-  #     # Contadores analíticos individuales
-  #     dias_descuento_completo = 0
-  #     total_minutos_tarde_periodo = 0
-  #     monto_total_horas_extra = 0.0
-      
-  #     fechas_con_registro = asistencias.map { |a| a.fecha.to_date }
-  #     dias_laborales_empleado = empleado.dias_laborales
-  
-  #     # Procesamiento diario de marcaciones
-  #     (fecha_desde..fecha_hasta).each do |dia_evaluado|
-  #       wday_ajustado = (dia_evaluado.wday == 0) ? 7 : dia_evaluado.wday
-  #       es_dia_laboral = dias_laborales_empleado.include?(wday_ajustado)
-  
-  #       if es_dia_laboral && !fechas_con_registro.include?(dia_evaluado)
-  #         dias_descuento_completo += 1
-  #         next
-  #       end
-  
-  #       as = asistencias.find { |a| a.fecha.to_date == dia_evaluado }
-  #       if as.present?
-  #         case as.estado
-  #         when 'Falta', 'Permiso Sin Goce'
-  #           dias_descuento_completo += 1
-  #         when 'Asistió'
-  #           if as.hora_entrada.present?
-  #             limite_entrada = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, 8, 0, 0)
-  #             reg_entrada = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, as.hora_entrada.hour, as.hora_entrada.min, 0)
-              
-  #             if reg_entrada > limite_entrada
-  #               total_minutos_tarde_periodo += ((reg_entrada - limite_entrada) / 60).to_i
-  #             end
-  #           end
-  
-  #           if as.hora_salida.present?
-  #             limite_salida = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, 17, 0, 0)
-  #             reg_salida = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, as.hora_salida.hour, as.hora_salida.min, 0)
-              
-  #             if reg_salida < limite_salida
-  #               total_minutos_tarde_periodo += ((limite_salida - reg_salida) / 60).to_i
-  #             elsif reg_salida > limite_salida
-  #               inicio_he = limite_salida
-  #               fin_he = reg_salida
-  #               limite_nocturno = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, 19, 0, 0)
-                
-  #               horas_extra_diurnas = 0.0
-  #               horas_extra_nocturnas = 0.0
-                
-  #               if fin_he <= limite_nocturno
-  #                 horas_extra_diurnas = (fin_he - inicio_he) / 3600.0
-  #               else
-  #                 horas_extra_diurnas = (limite_nocturno - inicio_he) / 3600.0
-  #                 horas_extra_nocturnas = (fin_he - limite_nocturno) / 3600.0
-  #               end
-                
-  #               monto_total_horas_extra += (horas_extra_diurnas * valor_hora * 2.0)
-  #               monto_total_horas_extra += (horas_extra_nocturnas * valor_hora * 2.0 * 1.25)
-  #             end
-  #           end
-  #         end
-  #       end
-  #     end
-  
-  #     # Minutos de gracia acumulados en el periodo seleccionado
-  #     minutos_a_descontar = total_minutos_tarde_periodo > config.minutos_gracia_periodo ? total_minutos_tarde_periodo : 0
-  
-  #     # Cálculo individual de montos por descuento de asistencia
-  #     monto_descuento_faltas = (dias_descuento_completo * valor_dia).round(2)
-  #     monto_descuento_retrasos = (minutos_a_descontar * valor_minuto).round(2)
-      
-  #     # =========================================================================
-  #     # INTEGRACIÓN DE INGRESOS MANUALES GRAVABLES (BONOS Y COMISIONES)
-  #     # Se incorporan a la base imponible para el cálculo correcto de deducciones.
-  #     # =========================================================================
-  #     ingresos_adicionales_imponibles = monto_total_horas_extra + total_bonos + total_comisiones
-  #     sueldo_gravable = [sueldo_periodo - monto_descuento_faltas - monto_descuento_retrasos + ingresos_adicionales_imponibles, 0].max
-  
-  #     # Retenciones calculadas sobre la base gravable limpia individual
-  #     techo_isss = tipo_periodo == 'Quincenal' ? (config.isss_techo_salarial / 2.0) : config.isss_techo_salarial
-  #     monto_isss = ([sueldo_gravable, techo_isss].min * config.isss_porcentaje_empleado).round(2)
-  
-  #     techo_afp = tipo_periodo == 'Quincenal' ? (config.afp_techo_salarial / 2.0) : config.afp_techo_salarial
-  #     monto_afp = ([sueldo_gravable, techo_afp].min * config.afp_porcentaje_empleado).round(2)
-  
-  #     # Base de Renta exacta calculada dinámicamente
-  #     base_renta = [sueldo_gravable - monto_isss - monto_afp, 0].max
-  #     monto_renta = calcular_renta_sv(base_renta, config).round(2)
-  
-  #     # CORRECCIÓN: Consolidación de ingresos exentos únicamente de los viáticos manuales del periodo
-  #     otros_ing = total_viaticos
-      
-  #     # Consolidación total de egresos (Descuentos de asistencia + Descuentos manuales de la vista)
-  #     descuentos_totales_faltas = monto_descuento_faltas + total_descuentos_manuales
-  
-  #     # Almacenamiento unificado en la Boleta de Pago
-  #     boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
-  #     boleta.update!(
-  #       sueldo_base_momento: sueldo_periodo.round(2),
-  #       dias_trabajados: [dias_del_periodo - dias_descuento_completo, 0].max,
-  #       monto_horas_extra: ingresos_adicionales_imponibles.round(2), # Refleja horas extra + bonos + comisiones
-  #       otros_ingresos: otros_ing.round(2),
-  #       isss_retencion: monto_isss,                      
-  #       afp_retencion: monto_afp,                        
-  #       renta_retencion: monto_renta,                    
-  #       descuento_faltas: descuentos_totales_faltas.round(2),
-  #       descuento_retrasos: monto_descuento_retrasos,     
-  #       prestamos_internos: 0.0,
-  #       # El Neto final resta de forma transparente el dinero de los descuentos manuales
-  #       total_neto: (sueldo_gravable + otros_ing - monto_isss - monto_afp - monto_renta - total_descuentos_manuales).round(2)
-  #     )
-  
-  #     # Cambiar estado a los movimientos para evitar duplicación de cobro en futuros cierres
-  #     movimientos_periodo.update_all(procesado: true, planilla_id: self.id)
-  #   end
-  
-  #   update!(procesada: true)
-  # end
-
+  # =========================================================================
+  # UNICO MÉTODO GOBERNANTE: GENERACIÓN DE PLANILLAS ORDINARIAS
+  # =========================================================================
   def generar_planilla!
     return false if procesada
     if tipo_planilla == 'Aguinaldo'
@@ -219,24 +32,42 @@ class Planilla
     
     Empleado.where(status: 'Activo').each do |empleado|
       # -------------------------------------------------------------------------
-      # MANEJO ESPECIAL: PLANILLA DE QUINCENA 25 (NUEVO)
+      # MANEJO ESPECIAL: PLANILLA DE QUINCENA 25
+      # Exenta de descuentos de ley (ISSS, AFP, ISR) y de asistencia por ley especial.
+      # -------------------------------------------------------------------------
+      # -------------------------------------------------------------------------
+      # MANEJO ESPECIAL: PLANILLA DE QUINCENA 25
       # Exenta de descuentos de ley (ISSS, AFP, ISR) y de asistencia por ley especial.
       # -------------------------------------------------------------------------
       if tipo_planilla == 'Quincena 25'
-        # Aplica únicamente a empleados con salario menor o igual a $1500
-        if (empleado.sueldo_mensual || 0.0) <= 1500.0
-          # Base del beneficio: 50% del salario nominal mensual
-          monto_q25 = empleado.sueldo_mensual * 0.50
+        # Fijamos como fecha pivote estricta el 15 de enero del año actual de la planilla
+        fecha_pivote = Date.new(self.fecha_hasta.year, 1, 15)
+
+        # Regla 1: Si ingresó después del 15 de enero del año actual, NO ENTRA
+        next if empleado.fecha_inicio_trabajo.nil? || empleado.fecha_inicio_trabajo > fecha_pivote
+
+        # Filtro de techo salarial para aplicar al beneficio
+        if (empleado.salario_mensual || 0.0) <= 1500.0
+          monto_q25 = empleado.salario_mensual * 0.50
           
-          # Proporcionalidad si posee menos de un año continuo de servicio
-          if empleado.fecha_ingreso > 1.year.ago
-            # Cálculo de meses laborados aproximados dentro del año actual
-            meses_laborados = ((Date.current - empleado.fecha_ingreso).to_i / 30.43).to_i
-            meses_laborados = [1, [meses_laborados, 12].min].max
-            monto_q25 = (monto_q25 / 12.0) * meses_laborados
+          # Determinamos la antigüedad tomando como límite el 15 de enero del año actual
+          un_ano_atras_desde_pivote = fecha_pivote - 1.year
+          
+          if empleado.fecha_inicio_trabajo > un_ano_atras_desde_pivote
+            # Regla 2: Tiene menos de un año al 15 de enero -> Pago Proporcional basado en meses exactos
+            dias_trabajados = (fecha_pivote - empleado.fecha_inicio_trabajo).to_i + 1
+            
+            # Calculamos los meses con precisión flotante
+            meses_laborados = (dias_trabajados / 30.4167)
+            
+            # Acotamos los meses entre 1 y 12 por seguridad matemática
+            meses_laborados = [1.0, [meses_laborados, 12.0].min].max
+            
+            # Aplicamos la fórmula: (meses / 12) * (salario * 0.5)
+            monto_q25 = (meses_laborados / 12.0) * monto_q25
           end
           
-          # Movimientos manuales asignados específicamente a este período
+          # Extracción y limpieza de movimientos del periodo asignado a la planilla
           movimientos_periodo = empleado.movimientos_planilla.where(
             fecha: fecha_desde..fecha_hasta,
             procesado: false
@@ -244,31 +75,36 @@ class Planilla
           total_viaticos = movimientos_periodo.where(tipo: 'Viatico').sum(:monto) || 0.0
           total_bonos_comisiones = movimientos_periodo.where(tipo: %w[Bono Comision]).sum(:monto) || 0.0
 
+          # Escritura limpia en la base de datos de MongoDB
           boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
           boleta.update!(
             sueldo_base_momento: monto_q25.round(2),
-            dias_trabajados: 15, # Periodo comercial estándar asignado
+            dias_trabajados: 15,
             monto_horas_extra: total_bonos_comisiones.round(2),
             otros_ingresos: total_viaticos.round(2),
-            isss_retencion: 0.0,      # EXENTO
-            afp_retencion: 0.0,       # EXENTO
-            renta_retencion: 0.0,     # EXENTO
-            descuento_faltas: 0.0,    # EXENTO
-            descuento_retrasos: 0.0,  # EXENTO
+            isss_retencion: 0.0,
+            afp_retencion: 0.0,
+            renta_retencion: 0.0,
+            descuento_faltas: 0.0,
+            descuento_retrasos: 0.0,
             prestamos_internos: 0.0,
             total_neto: (monto_q25 + total_bonos_comisiones + total_viaticos).round(2)
           )
-          
           movimientos_periodo.update_all(procesado: true, planilla_id: self.id)
         end
-        next # Salta al siguiente empleado, omitiendo el cálculo ordinario de asistencias
+        next
       end
       # -------------------------------------------------------------------------
 
       sueldo_periodo = calcular_sueldo_base_periodo(empleado)
       
-      # Base comercial quincenal/mensual fija en El Salvador
-      dias_base_calculo = tipo_periodo == 'Quincenal' ? 15.0 : 30.0
+      # Base comercial adaptada para Semanal, Quincenal o Mensual en El Salvador
+      dias_base_calculo = case tipo_periodo
+                          when 'Semanal'   then 7.0
+                          when 'Quincenal' then 15.0
+                          else 30.0 # Mensual
+                          end
+
       valor_dia = sueldo_periodo / dias_base_calculo
       valor_hora = valor_dia / config.horas_laborales_dia
       valor_minuto = valor_hora / 60.0
@@ -278,9 +114,7 @@ class Planilla
       rango_fechas = fecha_desde.beginning_of_day..fecha_hasta.end_of_day
       asistencias = empleado.asistencias.where(fecha: rango_fechas)
   
-      # -------------------------------------------------------------------------
-      # EXTRACTOR DE MOVIMIENTOS MANUALES DEL PERIODO
-      # -------------------------------------------------------------------------
+      # Extractor de Movimientos Manuales
       movimientos_periodo = empleado.movimientos_planilla.where(
         fecha: fecha_desde..fecha_hasta,
         procesado: false
@@ -290,46 +124,52 @@ class Planilla
       total_comisiones         = movimientos_periodo.where(tipo: 'Comision').sum(:monto) || 0.0
       total_viaticos           = movimientos_periodo.where(tipo: 'Viatico').sum(:monto) || 0.0
       total_descuentos_manuales = movimientos_periodo.where(tipo: 'Descuento').sum(:monto) || 0.0
-      # -------------------------------------------------------------------------
   
-      # REGLA: Si no hay asistencias en el periodo seleccionado, genera el registro en cero cálculos de asistencia.
+      # REGLA: Si no hay asistencias en el periodo seleccionado
       if asistencias.empty?
-        # Integración en base vacía: se incluyen bonos y comisiones en el cálculo impositivo si existiesen
         sueldo_gravable_vacio = [sueldo_periodo + total_bonos + total_comisiones, 0].max
   
-        techo_isss_vacio = tipo_periodo == 'Quincenal' ? (config.isss_techo_salarial / 2.0) : config.isss_techo_salarial
+        # Adaptación de techos en base vacía
+        techo_isss_vacio = case tipo_periodo
+                           when 'Semanal'   then (config.isss_techo_salarial / 30.0) * 7.0
+                           when 'Quincenal' then config.isss_techo_salarial / 2.0
+                           else config.isss_techo_salarial
+                           end
         monto_isss_vacio = ([sueldo_gravable_vacio, techo_isss_vacio].min * config.isss_porcentaje_empleado).round(2)
   
-        techo_afp_vacio = tipo_periodo == 'Quincenal' ? (config.afp_techo_salarial / 2.0) : config.afp_techo_salarial
+        techo_afp_vacio = case tipo_periodo
+                          when 'Semanal'   then (config.afp_techo_salarial / 30.0) * 7.0
+                          when 'Quincenal' then config.afp_techo_salarial / 2.0
+                          else config.afp_techo_salarial
+                          end
         monto_afp_vacio = ([sueldo_gravable_vacio, techo_afp_vacio].min * config.afp_porcentaje_empleado).round(2)
   
+        # Cálculo DIRECTO utilizando el período real sin alterar montos
         base_renta_vacia = [sueldo_gravable_vacio - monto_isss_vacio - monto_afp_vacio, 0].max
-        monto_renta_vacio = calcular_renta_sv(base_renta_vacia, config).round(2)
+        monto_renta_vacio = calcular_renta_con_tramos(base_renta_vacia, config, tipo_periodo).round(2)
   
-        # CORRECCIÓN: Los viáticos se consolidan únicamente del movimiento dinámico del periodo
         otros_ing_vacio = total_viaticos
   
         boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
         boleta.update!(
           sueldo_base_momento: sueldo_periodo.round(2),
           dias_trabajados: dias_del_periodo,
-          monto_horas_extra: (total_bonos + total_comisiones).round(2), 
+          monto_horas_extra: (total_bonos + total_comisiones).round(2),
           otros_ingresos: otros_ing_vacio,
           isss_retencion: monto_isss_vacio,
           afp_retencion: monto_afp_vacio,
           renta_retencion: monto_renta_vacio,
-          descuento_faltas: total_descuentos_manuales, 
+          descuento_faltas: total_descuentos_manuales,
           descuento_retrasos: 0.0,
           prestamos_internos: 0.0,
           total_neto: (sueldo_gravable_vacio + otros_ing_vacio - monto_isss_vacio - monto_afp_vacio - monto_renta_vacio - total_descuentos_manuales).round(2)
         )
   
-        # Marcar movimientos como procesados antes de saltar
         movimientos_periodo.update_all(procesado: true, planilla_id: self.id)
         next 
       end
   
-      # Contadores analíticos individuales
+      # Procesamiento diario de marcaciones (Contadores analíticos)
       dias_descuento_completo = 0
       total_minutos_tarde_periodo = 0
       monto_total_horas_extra = 0.0
@@ -337,7 +177,6 @@ class Planilla
       fechas_con_registro = asistencias.map { |a| a.fecha.to_date }
       dias_laborales_empleado = empleado.dias_laborales
   
-      # Procesamiento diario de marcaciones
       (fecha_desde..fecha_hasta).each do |dia_evaluado|
         wday_ajustado = (dia_evaluado.wday == 0) ? 7 : dia_evaluado.wday
         es_dia_laboral = dias_laborales_empleado.include?(wday_ajustado)
@@ -356,7 +195,6 @@ class Planilla
             if as.hora_entrada.present?
               limite_entrada = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, 8, 0, 0)
               reg_entrada = Time.zone.local(dia_evaluado.year, dia_evaluado.month, dia_evaluado.day, as.hora_entrada.hour, as.hora_entrada.min, 0)
-              
               if reg_entrada > limite_entrada
                 total_minutos_tarde_periodo += ((reg_entrada - limite_entrada) / 60).to_i
               end
@@ -382,7 +220,6 @@ class Planilla
                   horas_extra_diurnas = (limite_nocturno - inicio_he) / 3600.0
                   horas_extra_nocturnas = (fin_he - limite_nocturno) / 3600.0
                 end
-                
                 monto_total_horas_extra += (horas_extra_diurnas * valor_hora * 2.0)
                 monto_total_horas_extra += (horas_extra_nocturnas * valor_hora * 2.0 * 1.25)
               end
@@ -391,42 +228,44 @@ class Planilla
         end
       end
   
-      # Minutos de gracia acumulados en el periodo seleccionado
       minutos_a_descontar = total_minutos_tarde_periodo > config.minutos_gracia_periodo ? total_minutos_tarde_periodo : 0
-  
-      # Cálculo individual de montos por descuento de asistencia
       monto_descuento_faltas = (dias_descuento_completo * valor_dia).round(2)
       monto_descuento_retrasos = (minutos_a_descontar * valor_minuto).round(2)
       
-      # =========================================================================
-      # INTEGRACIÓN DE INGRESOS MANUALES GRAVABLES (BONOS Y COMISIONES)
-      # =========================================================================
       ingresos_adicionales_imponibles = monto_total_horas_extra + total_bonos + total_comisiones
+      
+      # 1. SUMA DEL SUELDO BASE DEL PERIODO + ADICIONALES - DESCUENTOS POR ASISTENCIA
       sueldo_gravable = [sueldo_periodo - monto_descuento_faltas - monto_descuento_retrasos + ingresos_adicionales_imponibles, 0].max
   
-      # Retenciones calculadas sobre la base gravable limpia individual
-      techo_isss = tipo_periodo == 'Quincenal' ? (config.isss_techo_salarial / 2.0) : config.isss_techo_salarial
+      # 2. CALCULAR AFP E ISSS CON SUS TECHOS PROPORCIONALES AL PERIODO CORRIENTE
+      techo_isss = case tipo_periodo
+                   when 'Semanal'   then (config.isss_techo_salarial / 30.0) * 7.0
+                   when 'Quincenal' then config.isss_techo_salarial / 2.0
+                   else config.isss_techo_salarial
+                   end
       monto_isss = ([sueldo_gravable, techo_isss].min * config.isss_porcentaje_empleado).round(2)
   
-      techo_afp = tipo_periodo == 'Quincenal' ? (config.afp_techo_salarial / 2.0) : config.afp_techo_salarial
+      techo_afp = case tipo_periodo
+                  when 'Semanal'   then (config.afp_techo_salarial / 30.0) * 7.0
+                  when 'Quincenal' then config.afp_techo_salarial / 2.0
+                  else config.afp_techo_salarial
+                  end
       monto_afp = ([sueldo_gravable, techo_afp].min * config.afp_porcentaje_empleado).round(2)
   
-      # Base de Renta exacta calculada dinámicamente
+      # 3. BASE IMPONIBLE DE RENTA DIRECTA REAL
       base_renta = [sueldo_gravable - monto_isss - monto_afp, 0].max
-      monto_renta = calcular_renta_sv(base_renta, config).round(2)
-  
-      # CORRECCIÓN: Consolidación de ingresos exentos únicamente de los viáticos manuales del periodo
-      otros_ing = total_viaticos
       
-      # Consolidación total de egresos (Descuentos de asistencia + Descuentos manuales de la vista)
+      # 4. CALCULO EVALUANDO DIRECTAMENTE LA BASE EN LAS TABLAS DEL PERIODO CORRESPONDIENTE
+      monto_renta = calcular_renta_con_tramos(base_renta, config, tipo_periodo).round(2)
+  
+      otros_ing = total_viaticos
       descuentos_totales_faltas = monto_descuento_faltas + total_descuentos_manuales
   
-      # Almacenamiento unificado en la Boleta de Pago
       boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
       boleta.update!(
         sueldo_base_momento: sueldo_periodo.round(2),
         dias_trabajados: [dias_del_periodo - dias_descuento_completo, 0].max,
-        monto_horas_extra: ingresos_adicionales_imponibles.round(2), 
+        monto_horas_extra: ingresos_adicionales_imponibles.round(2),
         otros_ingresos: otros_ing.round(2),
         isss_retencion: monto_isss,                      
         afp_retencion: monto_afp,                        
@@ -437,69 +276,56 @@ class Planilla
         total_neto: (sueldo_gravable + otros_ing - monto_isss - monto_afp - monto_renta - total_descuentos_manuales).round(2)
       )
   
-      # Cambiar estado a los movimientos para evitar duplicación de cobro en futuros cierres
       movimientos_periodo.update_all(procesado: true, planilla_id: self.id)
     end
   
     update!(procesada: true)
   end
 
+  # =========================================================================
+  # GESTIÓN EXCLUSIVA DE AGUINALDOS (Art. 196+ Código de Trabajo)
+  # =========================================================================
   def generar_aguinaldo!
     return false if procesada
     config = ConfiguracionPlanilla.actual
     monto_exento_renta_aguinaldo = 1500.00 
   
     ano_actual = Date.current.year
-    # CORRECCIÓN SEGÚN INVESTIGACIÓN: La fecha límite de corte legal es el 20 de Octubre
     fecha_corte_aguinaldo = Date.new(ano_actual, 10, 20) 
   
     Empleado.where(status: 'Activo').each do |empleado|
-      # Evitar errores si falta la fecha de ingreso
-      next if empleado.fecha_ingreso.nil? || empleado.fecha_ingreso > fecha_corte_aguinaldo
+      next if empleado.fecha_inicio_trabajo.nil? || empleado.fecha_inicio_trabajo > fecha_corte_aguinaldo
   
-      # 1. Calcular distancia exacta en días calendario enteros al 20 de octubre
-      dias_totales_servicio = (fecha_corte_aguinaldo - empleado.fecha_ingreso).to_i
+      dias_totales_servicio = (fecha_corte_aguinaldo - empleado.fecha_inicio_trabajo).to_i
       
-      # 2. Calcular cuántos días trabajó DENTRO de este año específico para el proporcional (Art. 199)
-      inicio_ano_o_ingreso = [Date.new(ano_actual, 1, 1), empleado.fecha_ingreso].max
+      inicio_ano_o_ingreso = [Date.new(ano_actual, 1, 1), empleado.fecha_inicio_trabajo].max
       dias_trabajados_este_ano = (fecha_corte_aguinaldo - inicio_ano_o_ingreso).to_i + 1
   
-      salario_mensual_emp = empleado.sueldo_mensual || 0.0
+      salario_mensual_emp = empleado.salario_mensual || 0.0
       salario_diario = salario_mensual_emp / 30.0
       dias_aguinaldo = 0
   
-      # 3. Aplicación de Tramos según días exactos al 20 de octubre
-      # 10 años = 3652 días | 3 años = 1096 días | 1 año = 365 días (ajustado por años bisiestos promedio)
       if dias_totales_servicio >= 3652
-        # De 10 años en adelante: 21 días de salario
         dias_aguinaldo = 21.0
       elsif dias_totales_servicio >= 1096
-        # De 3 a menos de 10 años: 19 días de salario
         dias_aguinaldo = 19.0
       elsif dias_totales_servicio >= 365
-        # De 1 a menos de 3 años: 15 días de salario
         dias_aguinaldo = 15.0
       else
-        # MENOS DE UN AÑO: Cálculo Proporcional (Art. 199) al 20 de octubre
-        # (Días laborados en el año * 15 días base) / 365 días del año
         dias_aguinaldo = (dias_trabajados_este_ano * 15.0) / 365.0
       end
   
       monto_aguinaldo = (dias_aguinaldo * salario_diario).round(2)
   
-      # Exenciones de Ley de El Salvador (Sin ISSS ni AFP para Aguinaldos)
       monto_isss = 0.0
       monto_afp = 0.0
       monto_renta = 0.0
   
-      # Retención de Renta sólo sobre el excedente de los $1,500.00
       if monto_aguinaldo > monto_exento_renta_aguinaldo
         excedente_renta = monto_aguinaldo - monto_exento_renta_aguinaldo
-        # Asegúrate de mapear al método exacto de renta de tu software (ej. calcular_renta_sv con la tabla mensual)
         monto_renta = calcular_renta_sv(excedente_renta, config).round(2)
       end
   
-      # 4. Guardar o actualizar la Boleta de Pago de Aguinaldo
       boleta = boletas_de_pago.find_or_initialize_by(empleado: empleado)
       boleta.update!(
         sueldo_base_momento: salario_mensual_emp.round(2),
@@ -523,9 +349,8 @@ class Planilla
 
   def configurar_fechas_aguinaldo
     ano_actual = Time.now.year
-    self.tipo_periodo = 'Mensual' # Lo dejamos por defecto para no romper la base de datos
+    self.tipo_periodo = 'Mensual' 
     self.fecha_desde = Date.new(ano_actual, 1, 1)
-    # La fecha de corte legal en El Salvador para evaluar la antigüedad es el 12 de Diciembre
     self.fecha_hasta = Date.new(ano_actual, 12, 12) 
     self.fecha_pago  = Date.new(ano_actual, 12, 12) if self.fecha_pago.blank?
   end
@@ -535,28 +360,47 @@ class Planilla
     when 'Semanal'
       (empleado.salario_mensual / 4.3333)
     when 'Quincenal'
-      empleado.salario_quincenal
+      empleado.respond_to?(:salario_quincenal) && empleado.salario_quincenal.to_f > 0 ? empleado.salario_quincenal : (empleado.salario_mensual / 2.0)
     else # Mensual
       empleado.salario_mensual
     end
   end
 
-  def calcular_renta_sv_mensual(base, config)
-    tramos = config.tramos_renta_mensual
-    tramo = tramos.find { |t| base >= t[:desde] && base <= t[:hasta] }
-    tramo ||= tramos.last
-    return 0.0 if tramo[:porcentaje] == 0.0
-    ((base - (tramo[:sobre_exceso] || 0.0)) * tramo[:porcentaje]) + tramo[:cuota_fija]
+  # EVALUACIÓN DIRECTA DE LOS ARRAYS DE MONGOID SEGÚN EL PERIODO
+  def calcular_renta_con_tramos(base_imponible, config, periodo_evaluado)
+    # 1. Aseguramos que sea string, sin espacios y en minúsculas
+    periodo = periodo_evaluado.to_s.strip.downcase
+
+    # 2. Extraemos los tramos crudos de la configuración
+    tramos_crudos = case periodo
+                    when 'semanal'   then config.tramos_renta_semanal
+                    when 'quincenal' then config.tramos_renta_quincenal
+                    when 'mensual'   then config.tramos_renta_mensual
+                    else 
+                      config.tramos_renta_mensual
+                    end
+
+    # 3. CRUCIAL: Convertimos los hashes de MongoDB para que acepten tanto strings como símbolos
+    tramos = Array(tramos_crudos).map(&:with_indifferent_access)
+
+    # 4. Buscamos el tramo correspondiente de manera segura
+    tramo_actual = tramos.find { |t| base_imponible >= t[:desde].to_f && base_imponible <= t[:hasta].to_f }
+    tramo_actual ||= tramos.last 
+
+    return 0.0 if tramo_actual.nil? || tramo_actual[:porcentaje].to_f == 0.0
+
+    # 5. Extraemos los valores convirtiéndolos a float por seguridad
+    porcentaje   = tramo_actual[:porcentaje].to_f
+    cuota_fija   = tramo_actual[:cuota_fija].to_f
+    sobre_exceso = tramo_actual[:sobre_exceso].to_f
+
+    # 6. Aplicamos la fórmula legal de El Salvador
+    monto_renta = ((base_imponible - sobre_exceso) * porcentaje) + cuota_fija
+    monto_renta
   end
 
   def calcular_renta_sv(base, config)
-    # Selecciona la tabla de tramos de Renta según el periodo
-    tramos = (tipo_periodo == 'Quincenal') ? config.tramos_renta_quincenal : config.tramos_renta_mensual
-    tramo = tramos.find { |t| base >= t[:desde] && base <= t[:hasta] }
-    tramo ||= tramos.last
-
-    return 0.0 if tramo[:porcentaje] == 0.0
-    ((base - (tramo[:sobre_exceso] || 0.0)) * tramo[:porcentaje]) + tramo[:cuota_fija]
+    calcular_renta_con_tramos(base, config, 'Mensual')
   end
 
   # --- VALIDACIONES DE SEGURIDAD EN BACKEND ---
@@ -567,7 +411,6 @@ class Planilla
     end
   end
 
-   # Actualizar la validación de duplicados contemplando el tipo de planilla
   def validar_periodo_no_duplicado
     duplicado = Planilla.where(tipo_periodo: tipo_periodo, tipo_planilla: tipo_planilla)
                         .where(:id.ne => self.id)
