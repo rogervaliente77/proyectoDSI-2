@@ -101,6 +101,19 @@ module Admin
       @boletas = @planilla.boletas_de_pago.includes(:empleado)
     end
 
+    def destroy
+      @planilla = Planilla.find(params[:id])
+      tipo = @planilla.tipo_planilla # o el nombre exacto de tu campo de tipo
+      
+      if @planilla.destroy
+        flash[:success] = "Planilla y boletas de pago eliminadas correctamente."
+      else
+        flash[:error] = "No se pudo eliminar la planilla."
+      end
+      
+      redirect_to admin_planillas_path(tipo: tipo)
+    end
+
     private
 
     def planilla_params
