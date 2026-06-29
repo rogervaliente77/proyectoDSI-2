@@ -52,13 +52,13 @@
                       <%= empleado.status %>
                     </span>
                   </td>
-                  <td class="text-center text-nowrap">
-                    <div class="btn-group" role="group">
+                  <td class="text-center text-nowrap">                
+                    <div class="d-inline-flex gap-1" role="group">
                       <%= link_to admin_empleado_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-info text-white", title: "Ver Detalle" do %>
                         <i class="fa fa-eye"></i>
                       <% end %>
 
-                      <%= link_to edit_admin_empleado_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-warning", title: "Editar" do %>
+                      <%= link_to edit_admin_empleado_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark", title: "Editar" do %>
                         <i class="fa fa-pencil"></i>
                       <% end %>
 
@@ -75,7 +75,8 @@
                         <i class="fa fa-calendar-alt"></i>
                       <% end %>
 
-                      <%= link_to admin_empleado_movimientos_planilla_index_path(empleado), data: { turbo: false }, class: "btn btn-xs btn-info shadow-sm", title: "Otros Ingresos/Descuentos" do %>
+                      <% # Corregido: Cambiado de btn-xs a btn-sm para unificar el tamaño %>
+                      <%= link_to admin_empleado_movimientos_planilla_index_path(empleado), data: { turbo: false }, class: "btn btn-sm btn-primary text-white shadow-sm", title: "Otros Ingresos/Descuentos" do %>
                         <i class="fas fa-hand-holding-usd"></i>
                       <% end %>
                     </div>

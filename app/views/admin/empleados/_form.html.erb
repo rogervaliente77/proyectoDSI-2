@@ -1,5 +1,5 @@
 <%# app/views/admin/empleados/_form.html.erb %>
-<%= simple_form_for [:admin, empleado], html: { class: "needs-validation" }, defaults: { error: false } do |form| %> 
+<%= simple_form_for [:admin, empleado], data: { turbo: false }, html: { class: "needs-validation" }, defaults: { error: false } do |form| %> 
     
     <!-- SECCIÓN 1: DATOS PERSONALES -->
     <div class="border-left-primary pl-3 mb-4">
