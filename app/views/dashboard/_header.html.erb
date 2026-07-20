@@ -140,6 +140,7 @@
 </style>
 
 <script>
+// Usamos turbo:load para asegurarnos de capturar los elementos tras cada transición
 document.addEventListener("turbo:load", function() {
 
   // -------------------- Botones de cerrar alerts y messages --------------------
@@ -151,9 +152,9 @@ document.addEventListener("turbo:load", function() {
         btn._closeHandler = function(e){
           e.preventDefault();
           const item = this.closest(containerId==='alertsContainer'?'.alert-item':'.message-item');
-          item.remove();
+          if(item) item.remove();
 
-          // actualizar badge
+          // Actualizar contador del badge
           const badge = document.querySelector(`#${containerId==='alertsContainer'?'alertsDropdown':'messagesDropdown'} .badge-counter`);
           if(badge){
             let count = parseInt(badge.innerText.replace('+','')) - 1;
@@ -161,7 +162,7 @@ document.addEventListener("turbo:load", function() {
             else badge.innerText = count;
           }
 
-          // si no hay items
+          // Si ya no quedan alertas/mensajes, mostrar el texto vacío
           if(container.querySelectorAll(containerId==='alertsContainer'?'.alert-item':'.message-item').length===0){
             const noMsg = document.createElement('div');
             noMsg.classList.add('text-center','text-muted','py-2');
@@ -174,25 +175,17 @@ document.addEventListener("turbo:load", function() {
     }
   }
 
+  // Inicializar eventos de cierre inmediatos
   attachCloseEvents('alertsContainer');
   attachCloseEvents('messagesContainer');
 
   const alertsDropdown = document.getElementById('alertsDropdown');
   const messagesDropdown = document.getElementById('messagesDropdown');
 
-  if(alertsDropdown) alertsDropdown.addEventListener('shown.bs.dropdown', ()=>attachCloseEvents('alertsContainer'));
-  if(messagesDropdown) messagesDropdown.addEventListener('shown.bs.dropdown', ()=>attachCloseEvents('messagesContainer'));
+  if(alertsDropdown) alertsDropdown.addEventListener('shown.bs.dropdown', () => attachCloseEvents('alertsContainer'));
+  if(messagesDropdown) messagesDropdown.addEventListener('shown.bs.dropdown', () => attachCloseEvents('messagesContainer'));
 
-  // -------------------- Inicialización Bootstrap Dropdowns y Modals --------------------
-  const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-  dropdownElementList.map(function (dropdownToggleEl) {
-    return new bootstrap.Dropdown(dropdownToggleEl);
-  });
-
-  const modalElementList = [].slice.call(document.querySelectorAll('.modal'));
-  modalElementList.map(function (modalEl) {
-    return new bootstrap.Modal(modalEl);
-  });
-
+  // NOTA: Se eliminó la inicialización manual de Bootstrap Dropdowns y Modals.
+  // Bootstrap 5 se encarga de esto automáticamente mediante data-bs-toggle.
 });
 </script>

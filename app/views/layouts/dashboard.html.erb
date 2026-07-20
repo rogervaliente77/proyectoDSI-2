@@ -73,27 +73,27 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Listo para irte?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
+                    <h5 class="modal-title" id="exampleModalLabel">¿Listo para irte?</h5>
+                    <%# Actualizado a Bootstrap 5: class="btn-close" y data-bs-dismiss %>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">Haz click en "Cerrar sesion" y finalizaras la sesion actual.</div>
+                <div class="modal-body">Haz click en "Cerrar sesión" y finalizarás la sesión actual.</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <%# Actualizado a Bootstrap 5: data-bs-dismiss %>
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
                     
-                    <% if @current_user.role.name == "super_admin" || @current_user.role.name == "admin" || @current_user.role.name == "cajero" || @current_user.role.name == "mensajero"%>
-                        <%= link_to admin_logout_path, data: { turbo_method: :put }, class: "btn btn-primary" do %>
+                    <% if @current_user.role.name.in?(["super_admin", "admin", "cajero", "mensajero"]) %>
+                        <%# Añadido turbo_frame: "_top" para forzar la redirección completa del sitio al salir %>
+                        <%= link_to admin_logout_path, data: { turbo_method: :put, turbo_frame: "_top" }, class: "btn btn-primary" do %>
                             Cerrar sesión
                         <% end %>
                     <% else %>
-                        <%= link_to portal_logout_path, data: { turbo_method: :put }, class: "btn btn-primary" do %>
+                        <%= link_to portal_logout_path, data: { turbo_method: :put, turbo_frame: "_top" }, class: "btn btn-primary" do %>
                             Cerrar sesión
                         <% end %>
                     <% end %>
