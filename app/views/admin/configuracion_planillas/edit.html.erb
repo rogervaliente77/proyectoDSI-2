@@ -1,0 +1,211 @@
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Editar Parámetros Salariales</h1>
+    <%= link_to admin_configuracion_planilla_path, class: "btn btn-sm btn-secondary shadow-sm" do %>
+      <i class="fas fa-arrow-left me-1"></i> Cancelar y Volver
+    <% end %>
+  </div>
+
+  <%= form_with(model: @configuracion, url: admin_configuracion_planilla_path, method: :patch, data: { turbo: false }, class: "needs-validation") do |f| %>
+    
+    <div class="card shadow border-0 mb-4">
+      <div class="card-header bg-primary text-white py-3">
+        <h6 class="m-0 font-weight-bold">Identificación de la Configuración</h6>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <%= f.label :nombre_config, "Nombre de la Configuración Global", class: "form-label fw-bold" %>
+          <%= f.text_field :nombre_config, class: "form-content form-control", required: true %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-light py-3">
+            <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-shield-alt me-2"></i>Configuración de ISSS</h6>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <%= f.label :isss_porcentaje_empleado, "Porcentaje Retención Empleado (Ej: 0.03 para 3%)", class: "form-label" %>
+              <%= f.number_field :isss_porcentaje_empleado, step: 0.0001, class: "form-control", required: true %>
+            </div>
+            <div class="mb-3">
+              <%= f.label :isss_techo_salarial, "Techo Salarial Máximo ($)", class: "form-label" %>
+              <%= f.number_field :isss_techo_salarial, step: 0.01, class: "form-control", required: true %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-4">
+        <div class="card shadow border-0 h-100">
+          <div class="card-header bg-light py-3">
+            <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-piggy-bank me-2"></i>Configuración de AFP</h6>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <%= f.label :afp_porcentaje_empleado, "Porcentaje Retención Empleado (Ej: 0.0725 para 7.25%)", class: "form-label" %>
+              <%= f.number_field :afp_porcentaje_empleado, step: 0.0001, class: "form-control", required: true %>
+            </div>
+            <div class="mb-3">
+              <%= f.label :afp_techo_salarial, "Techo Salarial Máximo AFP ($)", class: "form-label" %>
+              <%= f.number_field :afp_techo_salarial, step: 0.01, class: "form-control", required: true %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow border-0 mb-4">
+      <div class="card-header bg-light py-3">
+        <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-tools me-2"></i>Métricas de Control de Asistencia y Cortes</h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <%= f.label :minutos_gracia_periodo, "Minutos de tolerancia globales por periodo", class: "form-label" %>
+            <%= f.number_field :minutos_gracia_periodo, class: "form-control", required: true %>
+          </div>
+          <div class="col-md-6 mb-3">
+            <%= f.label :horas_laborales_dia, "Horas laborales reglamentarias por día", class: "form-label" %>
+            <%= f.number_field :horas_laborales_dia, step: 0.5, class: "form-control", required: true %>
+          </div>
+          <div class="col-md-6 mb-3">
+            <%= f.label :dia_corte_quincena_1, "Día estimado corte 1° Quincena", class: "form-label" %>
+            <%= f.number_field :dia_corte_quincena_1, class: "form-control", required: true %>
+          </div>
+          <div class="col-md-6 mb-3">
+            <%= f.label :dia_corte_quincena_2, "Día estimado corte 2° Quincena (Cierre)", class: "form-label" %>
+            <%= f.number_field :dia_corte_quincena_2, class: "form-control", required: true %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%# --- SECCIÓN DENTRO DEL FORM_WITH DE EDIT.HTML.ERB --- %>
+    
+    <div class="card shadow border-0 mb-4">
+      <div class="card-header bg-dark text-white py-3">
+        <h6 class="m-0 font-weight-bold"><i class="fas fa-percent me-2"></i>Editar Tablas de Retención de Renta (ISR)</h6>
+      </div>
+      <div class="card-body">
+        
+        <%# PESTAÑAS INTERNAS PARA CAMBIAR ENTRE MENSUAL, QUINCENAL Y SEMANAL %>
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active btn-sm" id="pills-mensual-tab" data-bs-toggle="pill" data-bs-target="#pills-mensual" type="button" role="tab">Tabla Mensual</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link btn-sm" id="pills-quincenal-tab" data-bs-toggle="pill" data-bs-target="#pills-quincenal" type="button" role="tab">Tabla Quincenal</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link btn-sm" id="pills-semanal-tab" data-bs-toggle="pill" data-bs-target="#pills-semanal" type="button" role="tab">Tabla Semanal</button>
+          </li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+          
+          <%# === TABLA MENSUAL === %>
+          <div class="tab-pane fade show active" id="pills-mensual" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered align-middle text-center" style="font-size: 0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th>Tramo</th>
+                    <th>Desde ($)</th>
+                    <th>Hasta ($)</th>
+                    <th>Porcentaje (Ej: 0.20 = 20%)</th>
+                    <th>Cuota Fija ($)</th>
+                    <th>Sobre el Exceso ($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @configuracion.tramos_renta_mensual.each_with_index do |tramo, index| %>
+                    <tr>
+                      <td class="fw-bold text-gray-800">Tramo <%= index + 1 %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_mensual][][desde]", tramo["desde"], step: 0.01, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_mensual][][hasta]", tramo["hasta"], step: 0.01, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_mensual][][porcentaje]", tramo["porcentaje"], step: 0.0001, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_mensual][][cuota_fija]", tramo["cuota_fija"], step: 0.01, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_mensual][][sobre_exceso]", tramo["sobre_exceso"], step: 0.01, class: "form-control form-control-sm text-center" %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <%# === TABLA QUINCENAL === %>
+          <div class="tab-pane fade" id="pills-quincenal" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered align-middle text-center" style="font-size: 0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th>Tramo</th>
+                    <th>Desde ($)</th>
+                    <th>Hasta ($)</th>
+                    <th>Porcentaje</th>
+                    <th>Cuota Fija ($)</th>
+                    <th>Sobre el Exceso ($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @configuracion.tramos_renta_quincenal.each_with_index do |tramo, index| %>
+                    <tr>
+                      <td class="fw-bold text-gray-800">Tramo <%= index + 1 %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_quincenal][][desde]", tramo["desde"], step: 0.01, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_quincenal][][hasta]", tramo["hasta"], step: 0.01, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_quincenal][][porcentaje]", tramo["porcentaje"], step: 0.0001, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_quincenal][][cuota_fija]", tramo["cuota_fija"], step: 0.01, class: "form-control form-control-sm text-center", required: true %></td>
+                      <td><%= number_field_tag "configuracion_planilla[tramos_renta_quincenal][][sobre_exceso]", tramo["sobre_exceso"], step: 0.01, class: "form-control form-control-sm text-center" %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <%# === TABLA SEMANAL === %>
+          <div class="tab-pane fade" id="pills-semanal" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered align-middle text-center" style="font-size: 0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th>Tramo</th>
+                    <th>Desde ($)</th>
+                    <th>Hasta ($)</th>
+                    <th>Porcentaje</th>
+                    <th>Cuota Fija ($)</th>
+                    <th>Sobre el Exceso ($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  <% @configuracion.tramos_renta_mensual.each_with_index do |tramo, i| %>
+                    <tr>
+                      <td class="fw-bold text-primary">Tramo <%= i + 1 %></td>
+                      <td>$<%= number_with_precision(tramo["desde"].to_f, precision: 2) %></td>
+                      <td><%= tramo["hasta"].to_f >= 99999.0 ? "En adelante" : "$#{number_with_precision(tramo["hasta"].to_f, precision: 2)}" %></td>
+                      <td><%= (tramo["porcentaje"].to_f * 100).to_i %>%</td>
+                      <td>$<%= number_with_precision(tramo["cuota_fija"].to_f, precision: 2) %></td>
+                      <td>$<%= number_with_precision(tramo["sobre_exceso"].to_f, precision: 2) %></td>
+                    </tr>
+                  <% end %>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-5 d-flex gap-2">
+      <%= f.submit "Guardar Cambios Financieros", class: "btn btn-success shadow-sm px-4" %>
+      <%= link_to "Cancelar", admin_configuracion_planilla_path, class: "btn btn-outline-secondary" %>
+    </div>
+  <% end %>
+</div>

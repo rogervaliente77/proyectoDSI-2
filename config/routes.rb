@@ -116,6 +116,8 @@ Rails.application.routes.draw do
 
     resources :roles, except: [:show]
 
+    resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuraciones_planilla'
+
     # 🔹 Reportes
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports

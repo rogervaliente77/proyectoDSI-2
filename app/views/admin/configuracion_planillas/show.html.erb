@@ -1,0 +1,98 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0 text-gray-800">Configuración de Parámetros de Planilla</h1>
+      <p class="text-muted"><%= @configuracion.nombre_config %> — Moneda: USD ($)</p>
+    </div>
+    <%= link_to edit_admin_configuracion_planilla_path, class: "btn btn-primary shadow-sm" do %>
+      <i class="fas fa-edit me-1"></i> Modificar Parámetros de Ley
+    <% end %>
+  </div>
+
+  <% if notice.present? %>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+      <i class="fas fa-check-circle me-2"></i> <%= notice %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">Instituto Salvadoreño del Seguro Social (ISSS)</div>
+          <div class="h6 mb-1 text-gray-800">Porcentaje Retención Empleado: <strong><%= (@configuracion.isss_porcentaje_empleado * 100).round(2) %>%</strong></div>
+          <div class="h6 mb-0 text-gray-800">Techo Salarial de Retención: <strong>$<%= number_with_precision(@configuracion.isss_techo_salarial, precision: 2) %></strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-success text-uppercase mb-2">Administradoras de Fondos de Pensiones (AFP)</div>
+          <div class="h6 mb-1 text-gray-800">Porcentaje Retención Empleado: <strong><%= (@configuracion.afp_porcentaje_empleado * 100).round(4) %>%</strong></div>
+          <div class="h6 mb-0 text-gray-800">Techo Salarial de Retención: <strong>$<%= number_with_precision(@configuracion.afp_techo_salarial, precision: 2) %></strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12 mb-4">
+      <div class="card shadow border-0">
+        <div class="card-header bg-light py-3">
+          <h6 class="m-0 font-weight-bold text-secondary"><i class="fas fa-clock me-2"></i>Políticas de Tiempo y Cortes de Asistencia</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4">
+              <span class="text-muted d-block">Minutos de gracia por período:</span>
+              <strong class="text-gray-800 fs-5"><%= @configuracion.minutos_gracia_periodo %> min</strong>
+            </div>
+            <div class="col-md-4">
+              <span class="text-muted d-block">Horas laborales estándar por día:</span>
+              <strong class="text-gray-800 fs-5"><%= @configuracion.horas_laborales_dia %> hrs</strong>
+            </div>
+            <div class="col-md-4">
+              <span class="text-muted d-block">Días de Corte Estimados (Quincenas):</span>
+              <strong class="text-gray-800 fs-5">Día <%= @configuracion.dia_corte_quincena_1 %> y Día <%= @configuracion.dia_corte_quincena_2 %></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow border-0 mb-4">
+    <div class="card-header bg-dark text-white py-3">
+      <h6 class="m-0 font-weight-bold"><i class="fas fa-calculator me-2"></i>Tabla Vigente de Retención de ISR (Mensual)</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+        <thead class="table-light">
+          <tr>
+            <th>Tramo</th>
+            <th>Desde ($)</th>
+            <th>Hasta ($)</th>
+            <th>Porcentaje Aplicable</th>
+            <th>Cuota Fija ($)</th>
+            <th>Sobre el Exceso De ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @configuracion.tramos_renta_mensual.each_with_index do |tramo, i| %>
+            <tr>
+              <td class="fw-bold text-primary">Tramo <%= i + 1 %></td>
+              <td>$<%= number_with_precision(tramo["desde"], precision: 2) %></td>
+              <td><%= tramo["hasta"] >= 99999.0 ? "En adelante" : "$#{number_with_precision(tramo["hasta"], precision: 2)}" %></td>
+              <td><%= (tramo["porcentaje"] * 100).to_i %>%</td>
+              <td>$<%= number_with_precision(tramo["cuota_fija"], precision: 2) %></td>
+              <td>$<%= number_with_precision(tramo["sobre_exceso"] || 0.0, precision: 2) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
