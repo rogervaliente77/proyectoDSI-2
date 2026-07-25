@@ -1,0 +1,151 @@
+<div class="card shadow-sm border-0 mb-4 vehiculo-item">
+  <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <span class="fw-bold"><i class="fas fa-car me-2"></i>Datos del Vehículo</span>
+    <button type="button" class="btn btn-sm btn-danger" onclick="eliminarSeccion(this, '.vehiculo-item')">
+      <i class="fas fa-trash"></i> Eliminar Vehículo
+    </button>
+  </div>
+  
+  <div class="card-body">
+    <%= f.hidden_field :_destroy, class: "destroy-flag" %>
+    
+    <!-- DATOS BÁSICOS DEL VEHÍCULO -->
+    <div class="row g-2 mb-4 bg-light p-3 rounded border">
+      <div class="col-md-1">
+        <%= f.label :numero_correlativo, "Correlativo", class: "form-label fw-bold small" %>
+        <%= f.number_field :numero_correlativo, class: "form-control form-control-sm" %>
+      </div>
+      <div class="col-md-2">
+        <%= f.label :tipo, "Tipo", class: "form-label fw-bold small" %>
+        <%= f.text_field :tipo, class: "form-control form-control-sm", placeholder: "PICK UP" %>
+      </div>
+      <div class="col-md-2">
+        <%= f.label :marca, "Marca", class: "form-label fw-bold small" %>
+        <%= f.text_field :marca, class: "form-control form-control-sm", placeholder: "MAZDA" %>
+      </div>
+      <div class="col-md-2">
+        <%= f.label :modelo, "Modelo", class: "form-label fw-bold small" %>
+        <%= f.text_field :modelo, class: "form-control form-control-sm", placeholder: "B2900 4X4" %>
+      </div>
+      <div class="col-md-2">
+        <%= f.label :anio, "Año", class: "form-label fw-bold small" %>
+        <%= f.text_field :anio, class: "form-control form-control-sm", placeholder: "2006" %>
+      </div>
+      <div class="col-md-3">
+        <%= f.label :placa, "Placa", class: "form-label fw-bold small" %>
+        <%= f.text_field :placa, class: "form-control form-control-sm", placeholder: "N-16981" %>
+      </div>
+    </div>
+
+    <!-- 1. SERVICIOS CATEGORIZADOS (Renderizados desde PlantillaCategoria) -->
+    <div class="mb-4">
+      <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+        <i class="fas fa-tools me-2"></i>1. Servicios Categorizados
+      </h6>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light small text-uppercase">
+            <tr>
+              <th style="width: 15%;">Tipo</th>
+              <th style="width: 25%;">Categoría / Sistema</th>
+              <th style="width: 45%;">Descripción del Servicio</th>
+              <th style="width: 15%;" class="text-end">Precio ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= f.fields_for :cotizacion_servicios do |sf| %>
+              <tr>
+                <%= sf.hidden_field :tipo_mantenimiento %>
+                <%= sf.hidden_field :sistema %>
+                <%= sf.hidden_field :servicio_descripcion %>
+
+                <td class="col-2">
+                  <span class="badge <%= sf.object.tipo_mantenimiento == 'PREVENTIVO' ? 'bg-info' : 'bg-warning text-dark' %>">
+                    <%= sf.object.tipo_mantenimiento %>
+                  </span>
+                </td>
+                <td class="fw-bold text-secondary">
+                  <%= sf.object.sistema %>
+                </td>
+                <td class="small text-muted">
+                  <%= sf.object.servicio_descripcion %>
+                </td>
+                <td>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <%= sf.number_field :precio, step: "0.01", min: "0", class: "form-control form-control-sm text-end fw-bold", placeholder: "0.00" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. REPUESTOS Y LUBRICANTES -->
+    <div class="mt-4">
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+        <h6 class="fw-bold text-success m-0">
+          <i class="fas fa-oil-can me-2"></i>2. Ficha Técnica de Repuestos y Lubricantes
+        </h6>
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="agregarRepuesto(<%= f.index %>)">
+          <i class="fas fa-plus me-1"></i> Agregar Repuesto / Lubricante
+        </button>
+      </div>
+
+      <div id="contenedor-repuestos-<%= f.index %>">
+        <%= f.fields_for :repuestos do |rf| %>
+          <div class="p-3 mb-3 border border-success-subtle rounded bg-light repuesto-card shadow-sm">
+            <%= rf.hidden_field :_destroy, class: "destroy-flag" %>
+            
+            <div class="row g-2 mb-2">
+              <div class="col-md-2">
+                <%= rf.label :tipo_item, "Categoría", class: "form-label small fw-bold" %>
+                <%= rf.select :tipo_item, ["Repuesto", "Lubricante"], {}, class: "form-select form-select-sm fw-bold" %>
+              </div>
+              <div class="col-md-4">
+                <%= rf.label :nombre, "Descripción / Ítem", class: "form-label small fw-bold" %>
+                <%= rf.text_field :nombre, class: "form-control form-control-sm fw-bold", placeholder: "Ej. Filtro de Aceite" %>
+              </div>
+              <div class="col-md-2">
+                <%= rf.label :tipo_origen, "Calidad", class: "form-label small fw-bold" %>
+                <%= rf.select :tipo_origen, ["Original", "Equivalente"], {}, class: "form-select form-select-sm" %>
+              </div>
+              <div class="col-md-2">
+                <%= rf.label :marca, "Marca", class: "form-label small fw-bold" %>
+                <%= rf.text_field :marca, class: "form-control form-control-sm", placeholder: "Sakura / Shell" %>
+              </div>
+              <div class="col-md-1">
+                <%= rf.label :pais_origen, "Origen", class: "form-label small fw-bold" %>
+                <%= rf.text_field :pais_origen, class: "form-control form-control-sm", placeholder: "Japón" %>
+              </div>
+              <div class="col-md-1 text-end align-self-end">
+                <button type="button" class="btn btn-sm btn-outline-danger border-0 w-100" onclick="eliminarSeccion(this, '.repuesto-card')">&times;</button>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-4">
+                <%= rf.text_field :especificacion, class: "form-control form-control-sm", placeholder: "Especificación técnica" %>
+              </div>
+              <div class="col-md-8">
+                <%= rf.text_field :comentario_uso, class: "form-control form-control-sm", placeholder: "Comentario / Propósito de uso" %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- 3. ADICIONALES Y CONSUMIBLES -->
+    <div class="mt-4">
+      <h6 class="fw-bold text-secondary mb-2 border-bottom pb-2">
+        <i class="fas fa-paperclip me-2"></i>3. Adicionales y Consumibles Menores
+      </h6>
+      <%= f.text_area :consumibles_menores, rows: 2, class: "form-control form-control-sm", placeholder: "Ej. Incluye lijas, grasas, desengrasantes, tiras de ajuste, trapo taller y solventes según requerimiento del fabricante." %>
+    </div>
+
+  </div>
+</div>

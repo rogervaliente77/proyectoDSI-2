@@ -118,6 +118,13 @@ Rails.application.routes.draw do
 
     resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuraciones_planilla'
 
+    resources :cotizaciones do
+      member do
+        get :pdf
+        get :datos_pdf
+      end
+    end
+
     # 🔹 Reportes
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports

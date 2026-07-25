@@ -1,0 +1,271 @@
+<%= form_with(model: [:admin, @cotizacion], url: @cotizacion.persisted? ? admin_cotizacion_path(@cotizacion) : admin_cotizaciones_path, local: true) do |f| %>
+  
+  <% if @cotizacion.errors.any? %>
+    <div class="alert alert-danger mb-4">
+      <h5 class="fw-bold mb-1"><%= pluralize(@cotizacion.errors.count, "error") %> impidieron guardar la cotización:</h5>
+      <ul class="mb-0">
+        <% @cotizacion.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- I. DATOS GENERALES DE LA OFERTA -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-primary text-white fw-bold">
+      <i class="fas fa-file-signature me-1"></i> I. Datos Generales de la Oferta
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <%= f.label :numero_cotizacion, "N° Cotización", class: "form-label fw-bold small" %>
+          <%= f.text_field :numero_cotizacion, class: "form-control form-control-sm", placeholder: "Ej. COT-2026-001" %>
+        </div>
+        <div class="col-md-6">
+          <%= f.label :cliente_nombre, "Cliente / Institución", class: "form-label fw-bold small" %>
+          <%= f.text_field :cliente_nombre, class: "form-control form-control-sm", required: true %>
+        </div>
+        <div class="col-md-3">
+          <%= f.label :anio_licitacion, "Año Licitación", class: "form-label fw-bold small" %>
+          <%= f.text_field :anio_licitacion, class: "form-control form-control-sm", placeholder: "2026" %>
+        </div>
+
+        <div class="col-md-6">
+          <%= f.label :plazo_entrega, "Plazo de Entrega", class: "form-label fw-bold small" %>
+          <%= f.text_field :plazo_entrega, class: "form-control form-control-sm" %>
+        </div>
+        <div class="col-md-6">
+          <%= f.label :lugar_entrega, "Lugar de Entrega", class: "form-label fw-bold small" %>
+          <%= f.text_field :lugar_entrega, class: "form-control form-control-sm" %>
+        </div>
+
+        <div class="col-md-6">
+          <%= f.label :condiciones_pago_preventivo, "Pago Maint. Preventivo", class: "form-label fw-bold small" %>
+          <%= f.text_field :condiciones_pago_preventivo, class: "form-control form-control-sm" %>
+        </div>
+        <div class="col-md-6">
+          <%= f.label :condiciones_pago_correctivo, "Pago Maint. Correctivo", class: "form-label fw-bold small" %>
+          <%= f.text_field :condiciones_pago_correctivo, class: "form-control form-control-sm" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- II. DETALLE POR VEHÍCULO -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-dark mb-0"><i class="fas fa-car me-2"></i>II. Detalle por Vehículo</h4>
+    <button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" onclick="agregarVehiculo()">
+      <i class="fas fa-plus-circle me-1"></i> Agregar Vehículo
+    </button>
+  </div>
+
+  <div id="contenedor-vehiculos">
+    <%= f.fields_for :vehiculos do |vf| %>
+      <%= render 'vehiculo_fields', f: vf %>
+    <% end %>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <%= link_to "Cancelar", admin_cotizaciones_path, class: "btn btn-secondary px-4" %>
+    <%= f.submit "Guardar Cotización", class: "btn btn-primary px-4 fw-bold" %>
+  </div>
+<% end %>
+
+<!-- SCRIPT JS PARA VEHÍCULOS Y REPUESTOS DINÁMICOS -->
+<script>
+  let indexVehiculo = <%= @cotizacion.vehiculos.size %>;
+
+  function agregarVehiculo() {
+    indexVehiculo++;
+    
+    // Leemos las plantillas directamente desde PlantillaCategoria
+    const plantillasBase = [
+      <% PlantillaCategoria.all.each do |p| %>
+        { 
+          tipo_mantenimiento: "<%= j p.tipo_mantenimiento %>", 
+          categoria: "<%= j p.categoria %>", 
+          descripcion: "<%= j p.descripcion_tareas %>" 
+        },
+      <% end %>
+    ];
+
+    let serviciosHTML = '';
+    plantillasBase.forEach((p, sIndex) => {
+      serviciosHTML += `
+        <tr>
+          <input type="hidden" name="cotizacion[vehiculos_attributes][${indexVehiculo}][cotizacion_servicios_attributes][${sIndex}][sistema]" value="${p.categoria}">
+          <input type="hidden" name="cotizacion[vehiculos_attributes][${indexVehiculo}][cotizacion_servicios_attributes][${sIndex}][servicio_descripcion]" value="${p.descripcion}">
+          <input type="hidden" name="cotizacion[vehiculos_attributes][${indexVehiculo}][cotizacion_servicios_attributes][${sIndex}][tipo_mantenimiento]" value="${p.tipo_mantenimiento}">
+          
+          <td class="col-2">
+            <span class="badge ${p.tipo_mantenimiento === 'PREVENTIVO' ? 'bg-info' : 'bg-warning text-dark'}">
+              ${p.tipo_mantenimiento}
+            </span>
+          </td>
+          <td class="fw-bold text-secondary">${p.categoria}</td>
+          <td class="small text-muted">${p.descripcion}</td>
+          <td>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">$</span>
+              <input type="number" step="0.01" min="0" name="cotizacion[vehiculos_attributes][${indexVehiculo}][cotizacion_servicios_attributes][${sIndex}][precio]" class="form-control form-control-sm text-end fw-bold" placeholder="0.00">
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    const contenedor = document.getElementById('contenedor-vehiculos');
+    const template = `
+      <div class="card shadow-sm border-0 mb-4 vehiculo-item" id="vehiculo_${indexVehiculo}">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+          <span class="fw-bold"><i class="fas fa-car me-2"></i>Datos del Vehículo</span>
+          <button type="button" class="btn btn-sm btn-danger" onclick="eliminarSeccion(this, '.vehiculo-item')">
+            <i class="fas fa-trash"></i> Eliminar Vehículo
+          </button>
+        </div>
+        
+        <div class="card-body">
+          <input type="hidden" name="cotizacion[vehiculos_attributes][${indexVehiculo}][_destroy]" value="0" class="destroy-flag">
+          
+          <!-- DATOS BÁSICOS DEL VEHÍCULO -->
+          <div class="row g-2 mb-4 bg-light p-3 rounded border">
+            <div class="col-md-1">
+              <label class="form-label fw-bold small">Correlativo</label>
+              <input type="number" name="cotizacion[vehiculos_attributes][${indexVehiculo}][numero_correlativo]" value="${indexVehiculo}" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-bold small">Tipo</label>
+              <input type="text" name="cotizacion[vehiculos_attributes][${indexVehiculo}][tipo]" placeholder="PICK UP" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-bold small">Marca</label>
+              <input type="text" name="cotizacion[vehiculos_attributes][${indexVehiculo}][marca]" placeholder="MAZDA" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-bold small">Modelo</label>
+              <input type="text" name="cotizacion[vehiculos_attributes][${indexVehiculo}][modelo]" placeholder="B2900 4X4" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label fw-bold small">Año</label>
+              <input type="text" name="cotizacion[vehiculos_attributes][${indexVehiculo}][anio]" placeholder="2006" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold small">Placa</label>
+              <input type="text" name="cotizacion[vehiculos_attributes][${indexVehiculo}][placa]" placeholder="N-16981" class="form-control form-control-sm">
+            </div>
+          </div>
+
+          <!-- SECCIÓN 1: SERVICIOS CATEGORIZADOS -->
+          <div class="mb-4">
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+              <i class="fas fa-tools me-2"></i>1. Servicios Categorizados
+            </h6>
+
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light small text-uppercase">
+                  <tr>
+                    <th style="width: 15%;">Tipo</th>
+                    <th style="width: 25%;">Categoría / Sistema</th>
+                    <th style="width: 45%;">Descripción del Servicio</th>
+                    <th style="width: 15%;" class="text-end">Precio ($)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${serviciosHTML}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: REPUESTOS Y LUBRICANTES -->
+          <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+              <h6 class="fw-bold text-success m-0">
+                <i class="fas fa-oil-can me-2"></i>2. Ficha Técnica de Repuestos y Lubricantes
+              </h6>
+              <button type="button" class="btn btn-sm btn-outline-success" onclick="agregarRepuesto(${indexVehiculo})">
+                <i class="fas fa-plus me-1"></i> Agregar Repuesto / Lubricante
+              </button>
+            </div>
+            <div id="contenedor-repuestos-${indexVehiculo}"></div>
+          </div>
+
+          <!-- SECCIÓN 3: CONSUMIBLES Y ADICIONALES -->
+          <div class="mt-4">
+            <h6 class="fw-bold text-secondary mb-2 border-bottom pb-2">
+              <i class="fas fa-paperclip me-2"></i>3. Adicionales y Consumibles Menores
+            </h6>
+            <textarea name="cotizacion[vehiculos_attributes][${indexVehiculo}][consumibles_menores]" rows="2" class="form-control form-control-sm" placeholder="Ej. Incluye lijas, grasas, desengrasantes, tiras de ajuste, trapo taller y solventes según requerimiento del fabricante."></textarea>
+          </div>
+
+        </div>
+      </div>
+    `;
+    contenedor.insertAdjacentHTML('beforeend', template);
+  }
+
+  function agregarRepuesto(vIndex) {
+    const rIndex = Date.now();
+    const contenedor = document.getElementById(`contenedor-repuestos-${vIndex}`);
+    const template = `
+      <div class="p-3 mb-3 border border-success-subtle rounded bg-light repuesto-card shadow-sm">
+        <input type="hidden" name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][_destroy]" value="0" class="destroy-flag">
+        
+        <div class="row g-2 mb-2">
+          <div class="col-md-2">
+            <label class="form-label small fw-bold">Categoría</label>
+            <select name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][tipo_item]" class="form-select form-select-sm fw-bold">
+              <option value="Repuesto">Repuesto</option>
+              <option value="Lubricante">Lubricante</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small fw-bold">Descripción / Ítem</label>
+            <input type="text" name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][nombre]" class="form-control form-control-sm fw-bold" placeholder="Ej. Filtro de Aceite">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-bold">Calidad</label>
+            <select name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][tipo_origen]" class="form-select form-select-sm">
+              <option value="Original">Original</option>
+              <option value="Equivalente">Equivalente</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small fw-bold">Marca</label>
+            <input type="text" name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][marca]" class="form-control form-control-sm" placeholder="Sakura / Shell">
+          </div>
+          <div class="col-md-1">
+            <label class="form-label small fw-bold">Origen</label>
+            <input type="text" name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][pais_origen]" class="form-control form-control-sm" placeholder="Japón">
+          </div>
+          <div class="col-md-1 text-end align-self-end">
+            <button type="button" class="btn btn-sm btn-outline-danger border-0 w-100" onclick="eliminarSeccion(this, '.repuesto-card')">&times;</button>
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input type="text" name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][especificacion]" class="form-control form-control-sm" placeholder="Especificación técnica">
+          </div>
+          <div class="col-md-8">
+            <input type="text" name="cotizacion[vehiculos_attributes][${vIndex}][repuestos_attributes][${rIndex}][comentario_uso]" class="form-control form-control-sm" placeholder="Comentario / Propósito de uso">
+          </div>
+        </div>
+      </div>
+    `;
+    contenedor.insertAdjacentHTML('beforeend', template);
+  }
+
+  function eliminarSeccion(btn, selectorPadre) {
+    const elemento = btn.closest(selectorPadre);
+    const destroyFlag = elemento.querySelector('.destroy-flag');
+    if (destroyFlag) {
+      destroyFlag.value = "1";
+      elemento.style.display = 'none';
+    } else {
+      elemento.remove();
+    }
+  }
+</script>

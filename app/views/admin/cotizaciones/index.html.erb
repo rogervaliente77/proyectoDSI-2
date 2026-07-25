@@ -1,0 +1,279 @@
+<!-- Cargar librería html2pdf desde CDN (Sin dependencias en el servidor) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<div class="container-fluid mt-4 mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-primary mb-0">
+        <i class="fas fa-file-invoice-dollar me-2"></i>Cotizaciones de Mantenimiento
+      </h2>
+      <p class="text-muted small mb-0">Gestión de cotizaciones y licitaciones vehiculares</p>
+    </div>
+    <%= link_to new_admin_cotizacione_path, class: "btn btn-success fw-bold shadow-sm" do %>
+      <i class="fas fa-plus me-1"></i> Nueva Cotización
+    <% end %>
+  </div>
+
+  <!-- TABLA PRINCIPAL DE COTIZACIONES -->
+  <div class="card shadow border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th class="ps-3">N° Cotización</th>
+              <th>Cliente / Institución</th>
+              <th>Año Licitación</th>
+              <th class="text-center">Vehículos</th>
+              <th>Plazo Entrega</th>
+              <th class="text-end pe-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @cotizaciones.present? %>
+              <% @cotizaciones.each do |cotizacion| %>
+                <tr>
+                  <td class="ps-3 fw-bold text-primary">
+                    <%= cotizacion.numero_cotizacion.presence || cotizacion.id %>
+                  </td>
+                  <td>
+                    <span class="fw-bold"><%= cotizacion.cliente_nombre %></span>
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary"><%= cotizacion.anio_licitacion %></span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-info text-dark">
+                      <i class="fas fa-car me-1"></i><%= cotizacion.vehiculos.size rescue 0 %>
+                    </span>
+                  </td>
+                  <td>
+                    <small class="text-muted"><%= cotizacion.plazo_entrega.presence || "No especificado" %></small>
+                  </td>
+                  <td class="text-end pe-3">
+                    <div class="btn-group btn-group-sm" role="group">
+                      
+                      <!-- BOTÓN GENERAR Y DESCARGAR PDF POR JS -->
+                      <button id="btn-pdf-<%= cotizacion.id %>" 
+                              class="btn btn-outline-danger" 
+                              onclick="generarPDF('<%= cotizacion.id %>')" 
+                              title="Descargar PDF">
+                        <i class="fas fa-file-pdf"></i> PDF
+                      </button>
+
+                      <%= link_to admin_cotizacione_path(cotizacion), class: "btn btn-outline-primary", title: "Ver Detalle" do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+
+                      <%= link_to edit_admin_cotizacione_path(cotizacion), class: "btn btn-outline-warning", title: "Editar" do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+
+                      <%= link_to admin_cotizacione_path(cotizacion), 
+                                  data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta cotización?" }, 
+                                  class: "btn btn-outline-danger", 
+                                  title: "Eliminar" do %>
+                        <i class="fas fa-trash-alt"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">
+                  <i class="fas fa-folder-open fa-2x mb-2 d-block"></i>
+                  No se encontraron cotizaciones registradas.
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENEDOR OCULTO PARA CONSTRUIR EL DOCUMENTO DEL PDF -->
+<div style="display: none;">
+  <div id="plantilla-pdf" style="padding: 20px; font-family: Arial, sans-serif; color: #333; font-size: 11px; background: #ffffff;">
+    <!-- El script de JavaScript llenará este contenido dinámicamente -->
+  </div>
+</div>
+
+<!-- SCRIPT DE JAVASCRIPT PARA GENERAR EL PDF -->
+<script>
+  async function generarPDF(cotizacionId) {
+    const btn = document.getElementById(`btn-pdf-${cotizacionId}`);
+    const originalText = btn.innerHTML;
+    
+    try {
+      // 1. Cambiar estado visual del botón
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+
+      // 2. Consultar el endpoint JSON de Rails
+      // Reemplaza estas líneas en tu función generarPDF:
+      const response = await fetch(`/admin/cotizaciones/${cotizacionId}/datos_pdf`);
+      if (!response.ok) {
+        throw new Error(`Servidor devolvió código ${response.status} (${response.statusText})`);
+      }
+      
+      const data = await response.json();
+
+      // 3. Renderizar la plantilla HTML en el contenedor invisible
+      const contenedor = document.getElementById('plantilla-pdf');
+      contenedor.innerHTML = construirHTMLCotizacion(data);
+
+      // 4. Configurar opciones del PDF
+      const opciones = {
+        margin:       [10, 10, 10, 10], // Margenes (arriba, izquierda, abajo, derecha en mm)
+        filename:     `Cotizacion_${data.numero_cotizacion || data._id}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'letter', orientation: 'portrait' }
+      };
+
+      // 5. Convertir a PDF y descargar en el navegador del usuario
+      await html2pdf().set(opciones).from(contenedor).save();
+
+    } catch (error) {
+      alert("Error al generar el PDF: " + error.message);
+      console.error("Error PDF JS:", error);
+    } finally {
+      // Restaurar el botón a su estado original
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  // Función para maquetar el HTML estético de la oferta de mantenimiento
+  function construirHTMLCotizacion(c) {
+    let html = `
+        <div style="border-bottom: 2px solid #1a365d; padding-bottom: 10px; margin-bottom: 15px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+            <td>
+                <h2 style="margin: 0; color: #1a365d; font-size: 18px; font-weight: bold;">OFERTA DE MANTENIMIENTO VEHICULAR</h2>
+                <p style="margin: 3px 0; color: #4a5568; font-size: 11px;">Cliente: <strong>${c.cliente_nombre || 'N/A'}</strong></p>
+                <p style="margin: 3px 0; color: #4a5568; font-size: 11px;">Licitación Año: <strong>${c.anio_licitacion || 'N/A'}</strong></p>
+            </td>
+            <td style="text-align: right; vertical-align: top;">
+                <p style="margin: 0; font-size: 12px; color: #2b6cb0;"><strong>N° COTIZACIÓN:</strong> ${c.numero_cotizacion || 'N/A'}</p>
+                <p style="margin: 3px 0; color: #718096; font-size: 10px;">Fecha: ${new Date().toLocaleDateString()}</p>
+            </td>
+            </tr>
+        </table>
+        </div>
+
+        <div style="background-color: #1a365d; color: #ffffff; padding: 5px 8px; font-weight: bold; font-size: 11px; margin-bottom: 8px;">
+        I. CONDICIONES GENERALES
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px;">
+        <tr>
+            <td style="padding: 5px; border: 1px solid #cbd5e0; width: 50%;"><strong>Plazo de Entrega:</strong> ${c.plazo_entrega || 'N/A'}</td>
+            <td style="padding: 5px; border: 1px solid #cbd5e0; width: 50%;"><strong>Lugar de Entrega:</strong> ${c.lugar_entrega || 'N/A'}</td>
+        </tr>
+        <tr>
+            <td style="padding: 5px; border: 1px solid #cbd5e0;"><strong>Pago Maint. Preventivo:</strong> ${c.condiciones_pago_preventivo || 'N/A'}</td>
+            <td style="padding: 5px; border: 1px solid #cbd5e0;"><strong>Pago Maint. Correctivo:</strong> ${c.condiciones_pago_correctivo || 'N/A'}</td>
+        </tr>
+        </table>
+    `;
+
+    if (c.vehiculos && c.vehiculos.length > 0) {
+        c.vehiculos.forEach((v, index) => {
+        const pageBreak = index > 0 ? 'page-break-before: always;' : '';
+
+        html += `
+            <div style="${pageBreak} margin-top: 15px;">
+            <div style="background-color: #2b6cb0; color: #ffffff; padding: 6px; font-weight: bold; font-size: 10px; margin-bottom: 6px;">
+                UNIDAD N° ${v.numero_correlativo || (index + 1)} — ${v.tipo || ''} ${v.marca || ''} ${v.modelo || ''} (${v.anio || ''}) | PLACA: ${v.placa || ''}
+            </div>
+
+            <!-- TABLA 1: SERVICIOS Y SISTEMAS -->
+            <div style="font-weight: bold; font-size: 10px; color: #1a365d; margin-top: 5px; margin-bottom: 3px;">1. DETALLE DE SERVICIOS Y MANO DE OBRA</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 10px;">
+                <thead>
+                <tr style="background-color: #2d3748; color: #ffffff;">
+                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: center; width: 15%;">Mantenimiento</th>
+                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: left; width: 25%;">Sistema</th>
+                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: left; width: 45%;">Descripción del Servicio</th>
+                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: right; width: 15%;">Precio ($)</th>
+                </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let totalVehiculo = 0;
+
+        if (v.cotizacion_servicios && v.cotizacion_servicios.length > 0) {
+            v.cotizacion_servicios.forEach(s => {
+            const p = parseFloat(s.precio || 0);
+            totalVehiculo += p;
+            html += `
+                <tr>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold;">${s.tipo_mantenimiento || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; font-weight: bold; color: #2b6cb0;">${s.sistema || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0;">${s.servicio_descripcion || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: right; font-weight: bold;">$${p.toFixed(2)}</td>
+                </tr>
+            `;
+            });
+        }
+
+        html += `
+                <tr style="background-color: #edf2f7; font-weight: bold;">
+                <td colspan="3" style="padding: 4px; border: 1px solid #cbd5e0; text-align: right;">SUBTOTAL SERVICIOS:</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: right; color: #2b6cb0;">$${totalVehiculo.toFixed(2)}</td>
+                </tr>
+            </tbody>
+            </table>
+
+            <!-- TABLA 2: FICHA TÉCNICA DE REPUESTOS Y LUBRICANTES -->
+            <div style="font-weight: bold; font-size: 10px; color: #276749; margin-top: 8px; margin-bottom: 3px;">2. FICHA TÉCNICA DE REPUESTOS Y LUBRICANTES OFERTADOS</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+            <thead>
+                <tr style="background-color: #276749; color: #ffffff;">
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 10%;">Tipo</th>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 25%;">Repuesto / Insumo</th>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 12%;">Oferta</th>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 13%;">Marca</th>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 10%;">Origen</th>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 30%;">Especificación / Propósito de Uso</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        if (v.repuestos && v.repuestos.length > 0) {
+            v.repuestos.forEach(r => {
+            html += `
+                <tr>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold;">${r.tipo_item || 'Repuesto'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; font-weight: bold;">${r.nombre || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center;">${r.tipo_origen || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0;">${r.marca || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center;">${r.pais_origen || '-'}</td>
+                <td style="padding: 4px; border: 1px solid #cbd5e0;">
+                    ${r.especificacion ? `<strong>Espec:</strong> ${r.especificacion}<br>` : ''}
+                    ${r.comentario_uso ? `<span style="color: #4a5568;"><em>Uso:</em> ${r.comentario_uso}</span>` : ''}
+                </td>
+                </tr>
+            `;
+            });
+        } else {
+            html += `<tr><td colspan="6" style="padding: 4px; text-align: center; color: #718096;">Sin repuestos o lubricantes especificados para este vehículo.</td></tr>`;
+        }
+
+        html += `
+                </tbody>
+            </table>
+            </div>
+        `;
+        });
+    }
+
+    return html;
+    }
+</script>

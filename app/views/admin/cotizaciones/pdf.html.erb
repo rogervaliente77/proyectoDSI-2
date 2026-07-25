@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cotización <%= @cotizacion.numero_cotizacion %></title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      color: #333;
+      margin: 10px;
+    }
+    .header {
+      width: 100%;
+      border-bottom: 2px solid #1a365d;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1a365d;
+    }
+    .section-title {
+      background-color: #1a365d;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 8px;
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+    th, td {
+      border: 1px solid #cbd5e0;
+      padding: 4px;
+      text-align: left;
+    }
+    th {
+      background-color: #2d3748;
+      color: white;
+      font-size: 9px;
+    }
+    .cat-header {
+      background-color: #edf2f7;
+      font-weight: bold;
+      color: #2b6cb0;
+    }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .fw-bold { font-weight: bold; }
+    .page-break { page-break-before: always; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <table style="border: none;">
+      <tr style="border: none;">
+        <td style="border: none;">
+          <div class="title">OFERTA DE MANTENIMIENTO VEHICULAR</div>
+          <div><%= @cotizacion.cliente_nombre %> — Licitación <%= @cotizacion.anio_licitacion %></div>
+        </td>
+        <td style="border: none;" class="text-right">
+          <strong>N° COTIZACIÓN:</strong> <%= @cotizacion.numero_cotizacion %><br>
+          <small>Fecha: <%= Time.current.strftime("%d/%m/%Y") %></small>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section-title">CONDICIONES GENERALES</div>
+  <table>
+    <tr>
+      <td class="fw-bold">Plazo de entrega:</td>
+      <td><%= @cotizacion.plazo_entrega %></td>
+      <td class="fw-bold">Lugar de entrega:</td>
+      <td><%= @cotizacion.lugar_entrega %></td>
+    </tr>
+    <tr>
+      <td class="fw-bold">Pago Maint. Preventivo:</td>
+      <td><%= @cotizacion.condiciones_pago_preventivo %></td>
+      <td class="fw-bold">Pago Maint. Correctivo:</td>
+      <td><%= @cotizacion.condiciones_pago_correctivo %></td>
+    </tr>
+  </table>
+
+  <div class="section-title">DETALLE PRESUPUESTARIO POR VEHÍCULO</div>
+
+  <% @cotizacion.vehiculos.each_with_index do |vehiculo, idx| %>
+    <% if idx > 0 %>
+      <div class="page-break"></div>
+    <% end %>
+
+    <div style="background-color: #2b6cb0; color: white; padding: 4px; font-weight: bold; margin-bottom: 5px;">
+      UNIDAD N° <%= vehiculo.numero_correlativo %> — <%= vehiculo.tipo %> <%= vehiculo.marca %> <%= vehiculo.modelo %> (<%= vehiculo.anio %>) | PLACA: <%= vehiculo.placa %>
+    </div>
+
+    <% if vehiculo.consumibles_menores.present? %>
+      <p><strong>Consumibles incluidos:</strong> <%= vehiculo.consumibles_menores %></p>
+    <% end %>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 40%;">Repuesto / Servicio</th>
+          <th style="width: 15%; text-align: center;">Tipo Repuesto</th>
+          <th style="width: 20%;">Marca</th>
+          <th style="width: 12%; text-align: center;">Origen</th>
+          <th style="width: 13%; text-align: right;">Precio ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% total_v = 0.0 %>
+        <% vehiculo.cotizacion_categorias.each do |cat| %>
+          <tr class="cat-header">
+            <td colspan="5">[<%= cat.tipo_mantenimiento %>] <%= cat.categoria %></td>
+          </tr>
+          <% cat.cotizacion_items.each do |item| %>
+            <% p = item.precio || 0.0 %>
+            <% total_v += p %>
+            <tr>
+              <td><%= item.nombre %></td>
+              <td class="text-center"><%= item.tipo_repuesto %></td>
+              <td><%= item.marca_repuesto %></td>
+              <td class="text-center"><%= item.pais_origen %></td>
+              <td class="text-right fw-bold">$<%= sprintf('%.2f', p) %></td>
+            </tr>
+          <% end %>
+        <% end %>
+        <tr style="background-color: #edf2f7; font-weight: bold;">
+          <td colspan="4" class="text-right">SUBTOTAL UNIDAD N° <%= vehiculo.numero_correlativo %>:</td>
+          <td class="text-right">$<%= sprintf('%.2f', total_v) %></td>
+        </tr>
+      </tbody>
+    </table>
+  <% end %>
+
+</body>
+</html>

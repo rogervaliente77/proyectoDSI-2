@@ -96,3 +96,7 @@ gem 'barby', '~> 0.6.8'           # Para generar códigos de barra
 gem 'chunky_png'  
 
 gem "dotenv-rails", groups: [:development, :test]
+
+gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary'
+gem 'grover'
