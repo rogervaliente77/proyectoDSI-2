@@ -63,7 +63,6 @@ module Admin
     end
 
     def datos_pdf
-      binding.pry
       render json: {
         _id: @cotizacion.id.to_s,
         numero_cotizacion: @cotizacion.try(:numero_cotizacion),
@@ -81,6 +80,12 @@ module Admin
             modelo: v.try(:modelo),
             anio: v.try(:anio),
             placa: v.try(:placa),
+            
+            # Campos de Totales de la Opción A:
+            precio_repuestos: v.try(:precio_repuestos).to_f,
+            consumibles_menores: v.try(:consumibles_menores),
+            precio_consumibles: v.try(:precio_consumibles).to_f,
+    
             cotizacion_servicios: (v.try(:cotizacion_servicios) || []).map { |s|
               {
                 tipo_mantenimiento: s.try(:tipo_mantenimiento),
@@ -103,8 +108,6 @@ module Admin
           }
         }
       }
-    rescue StandardError => e
-      render json: { error: e.message }, status: :internal_server_error
     end
 
     private
@@ -113,19 +116,35 @@ module Admin
       @cotizacion = Cotizacion.find(params[:id])
     end
 
+    # def cotizacion_params
+    #   params.require(:cotizacion).permit(
+    #     :numero_cotizacion, :cliente_nombre, :anio_licitacion,
+    #     :plazo_entrega, :lugar_entrega,
+    #     :condiciones_pago_preventivo, :condiciones_pago_correctivo,
+    #     vehiculos_attributes: [
+    #       :id, :_destroy, :numero_correlativo, :tipo, :marca, :modelo, :anio, :placa, :consumibles_menores,
+    #       :precio_repuestos, # <-- AQUÍ: El precio global para toda la sección de repuestos/lubricantes
+    #       cotizacion_servicios_attributes: [
+    #         :id, :_destroy, :tipo_mantenimiento, :sistema, :servicio_descripcion, :precio
+    #       ],
+    #       repuestos_attributes: [
+    #         :id, :_destroy, :tipo_item, :nombre, :tipo_origen, :marca, :pais_origen, :especificacion, :comentario_uso
+    #         # (Se remueve :precio de aquí porque ya no es por repuesto individual)
+    #       ],
+    #       adicionales_attributes: [:id, :descripcion, :precio, :_destroy]
+    #     ]
+    #   )
+    # end
+    # En tu CotizacionesController
     def cotizacion_params
       params.require(:cotizacion).permit(
-        :numero_cotizacion, :cliente_nombre, :anio_licitacion,
-        :plazo_entrega, :lugar_entrega,
-        :condiciones_pago_preventivo, :condiciones_pago_correctivo,
+        :numero_cotizacion, :cliente_nombre, :anio_licitacion, :plazo_entrega, 
+        :lugar_entrega, :condiciones_pago_preventivo, :condiciones_pago_correctivo,
         vehiculos_attributes: [
-          :id, :_destroy, :numero_correlativo, :tipo, :marca, :modelo, :anio, :placa, :consumibles_menores,
-          cotizacion_servicios_attributes: [
-            :id, :_destroy, :tipo_mantenimiento, :sistema, :servicio_descripcion, :precio
-          ],
-          repuestos_attributes: [
-            :id, :_destroy, :tipo_item, :nombre, :tipo_origen, :marca, :pais_origen, :especificacion, :comentario_uso
-          ]
+          :id, :_destroy, :numero_correlativo, :tipo, :marca, :modelo, :anio, :placa,
+          :precio_repuestos, :consumibles_menores, :precio_consumibles, # <-- CLAVE AQUÍ
+          cotizacion_servicios_attributes: [:id, :_destroy, :sistema, :servicio_descripcion, :tipo_mantenimiento, :precio],
+          repuestos_attributes: [:id, :_destroy, :tipo_item, :nombre, :tipo_origen, :marca, :pais_origen, :especificacion, :comentario_uso]
         ]
       )
     end

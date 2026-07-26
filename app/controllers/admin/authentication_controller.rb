@@ -69,7 +69,7 @@ module Admin
       # Validamos que el usuario exista y que la contraseña sea correcta
       if @user&.authenticate(password)
         session_token = SecureRandom.hex(32)
-        session_expiration_time = Time.now + 30.minutes # o el tiempo que necesites
+        session_expiration_time = Time.now + 60.minutes # o el tiempo que necesites
         # binding.pry
         # Crea un UserSession
         user_session = UserSession.create!(

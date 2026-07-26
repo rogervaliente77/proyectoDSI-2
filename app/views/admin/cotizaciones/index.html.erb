@@ -150,130 +150,239 @@
   // Función para maquetar el HTML estético de la oferta de mantenimiento
   function construirHTMLCotizacion(c) {
     let html = `
-        <div style="border-bottom: 2px solid #1a365d; padding-bottom: 10px; margin-bottom: 15px;">
+      <!-- ENCABEZADO DE EMPRESA CON LOGO -->
+      <div style="border-bottom: 2px solid #1a365d; padding-bottom: 12px; margin-bottom: 15px;">
         <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-            <td>
-                <h2 style="margin: 0; color: #1a365d; font-size: 18px; font-weight: bold;">OFERTA DE MANTENIMIENTO VEHICULAR</h2>
-                <p style="margin: 3px 0; color: #4a5568; font-size: 11px;">Cliente: <strong>${c.cliente_nombre || 'N/A'}</strong></p>
-                <p style="margin: 3px 0; color: #4a5568; font-size: 11px;">Licitación Año: <strong>${c.anio_licitacion || 'N/A'}</strong></p>
+          <tr>
+            <!-- COLUMNA IZQUIERDA: LOGO -->
+            <td style="width: 35%; vertical-align: middle;">
+              <img src="/logo_bimers.png" alt="BIMERS Motor Cars" style="max-width: 180px; height: auto;" />
             </td>
-            <td style="text-align: right; vertical-align: top;">
-                <p style="margin: 0; font-size: 12px; color: #2b6cb0;"><strong>N° COTIZACIÓN:</strong> ${c.numero_cotizacion || 'N/A'}</p>
-                <p style="margin: 3px 0; color: #718096; font-size: 10px;">Fecha: ${new Date().toLocaleDateString()}</p>
+            
+            <!-- COLUMNA DERECHA: INFORMACIÓN CORPORATIVA Y DETALLES DE LA COTIZACIÓN -->
+            <td style="width: 65%; text-align: right; vertical-align: middle; line-height: 1.3;">
+              <h1 style="margin: 0; color: #1a365d; font-size: 16px; font-weight: bold; text-transform: uppercase;">
+                BIMERS S.A DE C.V
+              </h1>
+              <h2 style="margin: 2px 0 0 0; color: #2b6cb0; font-size: 11px; font-weight: bold;">
+                TALLER AUTOMOTRIZ ESPECIALIZADO
+              </h2>
+              <p style="margin: 2px 0 6px 0; color: #4a5568; font-size: 8.5px; font-style: italic;">
+                (Mecánica, electrónica, enderezado, pintura, venta de repuestos, accesorios y A/C)
+              </p>
+              
+              <div style="margin-top: 6px; padding-top: 4px; border-top: 1px dashed #cbd5e0;">
+                <span style="font-size: 12px; color: #1a365d; font-weight: bold; display: inline-block; margin-right: 12px;">
+                  N° COTIZACIÓN: ${c.numero_cotizacion || 'N/A'}
+                </span>
+                <span style="font-size: 10px; color: #718096;">
+                  Fecha: ${new Date().toLocaleDateString('es-SV')}
+                </span>
+              </div>
             </td>
-            </tr>
+          </tr>
         </table>
-        </div>
+      </div>
 
-        <div style="background-color: #1a365d; color: #ffffff; padding: 5px 8px; font-weight: bold; font-size: 11px; margin-bottom: 8px;">
+      <!-- DATOS DEL CLIENTE Y LICITACIÓN -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 10px; background-color: #f7fafc; border: 1px solid #e2e8f0;">
+        <tr>
+          <td style="padding: 6px 10px; width: 60%;">
+            <strong>Cliente:</strong> ${c.cliente_nombre || 'N/A'}
+          </td>
+          <td style="padding: 6px 10px; width: 40%; text-align: right;">
+            <strong>Licitación Año:</strong> ${c.anio_licitacion || 'N/A'}
+          </td>
+        </tr>
+      </table>
+
+      <div style="background-color: #1a365d; color: #ffffff; padding: 5px 8px; font-weight: bold; font-size: 11px; margin-bottom: 8px;">
         I. CONDICIONES GENERALES
-        </div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px;">
+      </div>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 10px;">
         <tr>
-            <td style="padding: 5px; border: 1px solid #cbd5e0; width: 50%;"><strong>Plazo de Entrega:</strong> ${c.plazo_entrega || 'N/A'}</td>
-            <td style="padding: 5px; border: 1px solid #cbd5e0; width: 50%;"><strong>Lugar de Entrega:</strong> ${c.lugar_entrega || 'N/A'}</td>
+          <td style="padding: 5px; border: 1px solid #cbd5e0; width: 50%;"><strong>Plazo de Entrega:</strong> ${c.plazo_entrega || 'N/A'}</td>
+          <td style="padding: 5px; border: 1px solid #cbd5e0; width: 50%;"><strong>Lugar de Entrega:</strong> ${c.lugar_entrega || 'N/A'}</td>
         </tr>
         <tr>
-            <td style="padding: 5px; border: 1px solid #cbd5e0;"><strong>Pago Maint. Preventivo:</strong> ${c.condiciones_pago_preventivo || 'N/A'}</td>
-            <td style="padding: 5px; border: 1px solid #cbd5e0;"><strong>Pago Maint. Correctivo:</strong> ${c.condiciones_pago_correctivo || 'N/A'}</td>
+          <td style="padding: 5px; border: 1px solid #cbd5e0;"><strong>Pago Maint. Preventivo:</strong> ${c.condiciones_pago_preventivo || 'N/A'}</td>
+          <td style="padding: 5px; border: 1px solid #cbd5e0;"><strong>Pago Maint. Correctivo:</strong> ${c.condiciones_pago_correctivo || 'N/A'}</td>
         </tr>
-        </table>
+      </table>
     `;
 
+    let granTotalServicios = 0;
+    let granTotalRepuestos = 0;
+    let granTotalAdicionales = 0;
+
     if (c.vehiculos && c.vehiculos.length > 0) {
-        c.vehiculos.forEach((v, index) => {
+      c.vehiculos.forEach((v, index) => {
         const pageBreak = index > 0 ? 'page-break-before: always;' : '';
+        let subtotalServicios = 0;
+        
+        // Leemos directamente los precios globales asignados al vehículo
+        const subtotalRepuestos = parseFloat(v.precio_repuestos || 0);
+        const subtotalAdicionales = parseFloat(v.precio_consumibles || 0);
 
         html += `
-            <div style="${pageBreak} margin-top: 15px;">
+          <div style="${pageBreak} margin-top: 15px;">
             <div style="background-color: #2b6cb0; color: #ffffff; padding: 6px; font-weight: bold; font-size: 10px; margin-bottom: 6px;">
-                UNIDAD N° ${v.numero_correlativo || (index + 1)} — ${v.tipo || ''} ${v.marca || ''} ${v.modelo || ''} (${v.anio || ''}) | PLACA: ${v.placa || ''}
+              UNIDAD N° ${v.numero_correlativo || (index + 1)} — ${v.tipo || ''} ${v.marca || ''} ${v.modelo || ''} (${v.anio || ''}) | PLACA: ${v.placa || ''}
             </div>
 
-            <!-- TABLA 1: SERVICIOS Y SISTEMAS -->
+            <!-- TABLA 1: SERVICIOS Y MANO DE OBRA -->
             <div style="font-weight: bold; font-size: 10px; color: #1a365d; margin-top: 5px; margin-bottom: 3px;">1. DETALLE DE SERVICIOS Y MANO DE OBRA</div>
             <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 10px;">
-                <thead>
+              <thead>
                 <tr style="background-color: #2d3748; color: #ffffff;">
-                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: center; width: 15%;">Mantenimiento</th>
-                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: left; width: 25%;">Sistema</th>
-                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: left; width: 45%;">Descripción del Servicio</th>
-                    <th style="padding: 4px; border: 1px solid #4a5568; text-align: right; width: 15%;">Precio ($)</th>
+                  <th style="padding: 4px; border: 1px solid #4a5568; text-align: center; width: 15%;">Mantenimiento</th>
+                  <th style="padding: 4px; border: 1px solid #4a5568; text-align: left; width: 25%;">Sistema</th>
+                  <th style="padding: 4px; border: 1px solid #4a5568; text-align: left; width: 45%;">Descripción del Servicio</th>
+                  <th style="padding: 4px; border: 1px solid #4a5568; text-align: right; width: 15%;">Precio ($)</th>
                 </tr>
-                </thead>
-                <tbody>
+              </thead>
+              <tbody>
         `;
 
-        let totalVehiculo = 0;
-
         if (v.cotizacion_servicios && v.cotizacion_servicios.length > 0) {
-            v.cotizacion_servicios.forEach(s => {
+          v.cotizacion_servicios.forEach(s => {
             const p = parseFloat(s.precio || 0);
-            totalVehiculo += p;
+            subtotalServicios += p;
             html += `
-                <tr>
+              <tr>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold;">${s.tipo_mantenimiento || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; font-weight: bold; color: #2b6cb0;">${s.sistema || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0;">${s.servicio_descripcion || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: right; font-weight: bold;">$${p.toFixed(2)}</td>
-                </tr>
+              </tr>
             `;
-            });
+          });
+        } else {
+          html += `<tr><td colspan="4" style="padding: 4px; text-align: center; color: #718096;">Sin servicios registrados.</td></tr>`;
         }
 
         html += `
-                <tr style="background-color: #edf2f7; font-weight: bold;">
+              <tr style="background-color: #edf2f7; font-weight: bold;">
                 <td colspan="3" style="padding: 4px; border: 1px solid #cbd5e0; text-align: right;">SUBTOTAL SERVICIOS:</td>
-                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: right; color: #2b6cb0;">$${totalVehiculo.toFixed(2)}</td>
-                </tr>
+                <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: right; color: #2b6cb0;">$${subtotalServicios.toFixed(2)}</td>
+              </tr>
             </tbody>
-            </table>
+          </table>
 
-            <!-- TABLA 2: FICHA TÉCNICA DE REPUESTOS Y LUBRICANTES -->
-            <div style="font-weight: bold; font-size: 10px; color: #276749; margin-top: 8px; margin-bottom: 3px;">2. FICHA TÉCNICA DE REPUESTOS Y LUBRICANTES OFERTADOS</div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 8px;">
+          <!-- TABLA 2: REPUESTOS Y LUBRICANTES (SIN COLUMNA PRECIO POR FILA) -->
+          <div style="font-weight: bold; font-size: 10px; color: #276749; margin-top: 8px; margin-bottom: 3px;">2. FICHA TÉCNICA DE REPUESTOS Y LUBRICANTES OFERTADOS</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 8px; margin-bottom: 10px;">
             <thead>
-                <tr style="background-color: #276749; color: #ffffff;">
-                <th style="padding: 4px; border: 1px solid #2f855a; width: 10%;">Tipo</th>
+              <tr style="background-color: #276749; color: #ffffff;">
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 12%;">Tipo</th>
                 <th style="padding: 4px; border: 1px solid #2f855a; width: 25%;">Repuesto / Insumo</th>
                 <th style="padding: 4px; border: 1px solid #2f855a; width: 12%;">Oferta</th>
-                <th style="padding: 4px; border: 1px solid #2f855a; width: 13%;">Marca</th>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 15%;">Marca</th>
                 <th style="padding: 4px; border: 1px solid #2f855a; width: 10%;">Origen</th>
-                <th style="padding: 4px; border: 1px solid #2f855a; width: 30%;">Especificación / Propósito de Uso</th>
-                </tr>
+                <th style="padding: 4px; border: 1px solid #2f855a; width: 26%;">Especificación / Uso</th>
+              </tr>
             </thead>
             <tbody>
         `;
 
         if (v.repuestos && v.repuestos.length > 0) {
-            v.repuestos.forEach(r => {
+          v.repuestos.forEach(r => {
             html += `
-                <tr>
+              <tr>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center; font-weight: bold;">${r.tipo_item || 'Repuesto'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; font-weight: bold;">${r.nombre || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center;">${r.tipo_origen || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0;">${r.marca || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0; text-align: center;">${r.pais_origen || '-'}</td>
                 <td style="padding: 4px; border: 1px solid #cbd5e0;">
-                    ${r.especificacion ? `<strong>Espec:</strong> ${r.especificacion}<br>` : ''}
-                    ${r.comentario_uso ? `<span style="color: #4a5568;"><em>Uso:</em> ${r.comentario_uso}</span>` : ''}
+                  ${r.especificacion ? `<strong>Espec:</strong> ${r.especificacion}<br>` : ''}
+                  ${r.comentario_uso ? `<span style="color: #4a5568;"><em>Uso:</em> ${r.comentario_uso}</span>` : ''}
                 </td>
-                </tr>
+              </tr>
             `;
-            });
+          });
         } else {
-            html += `<tr><td colspan="6" style="padding: 4px; text-align: center; color: #718096;">Sin repuestos o lubricantes especificados para este vehículo.</td></tr>`;
+          html += `<tr><td colspan="6" style="padding: 4px; text-align: center; color: #718096;">Sin repuestos o lubricantes especificados.</td></tr>`;
         }
 
+        // FILA FINAL CON TOTAL GLOBAL DE LA SECCIÓN
         html += `
-                </tbody>
-            </table>
-            </div>
+              <tr style="background-color: #f0fff4; font-weight: bold; font-size: 9px;">
+                <td colspan="5" style="padding: 5px; border: 1px solid #cbd5e0; text-align: right;">TOTAL REPUESTOS Y LUBRICANTES:</td>
+                <td style="padding: 5px; border: 1px solid #cbd5e0; text-align: right; color: #276749;">$${subtotalRepuestos.toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- TABLA 3: ADICIONALES Y CONSUMIBLES -->
+          <div style="font-weight: bold; font-size: 10px; color: #d69e2e; margin-top: 8px; margin-bottom: 3px;">3. TRABAJOS Y ELEMENTOS ADICIONALES</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 8px; margin-bottom: 10px;">
+            <thead>
+              <tr style="background-color: #b7791f; color: #ffffff;">
+                <th style="padding: 4px; border: 1px solid #975a16; text-align: left;">Descripción Insumos / Adicionales</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 6px; border: 1px solid #cbd5e0; color: #2d3748;">
+                  ${v.consumibles_menores || 'No se registraron consumibles ni trabajos adicionales.'}
+                </td>
+              </tr>
+              <tr style="background-color: #fffff0; font-weight: bold; font-size: 9px;">
+                <td style="padding: 5px; border: 1px solid #cbd5e0; text-align: right; color: #b7791f;">
+                  TOTAL ADICIONALES Y CONSUMIBLES: $${subtotalAdicionales.toFixed(2)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- RESUMEN POR VEHÍCULO -->
+          <!-- RESUMEN POR VEHÍCULO -->
+          <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; background-color: #1a365d; color: #ffffff;">
+            <tr>
+              <td style="padding: 6px; font-weight: bold;">TOTAL UNIDAD N° ${v.numero_correlativo || (index + 1)} (${v.placa || 'S/P'}):</td>
+              <td style="padding: 6px; text-align: right; font-weight: bold; font-size: 11px;">$${(subtotalServicios + subtotalRepuestos + subtotalAdicionales).toFixed(2)}</td>
+            </tr>
+          </table>
+        </div>
         `;
-        });
+
+        granTotalServicios += subtotalServicios;
+        granTotalRepuestos += subtotalRepuestos;
+        granTotalAdicionales += subtotalAdicionales;
+      });
+
+      const granTotalGeneral = granTotalServicios + granTotalRepuestos + granTotalAdicionales;
+
+      html += `
+        <div style="margin-top: 25px; page-break-inside: avoid;">
+          <div style="background-color: #1a365d; color: #ffffff; padding: 6px; font-weight: bold; font-size: 11px; margin-bottom: 5px;">
+            RESUMEN GENERAL DE LA OFERTA
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <tr>
+              <td style="padding: 6px; border: 1px solid #cbd5e0; width: 70%;"><strong>TOTAL SERVICIOS Y MANO DE OBRA:</strong></td>
+              <td style="padding: 6px; border: 1px solid #cbd5e0; text-align: right; font-weight: bold;">$${granTotalServicios.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px; border: 1px solid #cbd5e0;"><strong>TOTAL REPUESTOS Y LUBRICANTES:</strong></td>
+              <td style="padding: 6px; border: 1px solid #cbd5e0; text-align: right; font-weight: bold;">$${granTotalRepuestos.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px; border: 1px solid #cbd5e0;"><strong>TOTAL ADICIONALES Y CONSUMIBLES:</strong></td>
+              <td style="padding: 6px; border: 1px solid #cbd5e0; text-align: right; font-weight: bold;">$${granTotalAdicionales.toFixed(2)}</td>
+            </tr>
+            <tr style="background-color: #2b6cb0; color: #ffffff; font-size: 12px; font-weight: bold;">
+              <td style="padding: 8px; border: 1px solid #2b6cb0;">TOTAL GENERAL OFERTA:</td>
+              <td style="padding: 8px; border: 1px solid #2b6cb0; text-align: right;">$${granTotalGeneral.toFixed(2)}</td>
+            </tr>
+          </table>
+        </div>
+      `;
     }
 
     return html;
-    }
+  }
+
+
 </script>
