@@ -9,7 +9,7 @@
       </h2>
       <p class="text-muted small mb-0">Gestión de cotizaciones y licitaciones vehiculares</p>
     </div>
-    <%= link_to new_admin_cotizacione_path, class: "btn btn-success fw-bold shadow-sm" do %>
+    <%= link_to new_admin_cotizacione_path, class: "btn btn-success fw-bold shadow-sm", data: { turbo: false } do %>
       <i class="fas fa-plus me-1"></i> Nueva Cotización
     <% end %>
   </div>
@@ -61,20 +61,23 @@
                         <i class="fas fa-file-pdf"></i> PDF
                       </button>
 
-                      <%= link_to admin_cotizacione_path(cotizacion), class: "btn btn-outline-primary", title: "Ver Detalle" do %>
+                      <%= link_to admin_cotizacione_path(cotizacion), class: "btn btn-outline-primary", title: "Ver Detalle", data: { turbo: false } do %>
                         <i class="fas fa-eye"></i>
                       <% end %>
 
-                      <%= link_to edit_admin_cotizacione_path(cotizacion), class: "btn btn-outline-warning", title: "Editar" do %>
+                      <%= link_to edit_admin_cotizacione_path(cotizacion), class: "btn btn-outline-warning", title: "Editar", data: { turbo: false } do %>
                         <i class="fas fa-edit"></i>
                       <% end %>
 
                       <%= link_to admin_cotizacione_path(cotizacion), 
-                                  data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta cotización?" }, 
+                                  method: :delete,
+                                  data: { turbo: false, confirm: "¿Está seguro de eliminar esta cotización?" }, 
                                   class: "btn btn-outline-danger", 
                                   title: "Eliminar" do %>
                         <i class="fas fa-trash-alt"></i>
                       <% end %>
+
+
                     </div>
                   </td>
                 </tr>
