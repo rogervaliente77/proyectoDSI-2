@@ -77,7 +77,6 @@
                         <i class="fas fa-trash-alt"></i>
                       <% end %>
 
-
                     </div>
                   </td>
                 </tr>
@@ -116,7 +115,6 @@
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
 
       // 2. Consultar el endpoint JSON de Rails
-      // Reemplaza estas líneas en tu función generarPDF:
       const response = await fetch(`/admin/cotizaciones/${cotizacionId}/datos_pdf`);
       if (!response.ok) {
         throw new Error(`Servidor devolvió código ${response.status} (${response.statusText})`);
@@ -130,7 +128,7 @@
 
       // 4. Configurar opciones del PDF
       const opciones = {
-        margin:       [10, 10, 10, 10], // Margenes (arriba, izquierda, abajo, derecha en mm)
+        margin:       [6, 10, 10, 10], // Margenes (arriba, izquierda, abajo, derecha en mm)
         filename:     `Cotizacion_${data.numero_cotizacion || data._id}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, logging: false },
@@ -152,8 +150,8 @@
 
   // Función para maquetar el HTML estético de la oferta de mantenimiento
   function construirHTMLCotizacion(c) {
-    let html = `
-      <!-- ENCABEZADO DE EMPRESA CON LOGO -->
+    // 1. EXTRAEMOS EL ENCABEZADO A UNA VARIABLE REUTILIZABLE
+    const encabezadoHTML = `
       <div style="border-bottom: 2px solid #1a365d; padding-bottom: 12px; margin-bottom: 15px;">
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
@@ -186,6 +184,11 @@
           </tr>
         </table>
       </div>
+    `;
+
+    // 2. INICIALIZAMOS EL HTML CON EL ENCABEZADO Y CONDICIONES GENERALES
+    let html = `
+      ${encabezadoHTML}
 
       <!-- DATOS DEL CLIENTE Y LICITACIÓN -->
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 10px; background-color: #f7fafc; border: 1px solid #e2e8f0;">
@@ -220,7 +223,16 @@
 
     if (c.vehiculos && c.vehiculos.length > 0) {
       c.vehiculos.forEach((v, index) => {
-        const pageBreak = index > 0 ? 'page-break-before: always;' : '';
+        // En páginas subsiguientes (index > 0) forzamos el salto de página,
+        // pero añadimos un padding-top de 10px a 15px para compensar la altura 
+        // del margen del PDF y evitar que el encabezado choque o se corte arriba.
+        const estiloContenedor = index > 0 
+          ? 'page-break-before: always; padding-top: 12px; margin-top: 0px;' 
+          : 'padding-top: 2px; margin-top: 20px;';
+
+        // Repetimos el encabezado a partir de la página 2
+        const encabezadoRepetido = index > 0 ? encabezadoHTML : '';
+
         let subtotalServicios = 0;
         
         // Leemos directamente los precios globales asignados al vehículo
@@ -228,8 +240,10 @@
         const subtotalAdicionales = parseFloat(v.precio_consumibles || 0);
 
         html += `
-          <div style="${pageBreak} margin-top: 15px;">
-            <div style="background-color: #2b6cb0; color: #ffffff; padding: 6px; font-weight: bold; font-size: 10px; margin-bottom: 6px;">
+          <div style="${estiloContenedor}">
+            ${encabezadoRepetido}
+
+            <div style="background-color: #2b6cb0; color: #ffffff; padding: 6px; font-weight: bold; font-size: 10px; margin-bottom: 6px; margin-top: 5px;">
               UNIDAD N° ${v.numero_correlativo || (index + 1)} — ${v.tipo || ''} ${v.marca || ''} ${v.modelo || ''} (${v.anio || ''}) | PLACA: ${v.placa || ''}
             </div>
 
@@ -340,7 +354,6 @@
           </table>
 
           <!-- RESUMEN POR VEHÍCULO -->
-          <!-- RESUMEN POR VEHÍCULO -->
           <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; background-color: #1a365d; color: #ffffff;">
             <tr>
               <td style="padding: 6px; font-weight: bold;">TOTAL UNIDAD N° ${v.numero_correlativo || (index + 1)} (${v.placa || 'S/P'}):</td>
@@ -357,9 +370,15 @@
 
       const granTotalGeneral = granTotalServicios + granTotalRepuestos + granTotalAdicionales;
 
+      // SI QUEREMOS ENCABEZADO EN LA ÚLTIMA PÁGINA (Si el resumen cae en página propia)
+      // O simplemente darle el margen superior adecuado para que no se corte arriba.
       html += `
-        <div style="margin-top: 25px; page-break-inside: avoid;">
-          <div style="background-color: #1a365d; color: #ffffff; padding: 6px; font-weight: bold; font-size: 11px; margin-bottom: 5px;">
+        <div style="page-break-inside: avoid; padding-top: 15px; margin-top: 15px;">
+          
+          <!-- Si deseas que lleve también el encabezado institucional en la hoja del total: -->
+          ${c.vehiculos.length > 0 ? encabezadoHTML : ''}
+
+          <div style="background-color: #1a365d; color: #ffffff; padding: 6px; font-weight: bold; font-size: 11px; margin-bottom: 5px; margin-top: 10px;">
             RESUMEN GENERAL DE LA OFERTA
           </div>
           <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
@@ -386,6 +405,4 @@
 
     return html;
   }
-
-
 </script>

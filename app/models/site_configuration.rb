@@ -14,4 +14,8 @@ class SiteConfiguration
   field :timezone, type: String, default: "America/El_Salvador"
   field :maintenance_mode, type: Boolean, default: false
   field :debug_mode, type: Boolean, default: false
+
+  def self.current_session_timeout
+    (first&.session_timeout || 60).minutes
+  end
 end
