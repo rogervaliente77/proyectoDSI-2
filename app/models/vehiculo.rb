@@ -11,6 +11,7 @@ class Vehiculo
   field :consumibles_menores, type: String
   field :precio_consumibles,  type: Float, default: 0.0
   field :precio_repuestos, type: Float, default: 0.0
+  field :vin, type: String
 
   embedded_in :cotizacion
   embeds_many :cotizacion_servicios, class_name: 'CotizacionServicio', cascade_callbacks: true

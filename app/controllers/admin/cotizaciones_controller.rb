@@ -80,6 +80,7 @@ module Admin
             modelo: v.try(:modelo),
             anio: v.try(:anio),
             placa: v.try(:placa),
+            vin: v.try(:vin),
             
             # Campos de Totales de la Opción A:
             precio_repuestos: v.try(:precio_repuestos).to_f,
@@ -141,7 +142,7 @@ module Admin
         :numero_cotizacion, :cliente_nombre, :anio_licitacion, :plazo_entrega, 
         :lugar_entrega, :condiciones_pago_preventivo, :condiciones_pago_correctivo,
         vehiculos_attributes: [
-          :id, :_destroy, :numero_correlativo, :tipo, :marca, :modelo, :anio, :placa,
+          :id, :_destroy, :numero_correlativo, :tipo, :marca, :modelo, :anio, :placa, :vin,
           :precio_repuestos, :consumibles_menores, :precio_consumibles, # <-- CLAVE AQUÍ
           cotizacion_servicios_attributes: [:id, :_destroy, :sistema, :servicio_descripcion, :tipo_mantenimiento, :precio],
           repuestos_attributes: [:id, :_destroy, :tipo_item, :nombre, :tipo_origen, :marca, :pais_origen, :especificacion, :comentario_uso]
