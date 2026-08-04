@@ -1,0 +1,155 @@
+<div class="container-fluid">
+  <!-- ENCABEZADO Y ACCIONES -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="h3 mb-0 text-gray-800"><%= @client.nombre %></h1>
+      <span class="text-muted small">
+        <i class="fas fa-phone me-1"></i><%= @client.telefono.presence || 'Sin teléfono' %> | 
+        <i class="fas fa-envelope me-1"></i><%= @client.email.presence || 'Sin correo' %>
+      </span>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0">
+      <%= link_to admin_clients_path, data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm" do %>
+        <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Volver a Clientes
+      <% end %>
+      
+      <!-- BOTÓN QUE ACTIVA EL MODAL -->
+      <button type="button" class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoVehiculo">
+        <i class="fas fa-car me-1"></i> Agregar Vehículo
+      </button>
+    </div>
+  </div>
+
+  <!-- MENSAJES FLASH -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flash[:notice] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= sanitize(flash[:alert]) %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- TARJETA DE VEHÍCULOS ASOCIADOS -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Vehículos Registrados</h6>
+    </div>
+    <div class="card-body">
+      <% if @client_cars.any? %>
+        <div class="row">
+          <% @client_cars.each do |car| %>
+            <div class="col-md-6 col-lg-4 mb-3">
+              <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                    <div class="col me-2">
+                      <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        PLACA: <%= car.placa %>
+                      </div>
+                      <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        <%= car.marca %> <%= car.modelo %> (<%= car.anio %>)
+                      </div>
+                      <div class="text-muted small mt-2">
+                        <strong>Color:</strong> <%= car.color %><br>
+                        <strong>VIN:</strong> <%= car.vin.presence || 'N/A' %>
+                        <strong>Estado:</strong> 
+                        <% if car.is_active? %>
+                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Activo</span>
+                        <% else %>
+                            <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactivo</span>
+                        <% end %>
+                      </div>
+                    </div>
+                    <div class="col-auto">
+                      <i class="fas fa-car-side fa-2x text-gray-300"></i>
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-secondary"><%= car.service_orders.count %> Orden(es)</span>
+                    <%= link_to new_admin_client_car_service_order_path(car), data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
+                      <i class="fas fa-plus-circle me-1"></i> Crear Cotización/Factura
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-car fa-2x mb-2 text-gray-300"></i>
+          <p class="mb-0">Este cliente aún no tiene vehículos registrados.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BOOTSTRAP PARA REGISTRAR NUEVO VEHÍCULO -->
+<div class="modal fade" id="modalNuevoVehiculo" tabindex="-1" aria-labelledby="modalNuevoVehiculoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title h6 fw-bold m-0" id="modalNuevoVehiculoLabel">
+          <i class="fas fa-car me-1"></i> Agregar Vehículo a <%= @client.nombre %>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <%= simple_form_for [@client, ClientCar.new], url: admin_client_client_cars_path(@client), data: { turbo: false } do |f| %>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4">
+              <%= f.input :marca, label: "Marca", placeholder: "Ej. MITSUBISHI", required: true, input_html: { class: "form-control" } %>
+            </div>
+            <div class="col-md-4">
+              <%= f.input :modelo, label: "Modelo", placeholder: "Ej. MIRAGE", required: true, input_html: { class: "form-control" } %>
+            </div>
+            <div class="col-md-4">
+              <%= f.input :anio, label: "Año", placeholder: "2017", input_html: { class: "form-control" } %>
+            </div>
+          </div>
+
+          <div class="row mt-2">
+            <div class="col-md-4">
+              <%= f.input :placa, label: "Placa", placeholder: "P62ADE", required: true, input_html: { class: "form-control" } %>
+            </div>
+            <div class="col-md-4">
+              <%= f.input :color, label: "Color", placeholder: "Ej. OCRE", input_html: { class: "form-control" } %>
+            </div>
+            <div class="col-md-4">
+              <%= f.input :vin, label: "VIN / Chasis", placeholder: "ML32A3...", input_html: { class: "form-control" } %>
+            </div>
+          </div>
+
+          <!-- CAMPO IS_ACTIVE (SWITCH BOOTSTRAP) -->
+          <div class="row mt-3">
+            <div class="col-12">
+                <div class="card bg-light border-0">
+                <div class="card-body py-2 px-8">
+                    <div class="form-check form-switch m-0">
+                    <%= f.check_box :is_active, { class: "form-check-input", checked: true }, true, false %>
+                    <%= f.label :is_active, "Vehículo Activo", class: "form-check-label fw-bold text-dark me-2" %>
+                    <div class="form-text text-muted m-0" style="font-size: 0.8rem;">
+                        Desmarca esta casilla si el vehículo ya no recibe mantenimiento en el taller, o ya no pertenece a este cliente
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+          </div>         
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <%= f.submit "Guardar Vehículo", class: "btn btn-success btn-sm shadow-sm" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

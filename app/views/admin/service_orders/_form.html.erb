@@ -1,0 +1,165 @@
+<%= simple_form_for [@client_car, @service_order], 
+      url: @service_order.persisted? ? admin_service_order_path(@service_order) : admin_client_car_service_orders_path(@client_car), 
+      data: { turbo: false }, 
+      html: { class: "needs-validation" } do |f| %>
+
+  <!-- DATOS OPERATIVOS / RECEPCIÓN -->
+  <div class="border-left-primary pl-3 mb-4">
+    <h5 class="text-primary">1. Datos Generales de la Reparación / Recepción</h5>
+  </div>
+
+  <div class="row">
+    <div class="col-md-2">
+      <%= f.input :numero_orden, label: "N° Cotización", input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-3">
+      <%= f.input :fecha_entrada, label: "Fecha de Entrada", as: :date, html5: true, input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-3">
+      <%= f.input :fecha_salida, label: "Fecha de Salida", as: :date, html5: true, input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-2">
+      <%= f.input :km_entrada, label: "KM Entrada", input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-2">
+      <%= f.input :km_salida, label: "KM Salida", input_html: { class: "form-control" } %>
+    </div>
+  </div>
+
+  <div class="row mt-2">
+    <div class="col-md-6">
+      <%= f.input :tecnico, label: "Técnico Asignado", input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-6">
+      <%= f.input :forma_pago, label: "Forma de Pago", input_html: { class: "form-control" } %>
+    </div>
+  </div>
+
+  <!-- TABLA 1: SERVICIOS Y MANO DE OBRA -->
+  <div class="border-left-success pl-3 mb-3 mt-5 d-flex justify-content-between align-items-center">
+    <h5 class="text-success m-0">2. Servicios y Mano de Obra</h5>
+    <button type="button" onclick="agregarFilaServicio()" class="btn btn-sm btn-success shadow-sm">
+      <i class="fas fa-plus me-1"></i> Agregar Servicio
+    </button>
+  </div>
+
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered align-middle" id="tabla-servicios">
+      <thead class="table-dark">
+        <tr>
+          <th style="width: 60%;">Descripción del Trabajo / Servicio</th>
+          <th style="width: 15%;" class="text-center">Cantidad</th>
+          <th style="width: 15%;" class="text-end">Precio Unit. ($)</th>
+          <th style="width: 10%;" class="text-center">Eliminar</th>
+        </tr>
+      </thead>
+      <tbody id="contenedor-servicios">
+        <%= f.fields_for :order_services do |s_form| %>
+          <tr class="fila-nested">
+            <td><%= s_form.text_field :descripcion, class: "form-control" %></td>
+            <td><%= s_form.number_field :cantidad, class: "form-control text-center", value: s_form.object.cantidad || 1 %></td>
+            <td><%= s_form.number_field :precio_unitario, step: :any, class: "form-control text-end", value: s_form.object.precio_unitario || 0.0 %></td>
+            <td class="text-center">
+              <%= s_form.hidden_field :_destroy, class: "destroy-flag" %>
+              <button type="button" onclick="eliminarFila(this)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TABLA 2: REPUESTOS E INSUMOS -->
+  <div class="border-left-info pl-3 mb-3 mt-5 d-flex justify-content-between align-items-center">
+    <h5 class="text-info m-0">3. Repuestos, Lubricantes e Insumos</h5>
+    <button type="button" onclick="agregarFilaItem()" class="btn btn-sm btn-info text-white shadow-sm">
+      <i class="fas fa-plus me-1"></i> Agregar Repuesto / Insumo
+    </button>
+  </div>
+
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered align-middle" id="tabla-items">
+      <thead class="table-dark">
+        <tr>
+          <th style="width: 20%;">Tipo</th>
+          <th style="width: 40%;">Descripción del Repuesto / Lubricante</th>
+          <th style="width: 15%;" class="text-center">Cantidad</th>
+          <th style="width: 15%;" class="text-end">Precio Unit. ($)</th>
+          <th style="width: 10%;" class="text-center">Eliminar</th>
+        </tr>
+      </thead>
+      <tbody id="contenedor-items">
+        <%= f.fields_for :order_items do |i_form| %>
+          <tr class="fila-nested">
+            <td><%= i_form.select :tipo, ['Repuesto', 'Lubricante', 'Otro'], {}, class: "form-select" %></td>
+            <td><%= i_form.text_field :descripcion, class: "form-control" %></td>
+            <td><%= i_form.number_field :cantidad, class: "form-control text-center", value: i_form.object.cantidad || 1 %></td>
+            <td><%= i_form.number_field :precio_unitario, step: :any, class: "form-control text-end", value: i_form.object.precio_unitario || 0.0 %></td>
+            <td class="text-center">
+              <%= i_form.hidden_field :_destroy, class: "destroy-flag" %>
+              <button type="button" onclick="eliminarFila(this)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <hr>
+      <%= f.submit @service_order.new_record? ? 'Guardar y Generar Documento' : 'Actualizar Orden', 
+          class: "btn #{@service_order.new_record? ? 'btn-success' : 'btn-warning'} btn-lg btn-block shadow" %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  function agregarFilaServicio() {
+    const time = new Date().getTime();
+    const template = `
+      <tr class="fila-nested">
+        <td><input type="text" name="service_order[order_services_attributes][${time}][descripcion]" class="form-control" /></td>
+        <td><input type="number" name="service_order[order_services_attributes][${time}][cantidad]" value="1" class="form-control text-center" /></td>
+        <td><input type="number" step="0.01" name="service_order[order_services_attributes][${time}][precio_unitario]" value="0.00" class="form-control text-end" /></td>
+        <td class="text-center">
+          <button type="button" onclick="this.closest('tr').remove()" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+    document.getElementById('contenedor-servicios').insertAdjacentHTML('beforeend', template);
+  }
+
+  function agregarFilaItem() {
+    const time = new Date().getTime();
+    const template = `
+      <tr class="fila-nested">
+        <td>
+          <select name="service_order[order_items_attributes][${time}][tipo]" class="form-select">
+            <option value="Repuesto">Repuesto</option>
+            <option value="Lubricante">Lubricante</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </td>
+        <td><input type="text" name="service_order[order_items_attributes][${time}][descripcion]" class="form-control" /></td>
+        <td><input type="number" name="service_order[order_items_attributes][${time}][cantidad]" value="1" class="form-control text-center" /></td>
+        <td><input type="number" step="0.01" name="service_order[order_items_attributes][${time}][precio_unitario]" value="0.00" class="form-control text-end" /></td>
+        <td class="text-center">
+          <button type="button" onclick="this.closest('tr').remove()" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
+    document.getElementById('contenedor-items').insertAdjacentHTML('beforeend', template);
+  }
+
+  function eliminarFila(btn) {
+    const row = btn.closest('tr');
+    const destroyInput = row.querySelector('.destroy-flag');
+    if (destroyInput) {
+      destroyInput.value = '1';
+      row.style.display = 'none';
+    } else {
+      row.remove();
+    }
+  }
+</script>

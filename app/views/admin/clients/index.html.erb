@@ -1,0 +1,88 @@
+<div class="container-fluid">
+  <!-- Encabezado y botón de nuevo cliente -->
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
+    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Gestión de Clientes</h1>
+    <%= link_to new_admin_client_path, data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-user-plus me-1"></i> Crear Cliente
+    <% end %>
+  </div>
+
+  <!-- Mensajes flash -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flash[:notice] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= sanitize(flash[:alert]) %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- Tabla de Clientes -->
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Nombre Completo</th>
+              <th>Teléfono</th>
+              <th>Correo Electrónico</th>
+              <th class="text-center">Vehículos</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @clients.any? %>
+              <% @clients.each do |client| %>
+                <tr>
+                  <td>
+                    <div class="fw-bold"><%= client.nombre %></div>
+                  </td>
+                  <td class="text-nowrap"><%= client.telefono.presence || '-' %></td>
+                  <td><%= client.email.presence || '-' %></td>
+                  <td class="text-center">
+                    <span class="badge bg-info text-dark">
+                      <%= client.client_cars.count %> vehículo(s)
+                    </span>
+                  </td>
+                  <td class="text-center text-nowrap">
+                    <div class="d-inline-flex gap-1" role="group">
+                      <%= link_to admin_client_path(client), data: { turbo: false }, class: "btn btn-sm btn-info text-white", title: "Ver Vehículos / Detalle" do %>
+                        <i class="fa fa-car"></i>
+                      <% end %>
+
+                      <%= link_to edit_admin_client_path(client), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark", title: "Editar Cliente" do %>
+                        <i class="fa fa-pencil"></i>
+                      <% end %>
+
+                      <%= link_to admin_service_orders_path, data: { turbo: false }, class: "btn btn-sm btn-primary text-white", title: "Servicios" do %>
+                        <i class="fa fa-file-lines"></i>
+                      <% end %>
+
+                      <%= button_to admin_client_path(client),
+                            method: :delete,
+                            form: { class: "d-inline" },
+                            data: { turbo_confirm: "¿Estás seguro de eliminar al cliente #{client.nombre} y todos sus vehículos asociados?" },
+                            class: "btn btn-sm btn-danger",
+                            title: "Eliminar" do %>
+                        <i class="fa fa-trash"></i>
+                      <% end %>
+
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No hay clientes registrados en el sistema.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,26 @@
+<%= simple_form_for [:admin, client], data: { turbo: false }, html: { class: "needs-validation" }, defaults: { error: false } do |form| %>
+  
+  <div class="border-left-primary pl-3 mb-4">
+    <h5 class="text-primary">Datos del Cliente</h5>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <%= form.input :nombre, label: "Nombre Completo", required: true, input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-3">
+      <%= form.input :telefono, label: "Teléfono de Contacto", input_html: { class: "form-control" } %>
+    </div>
+    <div class="col-md-3">
+      <%= form.input :email, label: "Correo Electrónico", input_html: { class: "form-control" } %>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <hr>
+      <%= form.submit client.new_record? ? 'Registrar Cliente' : 'Actualizar Cliente', 
+          class: "btn #{client.new_record? ? 'btn-success' : 'btn-warning'} btn-lg btn-block shadow" %>
+    </div>
+  </div>
+<% end %>

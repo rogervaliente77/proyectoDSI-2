@@ -1,0 +1,208 @@
+<div class="container-fluid mb-5">
+  <!-- BARRA DE ACCIONES (NO SE IMPRIME) -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4 d-print-none">
+    <div>
+      <%= link_to admin_client_path(@service_order.client_car.client), data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm mb-2 mb-sm-0" do %>
+        <i class="fas fa-arrow-left me-1"></i> Volver al Cliente
+      <% end %>
+      <%= link_to edit_admin_client_car_service_order_path(@service_order), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark shadow-sm ms-1 mb-2 mb-sm-0" do %>
+        <i class="fas fa-pencil me-1"></i> Editar Orden
+      <% end %>
+    </div>
+    
+    <div>
+      <button onclick="window.print();" class="btn btn-sm btn-primary shadow-sm me-1">
+        <i class="fas fa-print me-1"></i> Imprimir Documento
+      </button>
+      <%= link_to admin_service_orders_path, data: { turbo: false }, class: "btn btn-sm btn-outline-dark shadow-sm" do %>
+        <i class="fas fa-list me-1"></i> Ver Todas las Órdenes
+      <% end %>
+    </div>
+  </div>
+
+  <!-- MENSAJES FLASH -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success alert-dismissible fade show d-print-none" role="alert">
+      <%= flash[:notice] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- TARJETA CONTENEDORA DE LA HOJA / HOJA DE TRABAJO -->
+  <div class="card shadow border-0" id="hoja-factura">
+    <div class="card-body p-4 p-md-5">
+      
+      <!-- ENCABEZADO INSTITUCIONAL -->
+      <div class="row align-items-center pb-3 mb-4 border-bottom border-2 border-primary">
+        <div class="col-8">
+          <h2 class="h4 font-weight-bold text-primary mb-1">BIMERS Motor Cars</h2>
+          <p class="text-muted small mb-0 fw-bold">TALLER AUTOMOTRIZ ESPECIALIZADO</p>
+          <p class="text-muted small mb-0">(Mecánica, electrónica, enderezado, pintura, venta de repuestos, accesorios y A/C)</p>
+        </div>
+        <div class="col-4 text-end">
+          <span class="badge bg-primary fs-6 p-2">COTIZACIÓN / FACTURA</span>
+          <h4 class="h5 font-weight-bold text-dark mt-2 mb-0">N° <%= @service_order.numero_orden.presence || 'S/N' %></h4>
+        </div>
+      </div>
+
+      <!-- DATOS DEL CLIENTE Y VEHÍCULO -->
+      <div class="row mb-4 fs-7">
+        <!-- DATOS DEL CLIENTE -->
+        <div class="col-md-6 mb-3 mb-md-0">
+          <div class="p-3 bg-light rounded border">
+            <h6 class="font-weight-bold text-dark border-bottom pb-1 mb-2">Información del Cliente</h6>
+            <div class="row">
+              <div class="col-4 fw-bold">CLIENTE:</div>
+              <div class="col-8"><%= @service_order.client_car&.client&.nombre %></div>
+              <div class="col-4 fw-bold">TELÉFONO:</div>
+              <div class="col-8"><%= @service_order.client_car&.client&.telefono.presence || 'N/A' %></div>
+              <div class="col-4 fw-bold">E-MAIL:</div>
+              <div class="col-8"><%= @service_order.client_car&.client&.email.presence || 'N/A' %></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATOS DEL VEHÍCULO Y RECEPCIÓN -->
+        <div class="col-md-6">
+          <div class="p-3 bg-light rounded border">
+            <h6 class="font-weight-bold text-dark border-bottom pb-1 mb-2">Datos del Vehículo y Recepción</h6>
+            <div class="row">
+              <div class="col-4 fw-bold">MARCA/MODELO:</div>
+              <div class="col-8"><%= @service_order.client_car&.marca %> <%= @service_order.client_car&.modelo %> (<%= @service_order.client_car&.anio %>)</div>
+              <div class="col-4 fw-bold">PLACA / COLOR:</div>
+              <div class="col-8"><%= @service_order.client_car&.placa %> | <%= @service_order.client_car&.color %></div>
+              <div class="col-4 fw-bold">VIN / CHASIS:</div>
+              <div class="col-8"><%= @service_order.client_car&.vin.presence || 'N/A' %></div>
+              <div class="col-4 fw-bold">F. ENTRADA/SALIDA:</div>
+              <div class="col-8"><%= @service_order.fecha_entrada&.strftime("%d/%m/%Y") %> - <%= @service_order.fecha_salida&.strftime("%d/%m/%Y") || 'Pendiente' %></div>
+              <div class="col-4 fw-bold">KM ENT. / SAL.:</div>
+              <div class="col-8"><%= @service_order.km_entrada.presence || '-' %> / <%= @service_order.km_salida.presence || '-' %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALLE DE SERVICIOS Y TRABAJOS -->
+      <h6 class="font-weight-bold text-primary mb-2">1. SERVICIOS Y MANO DE OBRA</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 55%;">Descripción del Servicio / Trabajo</th>
+              <th style="width: 15%;" class="text-center">Cantidad</th>
+              <th style="width: 15%;" class="text-end">Precio Unit.</th>
+              <th style="width: 15%;" class="text-end">Precio Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @service_order.order_services.any? %>
+              <% @service_order.order_services.each do |s| %>
+                <tr>
+                  <td><%= s.descripcion %></td>
+                  <td class="text-center"><%= s.cantidad %></td>
+                  <td class="text-end">$<%= number_with_precision(s.precio_unitario, precision: 2) %></td>
+                  <td class="text-end fw-bold">$<%= number_with_precision(s.precio_total, precision: 2) %></td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="4" class="text-center text-muted">No se registraron servicios de mano de obra.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- DETALLE DE REPUESTOS E INSUMOS -->
+      <h6 class="font-weight-bold text-success mb-2">2. REPUESTOS, LUBRICANTES Y OTROS</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 15%;">Tipo</th>
+              <th style="width: 40%;">Descripción</th>
+              <th style="width: 15%;" class="text-center">Cantidad</th>
+              <th style="width: 15%;" class="text-end">Precio Unit.</th>
+              <th style="width: 15%;" class="text-end">Precio Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @service_order.order_items.any? %>
+              <% @service_order.order_items.each do |i| %>
+                <tr>
+                  <td><span class="badge bg-secondary"><%= i.tipo %></span></td>
+                  <td><%= i.descripcion %></td>
+                  <td class="text-center"><%= i.cantidad %></td>
+                  <td class="text-end">$<%= number_with_precision(i.precio_unitario, precision: 2) %></td>
+                  <td class="text-end fw-bold">$<%= number_with_precision(i.precio_total, precision: 2) %></td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="5" class="text-center text-muted">No se registraron repuestos o insumos.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PIE Y TOTALES -->
+      <div class="row align-items-end mt-4 pt-3 border-top">
+        <div class="col-md-7">
+          <div class="row text-center mt-3">
+            <div class="col-6">
+              <div class="border-top border-dark pt-1 mt-4 fw-bold small">
+                TECNICO: <%= @service_order.tecnico.presence || 'TALLER BIMERS' %>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="border-top border-dark pt-1 mt-4 fw-bold small">
+                FORMA DE PAGO: <%= @service_order.forma_pago.presence || 'EFECTIVO' %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-5">
+          <table class="table table-bordered table-sm m-0">
+            <tr>
+              <td class="fw-bold bg-light">SUBTOTAL:</td>
+              <td class="text-end fw-bold">$<%= number_with_precision(@service_order.subtotal, precision: 2) %></td>
+            </tr>
+            <tr class="table-primary fs-5">
+              <td class="fw-bold">TOTAL GENERAL:</td>
+              <td class="text-end fw-bold">$<%= number_with_precision(@service_order.total, precision: 2) %></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- CONTACTO PIE DE PÁGINA -->
+      <div class="mt-4 pt-3 text-center text-muted small border-top">
+        Calle Algodon, pasaje San Jorge, local #114, San Antonio Abad, San Salvador<br>
+        Teléfonos: 2262-1909, 7834-9237 | E-mail: bimersmotor.cars@gmail.com
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  @media print {
+    /* Ocultar barra lateral, botones y elementos no imprimibles */
+    .d-print-none, .sidebar, .topbar, footer {
+      display: none !important;
+    }
+    #content-wrapper {
+      margin-left: 0 !important;
+      padding: 0 !important;
+    }
+    .container-fluid {
+      padding: 0 !important;
+    }
+    .card {
+      border: none !important;
+      box-shadow: none !important;
+    }
+  }
+</style>

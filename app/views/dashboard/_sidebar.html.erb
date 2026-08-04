@@ -82,13 +82,11 @@
         <div class="bg-white py-2 collapse-inner rounded">
           <h6 class="collapse-header">Cotizaciones:</h6>
           <a class="collapse-item" href="<%= admin_cotizaciones_path %>" data-turbo="false">Ver cotizaciones</a>
+          <a class="collapse-item" href="<%= admin_clients_path %>" data-turbo="false">Clientes</a>
+          <a class="collapse-item" href="<%= admin_service_orders_path %>" data-turbo="false">Servicios</a>
         </div>
       </div>
     </li>
-
-  <% end %>
-
-  <% if @current_user.role.name.in?(["super_admin", "admin"]) %>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmpleados"

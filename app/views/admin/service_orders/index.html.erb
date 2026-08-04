@@ -1,0 +1,57 @@
+<div class="container-fluid">
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
+    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Historial de Cotizaciones y Facturas</h1>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>N° Orden</th>
+              <th>Fecha Entrada</th>
+              <th>Cliente / Vehículo</th>
+              <th>Placa</th>
+              <th>Técnico</th>
+              <th class="text-end">Total ($)</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @service_orders.any? %>
+              <% @service_orders.each do |so| %>
+                <tr>
+                  <td class="fw-bold text-nowrap">#<%= so.numero_orden || 'S/N' %></td>
+                  <td class="text-nowrap"><%= so.fecha_entrada&.strftime("%d/%m/%Y") %></td>
+                  <td>
+                    <div class="fw-bold"><%= so.client_car&.client&.nombre %></div>
+                    <small class="text-muted"><%= so.client_car&.marca %> <%= so.client_car&.modelo %></small>
+                  </td>
+                  <td class="fw-bold text-primary"><%= so.client_car&.placa %></td>
+                  <td><%= so.tecnico.presence || '-' %></td>
+                  <td class="text-end fw-bold text-success">$<%= number_with_precision(so.total, precision: 2) %></td>
+                  <td class="text-center text-nowrap">
+                    <div class="d-inline-flex gap-1">
+                      <%= link_to admin_service_order_path(so), data: { turbo: false }, class: "btn btn-sm btn-info text-white", title: "Ver Imprimible / PDF" do %>
+                        <i class="fa fa-file-pdf"></i>
+                      <% end %>
+                      <%= link_to edit_admin_client_car_service_order_path(@service_order), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark shadow-sm ms-1 mb-2 mb-sm-0" do %>
+                        <i class="fas fa-pencil me-1"></i> Editar Orden
+                      <% end %>              
+                    </div>
+                  </td>
+
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No hay órdenes de servicio registradas.</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

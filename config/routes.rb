@@ -125,6 +125,17 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :clients do
+      resources :client_cars, except: [:index]
+    end
+
+    resources :client_cars, only: [] do
+      resources :service_orders, except: [:index]
+    end
+
+    # Ruta independiente para listar todas las órdenes de trabajo / facturas si se desea
+    resources :service_orders, only: [:index, :show, :destroy, :edit]
+
     # 🔹 Reportes
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports
