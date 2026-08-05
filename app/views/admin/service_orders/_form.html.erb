@@ -9,10 +9,21 @@
   </div>
 
   <div class="row">
-    <div class="col-md-2">
-      <%= f.input :numero_orden, label: "N° Cotización", input_html: { class: "form-control" } %>
-    </div>
+    <!-- CÓDIGO DE ORDEN (AUTO-GENERADO / NO EDITABLE) -->
     <div class="col-md-3">
+      <%= f.label :codigo_orden, "Código de Orden", class: "form-label fw-bold text-dark" %>
+      <%= f.text_field :codigo_orden, class: "form-control bg-light text-primary fw-bold", readonly: true %>
+      <%= f.hidden_field :codigo_orden %>
+    </div>
+
+    <!-- N° CORRELATIVO (AUTO-GENERADO / NO EDITABLE) -->
+    <div class="col-md-2">
+      <%= f.label :numero_orden, "N° Orden", class: "form-label fw-bold text-dark" %>
+      <%= f.text_field :numero_orden, class: "form-control bg-light fw-bold", readonly: true %>
+      <%= f.hidden_field :numero_orden %>
+    </div>
+
+    <div class="col-md-2">
       <%= f.input :fecha_entrada, label: "Fecha de Entrada", as: :date, html5: true, input_html: { class: "form-control" } %>
     </div>
     <div class="col-md-3">
@@ -21,16 +32,16 @@
     <div class="col-md-2">
       <%= f.input :km_entrada, label: "KM Entrada", input_html: { class: "form-control" } %>
     </div>
+  </div>
+
+  <div class="row mt-3">
     <div class="col-md-2">
       <%= f.input :km_salida, label: "KM Salida", input_html: { class: "form-control" } %>
     </div>
-  </div>
-
-  <div class="row mt-2">
-    <div class="col-md-6">
+    <div class="col-md-5">
       <%= f.input :tecnico, label: "Técnico Asignado", input_html: { class: "form-control" } %>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-5">
       <%= f.input :forma_pago, label: "Forma de Pago", input_html: { class: "form-control" } %>
     </div>
   </div>

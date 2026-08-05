@@ -5,13 +5,27 @@ module Admin
     layout 'dashboard'
 
     def index
-      @service_orders = ServiceOrder.all.order(created_at: :desc)
+      @service_orders = ServiceOrder.includes(client_car: :client).order(created_at: :desc)
+
+      if params[:client_id].present?
+        @client = Client.find_by(id: params[:client_id])
+        
+        if @client
+          # Obtenemos las órdenes asociadas a los carros del cliente
+          car_ids = @client.client_cars.pluck(:id)
+          @service_orders = @service_orders.where(:client_car_id.in => car_ids)
+        end
+      end
     end
 
     def show; end
 
     def new
       @service_order = @client_car.service_orders.build
+      
+      # Precalcula el número y código para mostrarlos inmediatamente en la vista
+      @service_order.preparar_correlativos
+    
       # Construimos al menos un servicio y un ítem por defecto para el formulario
       @service_order.order_services.build
       @service_order.order_items.build
@@ -73,7 +87,7 @@ module Admin
 
     def service_order_params
       params.require(:service_order).permit(
-        :numero_orden, :fecha_entrada, :fecha_salida, :km_entrada, :km_salida, :tecnico, :forma_pago,
+        :numero_orden, :codigo_orden, :fecha_entrada, :fecha_salida, :km_entrada, :km_salida, :tecnico, :forma_pago,
         order_services_attributes: [:id, :descripcion, :cantidad, :precio_unitario, :_destroy],
         order_items_attributes: [:id, :tipo, :descripcion, :cantidad, :precio_unitario, :_destroy]
       )

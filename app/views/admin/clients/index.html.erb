@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <!-- Encabezado y botón de nuevo cliente -->
-  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
-    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Gestión de Clientes</h1>
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-3 gap-2">
+    <h1 class="h4 mb-0 text-gray-800">Gestión de Clientes</h1>
     <%= link_to new_admin_client_path, data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
       <i class="fas fa-user-plus me-1"></i> Crear Cliente
     <% end %>
@@ -9,37 +9,37 @@
 
   <!-- Mensajes flash -->
   <% if flash[:notice] %>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="alert alert-success alert-dismissible fade show py-2 fs-7" role="alert">
       <%= flash[:notice] %>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <% elsif flash[:alert] %>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show py-2 fs-7" role="alert">
       <%= sanitize(flash[:alert]) %>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <% end %>
 
   <!-- Tabla de Clientes -->
   <div class="card shadow mb-4">
-    <div class="card-body">
+    <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle">
-          <thead class="table-light">
+        <table class="table table-hover table-bordered align-middle mb-0" style="font-size: 0.85rem;" id="tabla-clientes">
+          <thead class="table-dark text-nowrap">
             <tr>
               <th>Nombre Completo</th>
               <th>Teléfono</th>
               <th>Correo Electrónico</th>
               <th class="text-center">Vehículos</th>
-              <th class="text-center">Acciones</th>
+              <th class="text-center" style="width: 140px;">Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="body-clientes">
             <% if @clients.any? %>
               <% @clients.each do |client| %>
-                <tr>
+                <tr class="fila-cliente">
                   <td>
-                    <div class="fw-bold"><%= client.nombre %></div>
+                    <div class="fw-bold text-dark"><%= client.nombre %></div>
                   </td>
                   <td class="text-nowrap"><%= client.telefono.presence || '-' %></td>
                   <td><%= client.email.presence || '-' %></td>
@@ -50,15 +50,15 @@
                   </td>
                   <td class="text-center text-nowrap">
                     <div class="d-inline-flex gap-1" role="group">
-                      <%= link_to admin_client_path(client), data: { turbo: false }, class: "btn btn-sm btn-info text-white", title: "Ver Vehículos / Detalle" do %>
+                      <%= link_to admin_client_path(client), data: { turbo: false }, class: "btn btn-xs btn-info text-white py-1 px-2", title: "Ver Vehículos / Detalle" do %>
                         <i class="fa fa-car"></i>
                       <% end %>
 
-                      <%= link_to edit_admin_client_path(client), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark", title: "Editar Cliente" do %>
+                      <%= link_to edit_admin_client_path(client), data: { turbo: false }, class: "btn btn-xs btn-warning text-dark py-1 px-2", title: "Editar Cliente" do %>
                         <i class="fa fa-pencil"></i>
                       <% end %>
 
-                      <%= link_to admin_service_orders_path, data: { turbo: false }, class: "btn btn-sm btn-primary text-white", title: "Servicios" do %>
+                      <%= link_to admin_service_orders_path(client_id: client.id), data: { turbo: false }, class: "btn btn-xs btn-primary text-white py-1 px-2", title: "Servicios" do %>
                         <i class="fa fa-file-lines"></i>
                       <% end %>
 
@@ -66,11 +66,10 @@
                             method: :delete,
                             form: { class: "d-inline" },
                             data: { turbo_confirm: "¿Estás seguro de eliminar al cliente #{client.nombre} y todos sus vehículos asociados?" },
-                            class: "btn btn-sm btn-danger",
+                            class: "btn btn-xs btn-danger py-1 px-2",
                             title: "Eliminar" do %>
                         <i class="fa fa-trash"></i>
                       <% end %>
-
                     </div>
                   </td>
                 </tr>
@@ -83,6 +82,99 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Footer con información de paginación JS -->
+      <div class="card-footer bg-white border-top py-2 px-3">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2" style="font-size: 0.825rem;">
+          <div class="text-dark fw-semibold" id="info-paginacion">
+            Mostrando 0 a 0 de 0 registros
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm m-0" id="controles-paginacion">
+              <!-- Botones generados dinámicamente por JS -->
+            </ul>
+          </nav>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const filasPorPagina = 5;
+    let paginaActual = 1;
+    const filas = Array.from(document.querySelectorAll(".fila-cliente"));
+    const totalFilas = filas.length;
+    const totalPaginas = Math.ceil(totalFilas / filasPorPagina);
+
+    const infoPaginacion = document.getElementById("info-paginacion");
+    const controlesPaginacion = document.getElementById("controles-paginacion");
+
+    function mostrarPagina(pagina) {
+      paginaActual = pagina;
+      const inicio = (pagina - 1) * filasPorPagina;
+      const fin = inicio + filasPorPagina;
+
+      // Mostrar/Ocultar filas
+      filas.forEach((fila, index) => {
+        if (index >= inicio && index < fin) {
+          fila.style.display = "";
+        } else {
+          fila.style.display = "none";
+        }
+      });
+
+      // Actualizar texto informativo
+      if (totalFilas > 0) {
+        const registroFin = Math.min(fin, totalFilas);
+        infoPaginacion.textContent = `Mostrando ${inicio + 1} a ${registroFin} de ${totalFilas} registros`;
+      } else {
+        infoPaginacion.textContent = "Mostrando 0 a 0 de 0 registros";
+      }
+
+      renderizarControles();
+    }
+
+    function renderizarControles() {
+      controlesPaginacion.innerHTML = "";
+      if (totalPaginas <= 1) return;
+
+      // Botón Anterior
+      const liAnterior = document.createElement("li");
+      liAnterior.className = `page-item ${paginaActual === 1 ? "disabled" : ""}`;
+      liAnterior.innerHTML = `<a class="page-link" href="#">Anterior</a>`;
+      liAnterior.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (paginaActual > 1) mostrarPagina(paginaActual - 1);
+      });
+      controlesPaginacion.appendChild(liAnterior);
+
+      // Botones de Páginas
+      for (let i = 1; i <= totalPaginas; i++) {
+        const li = document.createElement("li");
+        li.className = `page-item ${i === paginaActual ? "active" : ""}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener("click", function (e) {
+          e.preventDefault();
+          mostrarPagina(i);
+        });
+        controlesPaginacion.appendChild(li);
+      }
+
+      // Botón Siguiente
+      const liSiguiente = document.createElement("li");
+      liSiguiente.className = `page-item ${paginaActual === totalPaginas ? "disabled" : ""}`;
+      liSiguiente.innerHTML = `<a class="page-link" href="#">Siguiente</a>`;
+      liSiguiente.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (paginaActual < totalPaginas) mostrarPagina(paginaActual + 1);
+      });
+      controlesPaginacion.appendChild(liSiguiente);
+    }
+
+    // Inicializar paginación
+    mostrarPagina(1);
+  });
+</script>

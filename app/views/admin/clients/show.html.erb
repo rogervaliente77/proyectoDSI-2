@@ -13,7 +13,7 @@
         <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Volver a Clientes
       <% end %>
       
-      <!-- BOTÓN QUE ACTIVA EL MODAL -->
+      <!-- BOTÓN QUE ACTIVA EL MODAL DE NUEVO VEHÍCULO -->
       <button type="button" class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoVehiculo">
         <i class="fas fa-car me-1"></i> Agregar Vehículo
       </button>
@@ -43,41 +43,125 @@
         <div class="row">
           <% @client_cars.each do |car| %>
             <div class="col-md-6 col-lg-4 mb-3">
-              <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                  <div class="row no-gutters align-items-center">
-                    <div class="col me-2">
-                      <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+              <div class="card border-left-info shadow h-100">
+                <!-- flex-column y justify-content-between fuerzan al contenido a distribuirse verticalmente -->
+                <div class="card-body d-flex flex-column justify-content-between">
+                  
+                  <!-- SECCIÓN SUPERIOR DE LA CARD (Crece para ocupar espacio) -->
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div class="text-xs font-weight-bold text-info text-uppercase">
                         PLACA: <%= car.placa %>
                       </div>
-                      <div class="h5 mb-0 font-weight-bold text-gray-800">
-                        <%= car.marca %> <%= car.modelo %> (<%= car.anio %>)
+                      <!-- BOTÓN DE EDICIÓN -->
+                      <button type="button" class="btn btn-sm btn-light text-primary border-0 py-0 px-1" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#modalEditarVehiculo_<%= car.id %>" 
+                              title="Editar Vehículo">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                    </div>
+
+                    <div class="row no-gutters align-items-center">
+                      <div class="col me-2">
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                          <%= car.marca %> <%= car.modelo %> (<%= car.anio %>)
+                        </div>
+                        <div class="text-muted small mt-2">
+                          <strong>Color:</strong> <%= car.color %><br>
+                          <strong>VIN:</strong> <%= car.vin.presence || 'N/A' %><br>
+                          <strong>Estado:</strong> 
+                          <% if car.is_active? %>
+                              <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Activo</span>
+                          <% else %>
+                              <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactivo</span>
+                          <% end %>
+                        </div>
                       </div>
-                      <div class="text-muted small mt-2">
-                        <strong>Color:</strong> <%= car.color %><br>
-                        <strong>VIN:</strong> <%= car.vin.presence || 'N/A' %>
-                        <strong>Estado:</strong> 
-                        <% if car.is_active? %>
-                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Activo</span>
-                        <% else %>
-                            <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactivo</span>
-                        <% end %>
+                      <div class="col-auto">
+                        <i class="fas fa-car-side fa-2x text-gray-300"></i>
                       </div>
                     </div>
-                    <div class="col-auto">
-                      <i class="fas fa-car-side fa-2x text-gray-300"></i>
+                  </div>
+
+                  <!-- SECCIÓN INFERIOR DE LA CARD (Siempre fija al fondo) -->
+                  <div>
+                    <hr class="my-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="badge bg-secondary"><%= car.service_orders.count %> Orden(es)</span>
+                      <%= link_to new_admin_client_car_service_order_path(car), data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
+                        <i class="fas fa-plus-circle me-1"></i> Crear Cotización/Factura
+                      <% end %>
                     </div>
                   </div>
-                  <hr>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="badge bg-secondary"><%= car.service_orders.count %> Orden(es)</span>
-                    <%= link_to new_admin_client_car_service_order_path(car), data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
-                      <i class="fas fa-plus-circle me-1"></i> Crear Cotización/Factura
-                    <% end %>
-                  </div>
+
                 </div>
               </div>
             </div>
+
+            <!-- MODAL DE EDICIÓN DE VEHÍCULO (Uno por cada registro) -->
+            <div class="modal fade" id="modalEditarVehiculo_<%= car.id %>" tabindex="-1" aria-labelledby="modalEditarVehiculoLabel_<%= car.id %>" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title h6 fw-bold m-0" id="modalEditarVehiculoLabel_<%= car.id %>">
+                      <i class="fas fa-edit me-1"></i> Editar Vehículo: <%= car.marca %> <%= car.modelo %> (<%= car.placa %>)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+
+                  <%= simple_form_for [@client, car], url: admin_client_client_car_path(@client, car), method: :patch, data: { turbo: false } do |f| %>
+                    <div class="modal-body">
+                      <div class="row">
+                        <div class="col-md-4">
+                          <%= f.input :marca, label: "Marca", required: true, input_html: { class: "form-control" } %>
+                        </div>
+                        <div class="col-md-4">
+                          <%= f.input :modelo, label: "Modelo", required: true, input_html: { class: "form-control" } %>
+                        </div>
+                        <div class="col-md-4">
+                          <%= f.input :anio, label: "Año", input_html: { class: "form-control" } %>
+                        </div>
+                      </div>
+
+                      <div class="row mt-2">
+                        <div class="col-md-4">
+                          <%= f.input :placa, label: "Placa", required: true, input_html: { class: "form-control" } %>
+                        </div>
+                        <div class="col-md-4">
+                          <%= f.input :color, label: "Color", input_html: { class: "form-control" } %>
+                        </div>
+                        <div class="col-md-4">
+                          <%= f.input :vin, label: "VIN / Chasis", input_html: { class: "form-control" } %>
+                        </div>
+                      </div>
+
+                      <div class="row mt-3">
+                        <div class="col-12">
+                          <div class="card bg-light border-0">
+                            <div class="card-body py-2 px-3">
+                              <div class="form-check form-switch m-0">
+                                <%= f.check_box :is_active, class: "form-check-input" %>
+                                <%= f.label :is_active, "Vehículo Activo", class: "form-check-label fw-bold text-dark me-2" %>
+                                <div class="form-text text-muted m-0" style="font-size: 0.8rem;">
+                                  Desmarca esta casilla si el vehículo ya no recibe mantenimiento en el taller.
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>         
+                    </div>
+
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                      <%= f.submit "Actualizar Vehículo", class: "btn btn-warning btn-sm shadow-sm fw-bold" %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
           <% end %>
         </div>
       <% else %>
@@ -127,20 +211,19 @@
             </div>
           </div>
 
-          <!-- CAMPO IS_ACTIVE (SWITCH BOOTSTRAP) -->
           <div class="row mt-3">
             <div class="col-12">
-                <div class="card bg-light border-0">
-                <div class="card-body py-2 px-8">
-                    <div class="form-check form-switch m-0">
-                    <%= f.check_box :is_active, { class: "form-check-input", checked: true }, true, false %>
+              <div class="card bg-light border-0">
+                <div class="card-body py-2 px-3">
+                  <div class="form-check form-switch m-0">
+                    <%= f.check_box :is_active, class: "form-check-input" %>
                     <%= f.label :is_active, "Vehículo Activo", class: "form-check-label fw-bold text-dark me-2" %>
                     <div class="form-text text-muted m-0" style="font-size: 0.8rem;">
-                        Desmarca esta casilla si el vehículo ya no recibe mantenimiento en el taller, o ya no pertenece a este cliente
+                      Desmarca esta casilla si el vehículo ya no recibe mantenimiento en el taller.
                     </div>
-                    </div>
+                  </div>
                 </div>
-                </div>
+              </div>
             </div>
           </div>         
         </div>

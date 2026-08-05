@@ -11,6 +11,17 @@ module Admin
       end
     end
 
+    def update
+      @client = Client.find(params[:client_id])
+      @client_car = @client.client_cars.find(params[:id])
+    
+      if @client_car.update(client_car_params)
+        redirect_to admin_client_path(@client), notice: "Vehículo actualizado correctamente."
+      else
+        redirect_to admin_client_path(@client), alert: "Error al actualizar el vehículo."
+      end
+    end
+
     private
 
     def set_client

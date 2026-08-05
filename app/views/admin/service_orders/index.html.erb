@@ -1,57 +1,222 @@
 <div class="container-fluid">
-  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between mb-4 gap-2">
-    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Historial de Cotizaciones y Facturas</h1>
+  <!-- ENCABEZADO Y FILTRO ACTIVO -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h3 class="h5 mb-0 text-gray-800">
+      <% if @client %>
+        Servicios de mantenimiento de: <span class="text-primary"><%= @client.nombre %></span>
+      <% else %>
+        Todos los servicios de mantenimiento
+      <% end %>
+    </h3>
+
+    <div>
+      <% if @client %>
+        <%= link_to admin_service_orders_path, data: { turbo: false }, class: "btn btn-sm btn-outline-secondary shadow-sm" do %>
+          <i class="fas fa-times me-1"></i> Ver todas las órdenes
+        <% end %>
+      <% end %>
+      <%= link_to admin_clients_path, data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm" do %>
+        <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Regresar a clientes
+      <% end %>
+    </div>
   </div>
 
   <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <%= @client ? "Órdenes filtradas (#{@service_orders.count})" : "Listado General (#{@service_orders.count})" %>
+      </h6>
+    </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle">
-          <thead class="table-light">
+        <table class="table table-bordered align-middle" id="ordersTable" width="100%" cellspacing="0">
+          <thead class="table-dark">
             <tr>
-              <th>N° Orden</th>
+              <th>Código / N° Orden</th>
+              <th>Cliente</th>
+              <th>Vehículo / Placa</th>
               <th>Fecha Entrada</th>
-              <th>Cliente / Vehículo</th>
-              <th>Placa</th>
-              <th>Técnico</th>
-              <th class="text-end">Total ($)</th>
+              <th>Total</th>
               <th class="text-center">Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="ordersTableBody">
             <% if @service_orders.any? %>
               <% @service_orders.each do |so| %>
-                <tr>
-                  <td class="fw-bold text-nowrap">#<%= so.numero_orden || 'S/N' %></td>
-                  <td class="text-nowrap"><%= so.fecha_entrada&.strftime("%d/%m/%Y") %></td>
+                <% car = so.client_car %>
+                <% client = car&.client %>
+                
+                <tr class="order-row">
+                  <!-- CÓDIGO Y NÚMERO DE ORDEN -->
                   <td>
-                    <div class="fw-bold"><%= so.client_car&.client&.nombre %></div>
-                    <small class="text-muted"><%= so.client_car&.marca %> <%= so.client_car&.modelo %></small>
+                    <span class="fw-bold text-primary d-block">
+                      <%= so.codigo_orden.presence || "SO-#{so.id.to_s.last(6)}" %>
+                    </span>
+                    <% if so.numero_orden.present? %>
+                      <small class="text-muted">N° <%= so.numero_orden %></small>
+                    <% end %>
                   </td>
-                  <td class="fw-bold text-primary"><%= so.client_car&.placa %></td>
-                  <td><%= so.tecnico.presence || '-' %></td>
-                  <td class="text-end fw-bold text-success">$<%= number_with_precision(so.total, precision: 2) %></td>
-                  <td class="text-center text-nowrap">
-                    <div class="d-inline-flex gap-1">
-                      <%= link_to admin_service_order_path(so), data: { turbo: false }, class: "btn btn-sm btn-info text-white", title: "Ver Imprimible / PDF" do %>
-                        <i class="fa fa-file-pdf"></i>
+                  
+                  <td>
+                    <% if client %>
+                      <%= link_to admin_client_path(client), data: { turbo: false }, class: "text-decoration-none fw-bold text-dark" do %>
+                        <i class="fas fa-user me-1 text-secondary"></i><%= client.nombre %>
                       <% end %>
-                      <%= link_to edit_admin_client_car_service_order_path(@service_order), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark shadow-sm ms-1 mb-2 mb-sm-0" do %>
-                        <i class="fas fa-pencil me-1"></i> Editar Orden
-                      <% end %>              
-                    </div>
+                      <br>
+                      <small class="text-muted"><%= client.telefono.presence || 'Sin teléfono' %></small>
+                    <% else %>
+                      <span class="text-muted">Sin asignar</span>
+                    <% end %>
                   </td>
 
+                  <td>
+                    <% if car %>
+                      <span class="fw-bold"><%= car.marca %> <%= car.modelo %></span>
+                      <br>
+                      <span class="badge bg-info text-dark">PLACA: <%= car.placa %></span>
+                    <% else %>
+                      <span class="text-muted">Sin vehículo</span>
+                    <% end %>
+                  </td>
+
+                  <td><%= so.fecha_entrada&.strftime("%d/%m/%Y") %></td>
+                  <td class="fw-bold text-success">$<%= number_with_precision(so.total || 0, precision: 2) %></td>
+                  
+                  <td class="text-center">
+                    <%= link_to admin_service_order_path(so), data: { turbo: false }, class: "btn btn-sm btn-info text-white me-1", title: "Ver Detalle" do %>
+                      <i class="fas fa-eye"></i>
+                    <% end %>
+
+                    <%= link_to edit_admin_client_car_service_order_path(car, so), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark me-1", title: "Editar" do %>
+                      <i class="fas fa-pencil"></i>
+                    <% end %>
+                  </td>
                 </tr>
               <% end %>
             <% else %>
               <tr>
-                <td colspan="7" class="text-center text-muted py-4">No hay órdenes de servicio registradas.</td>
+                <td colspan="6" class="text-center text-muted py-4">No se encontraron órdenes de servicio.</td>
               </tr>
             <% end %>
           </tbody>
         </table>
       </div>
+
+      <!-- CONTROLES DE PAGINACIÓN -->
+      <% if @service_orders.any? %>
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mt-3 pt-2 border-top">
+          <small class="text-dark mb-2 mb-md-0" id="paginationInfo">
+            Mostrando 0 a 0 de 0 registros
+          </small>
+          <nav aria-label="Navegación de órdenes">
+            <ul class="pagination pagination-sm m-0" id="paginationControls">
+              <!-- Se genera dinámicamente -->
+            </ul>
+          </nav>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
+
+<!-- SCRIPT DE PAGINACIÓN JS -->
+<script>
+  document.addEventListener("turbo:load", initPagination);
+  document.addEventListener("DOMContentLoaded", initPagination);
+
+  function initPagination() {
+    const rowsPerPage = 10;
+    const rows = Array.from(document.querySelectorAll("#ordersTableBody .order-row"));
+    const totalRows = rows.length;
+
+    if (totalRows === 0) return;
+
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    let currentPage = 1;
+
+    function renderTable(page) {
+      currentPage = page;
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+
+      rows.forEach((row, index) => {
+        if (index >= start && index < end) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+
+      // Actualizar texto informativo
+      const showingStart = totalRows > 0 ? start + 1 : 0;
+      const showingEnd = Math.min(end, totalRows);
+      const infoText = `Mostrando ${showingStart} a ${showingEnd} de ${totalRows} registros`;
+      document.getElementById("paginationInfo").innerText = infoText;
+
+      renderControls();
+    }
+
+    function renderControls() {
+      const controlsContainer = document.getElementById("paginationControls");
+      if (!controlsContainer) return;
+
+      controlsContainer.innerHTML = "";
+
+      // Botón Anterior
+      const prevLi = document.createElement("li");
+      prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+      prevLi.innerHTML = `<a class="page-link" href="#">Anterior</a>`;
+      prevLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (currentPage > 1) renderTable(currentPage - 1);
+      });
+      controlsContainer.appendChild(prevLi);
+
+      // Botones Numéricos
+      for (let i = 1; i <= totalPages; i++) {
+        const li = document.createElement("li");
+        li.className = `page-item ${i === currentPage ? "active" : ""}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.addEventListener("click", (e) => {
+          e.preventDefault();
+          renderTable(i);
+        });
+        controlsContainer.appendChild(li);
+      }
+
+      // Botón Siguiente
+      const nextLi = document.createElement("li");
+      nextLi.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+      nextLi.innerHTML = `<a class="page-link" href="#">Siguiente</a>`;
+      nextLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) renderTable(currentPage + 1);
+      });
+      controlsContainer.appendChild(nextLi);
+    }
+
+    renderTable(1);
+  }
+</script>
+
+<style>
+  /* Reduce el tamaño de fuente de la tabla */
+  #ordersTable {
+    font-size: 0.825rem; /* ~13px */
+  }
+
+  /* Ajusta el padding de los encabezados y celdas para hacer la tabla más compacta */
+  #ordersTable th, 
+  #ordersTable td {
+    padding: 0.4rem 0.5rem;
+  }
+
+  /* Reduce un poco el tamaño de las insignias (badges) y botones dentro de la tabla */
+  #ordersTable .badge {
+    font-size: 0.75rem;
+  }
+  #ordersTable .btn-sm {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+  }
+</style>
