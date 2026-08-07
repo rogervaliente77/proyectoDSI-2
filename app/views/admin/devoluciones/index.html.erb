@@ -1,0 +1,168 @@
+<div class="container mt-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 fw-bold">Listado de Devoluciones</h1>
+    <div class="d-flex gap-2">
+      <!-- Botón PDF -->
+      <button class="btn btn-primary shadow-sm" id="exportPDF">
+        <i class="fas fa-file-pdf me-1"></i> PDF
+      </button>
+
+      <!-- Botón Excel -->
+      <button id="exportExcel" class="btn btn-success shadow-sm">
+        <i class="fas fa-file-excel me-1"></i> Excel
+      </button>
+
+      <!-- Nueva devolución -->
+      <%= link_to new_admin_devolucione_path,
+                  class: "btn btn-secondary shadow-sm",
+                  title: "Nueva Devolución",
+                  data: { turbo: false } do %>
+        <i class="fas fa-plus-circle me-1"></i> Nueva
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Flash messages -->
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
+
+  <!-- Tabla -->
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-striped table-hover align-middle" id="devolucionesTable">
+      <thead class="table-dark text-center">
+        <tr>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Comentarios</th>
+          <th>Caja</th>
+          <th>Cajero</th>
+          <th>Venta</th>
+          <th>Autorizada?</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @devoluciones.each do |d| %>
+          <tr>
+            <td><%= d.client_name.presence || "—" %></td>
+            <td class="text-center"><%= d.fecha_devolucion&.strftime("%d/%m/%Y %H:%M") || "—" %></td>
+            <td class="text-muted"><%= d.comments_devolucion.presence || "Sin comentarios" %></td>
+            <td class="text-center"><%= d.caja&.nombre || "—" %></td>
+            <td class="text-center"><%= d.cajero&.nombre || "—" %></td>
+            <td class="text-center"><%= d.sale&.code || "—" %></td>
+
+            <!-- Autorizada -->
+            <td class="text-center">
+              <% if d.is_authorized %>
+                <button class="btn btn-success btn-sm fas fa-check-circle" disabled
+                        title="Autorizada" data-bs-toggle="tooltip"></button>
+              <% else %>
+                <% if @current_user.role.name.in?(["super_admin","admin"]) %>
+                  <%= button_to autorizar_devolucion_admin_devolucione_path(d),
+                        method: :patch,
+                        class: "btn btn-outline-success btn-sm fas fa-check",
+                        data: { turbo: false, confirm: "¿Autorizar esta devolución?", bs_toggle: "tooltip" },
+                        title: "Autorizar" do %>
+                  <% end %>
+                <% else %>
+                  <button class="btn btn-secondary btn-sm fas fa-lock" disabled
+                          title="No autorizado" data-bs-toggle="tooltip"></button>
+                <% end %>
+              <% end %>
+            </td>
+
+            <!-- Acciones -->
+            <td class="text-center">
+              <div class="d-flex justify-content-center gap-1 flex-wrap">
+                <!-- Editar -->
+                <%= link_to edit_admin_devolucione_path(d),
+                            class: "btn btn-outline-warning btn-sm",
+                            title: "Editar",
+                            data: { turbo: false, bs_toggle: "tooltip" } do %>
+                  <i class="fas fa-edit"></i>
+                <% end %>
+
+                <!-- Eliminar -->
+                <%= button_to admin_devolucione_path(d),
+                            method: :delete,
+                            form: { class: "d-inline" },
+                            class: "btn btn-outline-danger btn-sm",
+                            data: { turbo_confirm: "¿Eliminar esta devolución?", turbo: false },
+                            title: "Eliminar" do %>
+                  <i class="fas fa-trash-alt"></i>
+                <% end %>
+
+                <!-- Comprobante PDF -->
+                <%= link_to generate_pdf_admin_devolucione_path(d),
+                            target: "_blank",
+                            class: "btn btn-danger btn-sm",
+                            data: { turbo: false, bs_toggle: "tooltip" },
+                            title: "Comprobante" do %>
+                  <i class="fas fa-download"></i>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @devoluciones.empty? %>
+    <div class="alert alert-info text-center mt-3 shadow-sm">
+      No hay devoluciones registradas.
+    </div>
+  <% end %>
+</div>
+
+<!-- SheetJS para Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<!-- jsPDF + autoTable para PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Bootstrap Tooltips
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+  const table = document.getElementById("devolucionesTable");
+
+  // Excel export
+  document.getElementById("exportExcel").addEventListener("click", () => {
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Devoluciones" });
+    XLSX.writeFile(wb, `devoluciones_${new Date().toISOString().slice(0,10)}.xlsx`);
+  });
+
+  // PDF export
+  document.getElementById("exportPDF").addEventListener("click", () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(14);
+    doc.text("Listado de Devoluciones", 10, 15);
+
+    const rows = [];
+    Array.from(table.tBodies[0].rows).forEach(row => {
+      const rowData = Array.from(row.cells).map(cell => cell.innerText.trim());
+      rows.push(rowData);
+    });
+
+    doc.autoTable({
+      head: [Array.from(table.tHead.rows[0].cells).map(c => c.innerText)],
+      body: rows,
+      startY: 25,
+      theme: "grid",
+      headStyles: { fillColor: [54, 162, 235] },
+      styles: { fontSize: 10 }
+    });
+
+    doc.save(`devoluciones_${new Date().toISOString().slice(0,10)}.pdf`);
+  });
+});
+</script>

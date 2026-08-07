@@ -11,13 +11,6 @@ Rails.application.routes.draw do
 
     get "/home", to: "home#index"
 
-    # Conferencias
-    get "/charlas", to: "conferences#index"
-    get "/mis_charlas", to: "conferences#my_registrations"
-    get "/charlas/new", to: "conferences#new"
-    post "/charlas/create", to: "conferences#create"
-    post "/charlas/registration/:conference_id", to: "conferences#new_conference_registration"
-
     # Productos y canjes
     get "/productos", to: "products#index"
     get "/mis_productos", to: "products#my_products"
@@ -55,12 +48,6 @@ Rails.application.routes.draw do
 
   # Namespace para Admin
   namespace :admin do
-    resources :users, only: [:index, :edit, :destroy, :new]
-    post "/users/create", to: "users#create"
-    patch "/users/update", to: "users#update"
-    get "/users/edit_password", to: "users#edit_password"
-    patch "/users/:id/update_password", to: "users#update_password", as: "user_update_password"
-
 
     # Home
     get "/home", to: "home#index"
@@ -74,6 +61,14 @@ Rails.application.routes.draw do
     post "/signup_create", to: "authentication#signup_create"
     put "/logout", to: "authentication#logout"
 
+    #USUARIOS
+    resources :users, only: [:index, :edit, :destroy, :new]
+    post "/users/create", to: "users#create"
+    patch "/users/update", to: "users#update"
+    get "/users/edit_password", to: "users#edit_password"
+    patch "/users/:id/update_password", to: "users#update_password", as: "user_update_password"
+
+    #EMPLEADOS
     resources :empleados do
       resources :asistencias, only: [:index] do
         collection do
@@ -84,24 +79,13 @@ Rails.application.routes.draw do
       resources :movimientos_planilla, only: [:index, :new, :create, :destroy]
     end
 
-    # # config/routes.rb dentro de namespace :admin
-    # resources :asistencias, only: [:index] do
-    #   collection do
-    #     get :reporte_cortes
-    #     post :registrar
-    #     post :procesar_corte
-    #   end
-    # end
-
+    #PLANILLAS
     resources :planillas do
       member do
         post :procesar # Botón para disparar planilla.generar_planilla!
       end
       resources :boletas_de_pago, only: [:show]
     end
-
-    # Ruta para ajustar parámetros de ley desde UI
-    resource :configuracion_planilla, only: [:edit, :update, :show]
 
     # Devoluciones
     resources :devoluciones, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
@@ -114,10 +98,13 @@ Rails.application.routes.draw do
       end
     end
 
+    #ROLES
     resources :roles, except: [:show]
 
+    #CONFIGURACION PLANILLA
     resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuraciones_planilla'
 
+    #COTIZACIONES
     resources :cotizaciones do
       member do
         get :pdf
@@ -125,18 +112,44 @@ Rails.application.routes.draw do
       end
     end
 
+    #CLIENTES
     resources :clients do
       resources :client_cars, except: [:index]
     end
 
+    #CARROS DE LOS CLIENTES
     resources :client_cars, only: [] do
       resources :service_orders, except: [:index]
     end
 
+    #MANTENIMIENTOS DE VEHICULOS
     # Ruta independiente para listar todas las órdenes de trabajo / facturas si se desea
     resources :service_orders, only: [:index, :show, :destroy, :edit]
 
-    # 🔹 Reportes
+    # PRODUCTOS
+    get "/productos", to: "products#index"
+    get "/productos/new", to: "products#new"
+    post "/productos/create", to: "products#create"
+    get "/productos/:product_id/canjes", to: "products#product_sales", as: :product_sales
+    get "/productos/:product_id/edit", to: "products#edit", as: :edit_product
+    put "/productos/update", to: "products#update"
+    delete "/productos/destroy", to: "products#destroy", as: :destroy_product
+    patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
+    get 'products/search', to: 'products#search'
+
+    # INVENTARIO
+    get "/productos/inventario", to: "products#inventory", as: :inventory_admin_products
+    get "/productos/devueltos", to: "products#devueltos", as: :admin_returned_products
+
+    #MARCAS
+    resources :marcas, only: [:index, :new, :create, :edit, :update, :destroy]
+
+    #CATEGORIES
+    resources :categories, only: [:index, :new, :create, :edit, :update, :destroy]
+
+    #PRODUCT HISTORIES
+    resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
+ 
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports
     get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
