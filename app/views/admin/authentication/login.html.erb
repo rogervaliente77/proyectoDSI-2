@@ -2,7 +2,13 @@
 
   <div class="logo">
     <!-- Usamos asset_path o image_tag apuntando a tu carpeta de imágenes o assets -->
-    <%= image_tag "logo login.jpg.jpeg", alt: "Logo RRHH" rescue "<img src='https://res.cloudinary.com/dk9edvvmw/image/upload/v1782358861/logo_nuy1am.jpg' alt='Logo RRHH'>".html_safe %>
+    <%= image_tag "logo_bimers.png", alt: "Logo RRHH" rescue "<img src='https://res.cloudinary.com/dk9edvvmw/image/upload/v1782358861/logo_nuy1am.jpg' alt='Logo RRHH'>".html_safe %>
+  </div>
+
+  <!-- TÍTULO DE LA APLICACIÓN -->
+  <div class="brand-header">
+    <h1 class="brand-title">Bimers <span>Admin</span></h1>
+    <div class="brand-divider"></div>
   </div>
 
   <!-- Alertas de Rails para credenciales incorrectas -->
@@ -31,34 +37,43 @@
   <% end %>
 
   <div class="footer">
-    <p>© 2026 RRHH</p>
+    <p>© 2026 ferrepro</p>
     <p>Todos los derechos reservados</p>
     <p>Acceso restringido - Solo personal autorizado</p>
   </div>
 
 </div>
 
-<!-- Conservamos tu validación rápida por JS nativo -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("login-form");
-    const emailInput = document.querySelector("input[type='text']");
-    const passwordInput = document.querySelector("input[type='password']");
-    const errorMessage = document.getElementById("error-message");
+<style>
+/* ==========================================================================
+   TÍTULO DE LA MARCA (Bimers Admin)
+   ========================================================================== */
+.brand-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
 
-    if (form) {
-      form.addEventListener("submit", function (event) {
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
+.brand-title {
+    color: #ffffff;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin: 0;
+    text-transform: uppercase;
+}
 
-        if (!email || !password) {
-          event.preventDefault();
-          errorMessage.textContent = "Todos los campos son obligatorios";
-          errorMessage.style.display = "block";
-        } else {
-          errorMessage.style.display = "none";
-        }
-      });
-    }
-  });
-</script>
+/* Resalta la palabra 'Admin' con el azul del tema y un sutil resplandor */
+.brand-title span {
+    color: #3f6cff;
+    font-weight: 300;
+    text-shadow: 0 0 10px rgba(63, 108, 255, 0.5);
+}
+
+/* Línea divisora sutil neón */
+.brand-divider {
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #2d5bff, transparent);
+    margin: 10px auto 0;
+}
+</style>

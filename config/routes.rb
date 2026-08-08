@@ -124,7 +124,11 @@ Rails.application.routes.draw do
 
     #MANTENIMIENTOS DE VEHICULOS
     # Ruta independiente para listar todas las órdenes de trabajo / facturas si se desea
-    resources :service_orders, only: [:index, :show, :destroy, :edit]
+    resources :service_orders do
+      member do
+        get :print_pdf
+      end
+    end
 
     # PRODUCTOS
     get "/productos", to: "products#index"

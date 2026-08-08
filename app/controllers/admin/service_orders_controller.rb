@@ -1,7 +1,7 @@
 module Admin
   class ServiceOrdersController < Admin::ApplicationController
     before_action :set_client_car, only: [:new, :create]
-    before_action :set_service_order, only: [:show, :edit, :update, :destroy]
+    before_action :set_service_order, only: [:show, :edit, :update, :destroy, :print_pdf]
     layout 'dashboard'
 
     def index
@@ -48,8 +48,34 @@ module Admin
       @client_car = @service_order.client_car
     end
 
+    def print_pdf
+      pdf = GenerateMantenimientoServicePdf.new(@service_order)
+    
+      respond_to do |format|
+        format.pdf do
+          send_data pdf.render,
+                    filename: "Orden_#{@service_order.numero_orden}_BIMERS.pdf",
+                    type: 'application/pdf',
+                    disposition: 'inline'
+        end
+        format.all do
+          send_data pdf.render,
+                    filename: "Orden_#{@service_order.numero_orden}_BIMERS.pdf",
+                    type: 'application/pdf',
+                    disposition: 'inline'
+        end
+      end
+    end
+
     def update
-      if @service_order.update(service_order_params)
+      # 1. Asigna los nuevos parámetros sin guardar en la BD todavía
+      @service_order.assign_attributes(service_order_params)
+    
+      # 2. Ejecuta el recálculo con los nuevos valores recibidos
+      calcular_totales(@service_order)
+    
+      # 3. Guarda los cambios
+      if @service_order.save
         redirect_to admin_service_order_path(@service_order), notice: 'Orden actualizada exitosamente.'
       else
         @client_car = @service_order.client_car
