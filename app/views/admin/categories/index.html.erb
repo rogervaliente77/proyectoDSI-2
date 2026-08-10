@@ -3,7 +3,7 @@
   <!-- Page Heading -->
   <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
     <h1 class="h3 text-gray-800 mb-3 mb-md-0">Admin / Categorías de producto</h1>
-    <%= link_to new_admin_category_path, class: "btn btn-primary shadow-sm" do %>
+    <%= link_to new_admin_category_path, data: { turbo: false }, class: "btn btn-primary shadow-sm" do %>
       <i class="fas fa-plus me-1"></i> Crear Categoría
     <% end %>
   </div>

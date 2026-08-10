@@ -1,0 +1,73 @@
+<div class="container-fluid">
+
+  <!-- Mensajes Flash -->
+  <% if flash[:notice] || flash[:success] %>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 my-3" role="alert">
+      <i class="fas fa-check-circle me-2"></i><%= flash[:notice] || flash[:success] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <% if flash[:alert] || flash[:error] %>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 my-3" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i><%= flash[:alert] || flash[:error] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- Encabezado -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+      <i class="fas fa-car me-2"></i> Tipos de Vehículo
+    </h1>
+
+    <%= link_to new_admin_car_type_path, class: "btn btn-sm btn-primary shadow-sm", data: { turbo: false } do %>
+      <i class="fas fa-plus-circle me-1"></i> Nuevo Tipo
+    <% end %>
+  </div>
+
+  <!-- Tabla de Tipos de Vehículo -->
+  <div class="card shadow-sm rounded-3 border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th class="ps-4">Nombre</th>
+              <th>Descripción</th>
+              <th class="text-end pe-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @car_types.any? %>
+              <% @car_types.each do |vt| %>
+                <tr>
+                  <td class="ps-4 fw-bold text-primary">
+                    <i class="fas fa-shuttle-van me-2 text-muted"></i><%= vt.name %>
+                  </td>
+                  <td class="text-muted"><%= vt.description.presence || "Sin descripción" %></td>
+                  <td class="text-end pe-4">
+                    <div class="btn-group">
+                      <%= link_to edit_admin_car_type_path(vt), class: "btn btn-outline-primary btn-sm", data: { turbo: false } do %>
+                        <i class="fas fa-edit"></i> Editar
+                      <% end %>
+                      <%= link_to admin_car_type_path(vt), class: "btn btn-outline-danger btn-sm", data: { turbo_method: :delete }, onclick: "return confirm('¿Eliminar este tipo de vehículo?');" do %>
+                        <i class="fas fa-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="3" class="text-center py-4 text-muted">
+                  <i class="fas fa-info-circle me-1"></i> No se han registrado tipos de vehículo.
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

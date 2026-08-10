@@ -12,10 +12,18 @@
         <%= form.input :name, required: true, label: "Nombre del producto", input_html: { class: "form-control" } %>
       </div>
       <div class="col-6 col-md-3">
-        <%= form.input :quantity, required: true, label: "Cantidad", input_html: { class: "form-control" } %>
+        <%= form.input :quantity, 
+                       as: :integer, 
+                       required: true, 
+                       label: "Cantidad", 
+                       input_html: { class: "form-control", min: 0, step: 1 } %>
       </div>
       <div class="col-6 col-md-3">
-        <%= form.input :price, required: true, label: "Precio ($)", input_html: { class: "form-control" } %>
+        <%= form.input :price, 
+                       as: :decimal, 
+                       required: true, 
+                       label: "Precio ($)", 
+                       input_html: { class: "form-control", min: 0, step: "0.01", value: number_with_precision(form.object.price, precision: 2) } %>
       </div>
     </div>
 
@@ -46,20 +54,36 @@
       </div>
     </div>
 
-    <!-- Fila 3: Categoría y Marca -->
+    <!-- Fila 3: Categoría, Marca y Tipo de Vehículo -->
     <div class="row g-3 mb-3">
-      <div class="col-12 col-md-6">
+      <div class="col-12 col-md-4">
+        <% 
+          category_options = Category.main_categories.flat_map do |main_cat|
+            options = [[main_cat.name, main_cat.id]]
+            options += main_cat.subcategories.map { |sub_cat| ["— #{sub_cat.name}", sub_cat.id] }
+            options
+          end
+        %>
         <%= form.input :category_id,
-          collection: Category.all.map { |c| [c.name, c.id] },
+          collection: category_options,
           include_blank: "Selecciona categoría",
           label: "Categoría",
           input_html: { class: "form-select" } %>
       </div>
-      <div class="col-12 col-md-6">
+
+      <div class="col-12 col-md-4">
         <%= form.input :marca_id,
           collection: Marca.all.map { |m| [m.name, m.id] },
           include_blank: "Selecciona marca",
           label: "Marca",
+          input_html: { class: "form-select" } %>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <%= form.input :car_type_id,
+          collection: CarType.all.map { |c| [c.name, c.id] },
+          include_blank: "Selecciona tipo de vehículo",
+          label: "Tipo de Vehículo",
           input_html: { class: "form-select" } %>
       </div>
     </div>
@@ -103,7 +127,7 @@
   </div>
 </div>
 
-<!-- Script para agregar/eliminar imágenes dinámicamente (con labels accesibles) -->
+<!-- Script para agregar/eliminar imágenes dinámicamente -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const container = document.getElementById("product-images-container");

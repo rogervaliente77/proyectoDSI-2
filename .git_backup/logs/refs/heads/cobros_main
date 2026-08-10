@@ -1,0 +1,23 @@
+0000000000000000000000000000000000000000 aaa20a6148aa050afbc6834c434dafc1e6f51644 rogervaliente77 <vr20033@ues.edu.sv> 1763699813 -0600	branch: Created from refs/remotes/origin/cobros_main
+aaa20a6148aa050afbc6834c434dafc1e6f51644 cce5cbc5e4b7fa59ac35926b64352c0f36d21183 rogervaliente77 <vr20033@ues.edu.sv> 1763701812 -0600	commit: TRabajando en el index y new de clientes
+cce5cbc5e4b7fa59ac35926b64352c0f36d21183 915c95a0b82799fe6cccd663806ba75c18fe3206 rogervaliente77 <vr20033@ues.edu.sv> 1766802913 -0600	pull origin cobros_main: Fast-forward
+915c95a0b82799fe6cccd663806ba75c18fe3206 5a5ba494a82ad485341fbc055fa98c723e3f9f71 rogervaliente77 <vr20033@ues.edu.sv> 1766805255 -0600	commit: Trabajando en index empleados
+5a5ba494a82ad485341fbc055fa98c723e3f9f71 e32c4e0d9de43e29978fa92e8932eddbf4c17a1a rogervaliente77 <vr20033@ues.edu.sv> 1782105382 -0600	commit: Cmbios para control de empleados y planillas
+e32c4e0d9de43e29978fa92e8932eddbf4c17a1a 5bc9fcc2079881af72414697a197840a50d7666e rogervaliente77 <vr20033@ues.edu.sv> 1782106074 -0600	rebase (continue) (finish): refs/heads/cobros_main onto 6123a3f4106b1b3298026006647c1a85c7e074d9
+5bc9fcc2079881af72414697a197840a50d7666e 57e93728ad7fe9d272c9b5d045eb2d5c0d8ce2e4 rogervaliente77 <vr20033@ues.edu.sv> 1782182529 -0600	commit: Solving conflicts 2
+57e93728ad7fe9d272c9b5d045eb2d5c0d8ce2e4 6a40bed95a67a3cfc7c63b4834d988d6b0eea165 rogervaliente77 <vr20033@ues.edu.sv> 1782189998 -0600	commit: Limpiando proyecto
+6a40bed95a67a3cfc7c63b4834d988d6b0eea165 75a97dcee34ec8d178eb5ad0c54203fd7492f974 rogervaliente77 <vr20033@ues.edu.sv> 1782192289 -0600	commit: Nuevos cambios para ver boleta
+75a97dcee34ec8d178eb5ad0c54203fd7492f974 59cb7941fca76682afe012a1c25bd7af9053e295 rogervaliente77 <vr20033@ues.edu.sv> 1782289142 -0600	commit: NUEVOS CAMBIOS PARA GENERAR PLANILLA
+59cb7941fca76682afe012a1c25bd7af9053e295 7856486851ad5ac81001e4f0f6cd7023f700e1c8 rogervaliente77 <vr20033@ues.edu.sv> 1782358964 -0600	commit: Nuevos cambios para planilla
+7856486851ad5ac81001e4f0f6cd7023f700e1c8 f3a62559408cf0dde179eefd396e1db0c050b1b2 rogervaliente77 <vr20033@ues.edu.sv> 1782362143 -0600	commit: New changes
+f3a62559408cf0dde179eefd396e1db0c050b1b2 f2d8941f9d1826697c071a6be8a4ddac17957498 rogervaliente77 <vr20033@ues.edu.sv> 1782616511 -0600	commit: New changes for planilla
+f2d8941f9d1826697c071a6be8a4ddac17957498 720b3a96db132d996921510cc4461e73ba30ae79 rogervaliente77 <vr20033@ues.edu.sv> 1782626400 -0600	commit: Arreglando planilla 25
+720b3a96db132d996921510cc4461e73ba30ae79 c5b2a3e1749b8c01aca5b688cb53aded49a20339 rogervaliente77 <vr20033@ues.edu.sv> 1782661286 -0600	commit: Arreglando visualmente
+c5b2a3e1749b8c01aca5b688cb53aded49a20339 85e67c936923f76e9eabe858e5c8997d87b44690 rogervaliente77 <vr20033@ues.edu.sv> 1782702592 -0600	commit: Arreglando errores en empleados
+85e67c936923f76e9eabe858e5c8997d87b44690 880e0512056258e58303be45401d4b3c18936a06 rogervaliente77 <vr20033@ues.edu.sv> 1784525655 -0600	commit: Arreglando errores en la tabla de renta
+880e0512056258e58303be45401d4b3c18936a06 187f7ceec1d161ec11e449b34e95fdd8dc7dd2d9 rogervaliente77 <vr20033@ues.edu.sv> 1784968183 -0600	commit: DEjo generar el pdf, dejo guardar todo, pero falta ponerle precio a los repuestos
+187f7ceec1d161ec11e449b34e95fdd8dc7dd2d9 3f7b9794a69a6c2f39eba9d1b069087d4f5001f2 rogervaliente77 <vr20033@ues.edu.sv> 1784968204 -0600	pull origin cobros_main (finish): refs/heads/cobros_main onto 43c13b4efd018d0bbea090e24f766e52b3d79f01
+3f7b9794a69a6c2f39eba9d1b069087d4f5001f2 9093bb7faa5976a7032a99fda8023ba05885d218 rogervaliente77 <vr20033@ues.edu.sv> 1785045129 -0600	commit: Control de cotizaciones BIMERS y generacion de pdf
+9093bb7faa5976a7032a99fda8023ba05885d218 117a363f50439a21c49b489be0bd4f57c3928f3a rogervaliente77 <vr20033@ues.edu.sv> 1785082962 -0600	commit: arreglamdo los link con turbo false
+117a363f50439a21c49b489be0bd4f57c3928f3a 355bb8b70d75f8c3b56b30f6e2c1bdf0edf233fd rogervaliente77 <vr20033@ues.edu.sv> 1785483675 -0600	commit: Agregando encabezado al pdf
+355bb8b70d75f8c3b56b30f6e2c1bdf0edf233fd eb4513561503cab17659608f947a4624692a0aa7 rogervaliente77 <vr20033@ues.edu.sv> 1785484468 -0600	commit: Agregango vin

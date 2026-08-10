@@ -1,5 +1,20 @@
 <div class="container-fluid">
 
+  <!-- Mensajes Flash (Alertas) -->
+  <% if flash[:notice] || flash[:success] %>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 my-3" role="alert">
+      <i class="fas fa-check-circle me-2"></i><%= flash[:notice] || flash[:success] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <% if flash[:alert] || flash[:error] %>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 my-3" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i><%= flash[:alert] || flash[:error] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
   <!-- Encabezado -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">

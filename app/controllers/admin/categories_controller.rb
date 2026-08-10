@@ -2,6 +2,7 @@ module Admin
   class CategoriesController < ApplicationController
     before_action :set_category, only: [:edit, :update, :destroy]
     layout 'dashboard'
+
     # GET /admin/categories
     def index
       @categories = Category.all
@@ -25,9 +26,8 @@ module Admin
 
     # GET /admin/categories/:id/edit
     def edit
-        @category = Category.find(params[:id])
+      # @category ya se define a través de set_category
     end
-
 
     # PATCH/PUT /admin/categories/:id
     def update
@@ -52,7 +52,7 @@ module Admin
     end
 
     def category_params
-      params.require(:category).permit(:name, :description)
+      params.require(:category).permit(:name, :description, :parent_id)
     end
   end
 end

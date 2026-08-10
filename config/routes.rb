@@ -130,6 +130,9 @@ Rails.application.routes.draw do
       end
     end
 
+    #TIPOS DE CARRO
+    resources :car_types
+
     # PRODUCTOS
     get "/productos", to: "products#index"
     get "/productos/new", to: "products#new"
