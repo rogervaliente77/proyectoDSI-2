@@ -140,10 +140,10 @@ module Admin
         params.require(:product).permit(
           :name, :description, :quantity, :price, :category_id, :marca_id, :discount, :code,
           :offer_type, :offer_expires_at, :wholesale_quantity, :car_type_id,
-          product_images_attributes: [:id, :title, :image_url, :image_index, :_destroy]
+          product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy] # <-- Se agregó :file
         )
       end
-  
+        
       def create_product_history(product, stock_before, stock_after, movement_type)
         ProductHistory.create!(
           product: product,
