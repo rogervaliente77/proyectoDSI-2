@@ -36,6 +36,8 @@
               <th>Cliente</th>
               <th>Vehículo / Placa</th>
               <th>Fecha Entrada</th>
+              <th>Fecha Salida</th>
+              <th>Km Entrada-Salida</th>
               <th>Total</th>
               <th class="text-center">Acciones</th>
             </tr>
@@ -80,6 +82,11 @@
                   </td>
 
                   <td><%= so.fecha_entrada&.strftime("%d/%m/%Y") %></td>
+                  <td><%= so.fecha_salida&.strftime("%d/%m/%Y") %></td>
+                  <td>
+                      <span class="fw-bold"><%= so.km_entrada %>-<%= so.km_salida %></span>
+                      <br>
+                  </td>
                   <td class="fw-bold text-success">$<%= number_with_precision(so.total || 0, precision: 2) %></td>
                   
                   <td class="text-center">

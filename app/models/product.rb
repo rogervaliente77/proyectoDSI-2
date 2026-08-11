@@ -12,11 +12,13 @@ class Product
   field :offer_type,       type: String # "descuento", "2x1", "mayoreo"
   field :offer_expires_at, type: DateTime
   field :wholesale_quantity, type: Integer
+  field :wholesale_price, type: Float
 
   # -------- RELACIONES --------
   has_many :product_sales, dependent: :destroy
   belongs_to :category
   belongs_to :marca
+  belongs_to :car_type, optional: true
 
   embeds_many :product_images
   accepts_nested_attributes_for :product_images, allow_destroy: true
@@ -78,22 +80,35 @@ class Product
     end
   end
 
+  def category_full_name
+    category&.full_name || "Sin Categoría"
+  end
+  
+  # Devuelve la categoría raíz (si está asignado a una subcategoría)
+  def main_category
+    category&.parent || category
+  end
+
   # -------- CALLBACKS --------
   private
 
   # Genera código único por categoría y día
   def generate_code
     return unless category.present?
+  
+    # Toma las primeras 3 letras de la categoría seleccionada (sea padre o subcategoría)
     prefix   = category.name[0, 3].upcase
     date_str = Date.today.strftime("%Y%m%d")
+  
     count_today = Product.where(
       :created_at.gte => Date.today.beginning_of_day,
       :created_at.lt  => Date.today.end_of_day,
       category_id: category.id
     ).count
+  
     sequence   = count_today + 1
     padded_seq = sequence.to_s.rjust(3, '0')
-    self.code = "#{prefix}-#{date_str}-#{padded_seq}"
+    self.code  = "#{prefix}-#{date_str}-#{padded_seq}"
   end
 
   # Verifica si la oferta ha expirado y la limpia

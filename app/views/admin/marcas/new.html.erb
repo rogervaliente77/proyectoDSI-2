@@ -1,0 +1,26 @@
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin - Marcas - Nuevo</h1>
+    <%= link_to admin_marcas_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-arrow-left"></i> Volver a marcas
+    <% end %>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Crear nueva marca</h6>
+    </div>
+
+    <div class="card-body">
+      <% if flash[:notice] %>
+        <div class="alert alert-success"><%= flash[:notice] %></div>
+      <% elsif flash[:alert] %>
+        <div class="alert alert-danger"><%= flash[:alert] %></div>
+      <% end %>
+
+      <%= simple_form_for @marca, url: admin_marcas_path, method: :post, html: { class: "needs-validation", novalidate: false }, data: { turbo: false } do |form| %>
+        <%= render "form_fields", form: form %>
+      <% end %>
+    </div>
+  </div>
+</div>

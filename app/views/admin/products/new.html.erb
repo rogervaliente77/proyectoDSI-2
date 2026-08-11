@@ -1,0 +1,27 @@
+<!-- app/views/admin/products/new.html.erb -->
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin - Productos - Nuevo</h1>
+    <%= link_to admin_productos_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-arrow-left"></i> Volver a productos
+    <% end %>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Crear producto</h6>
+    </div>
+
+    <div class="card-body">
+      <%= simple_form_for @product, url: admin_productos_create_path, method: :post, html: { class: "needs-validation", novalidate: false }, data: { turbo: false } do |form| %>
+        <%= render "form_fields", form: form %>
+
+        <div class="row">
+          <div class="col">
+            <%= form.submit 'Guardar', class: 'btn btn-success btn-block' %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

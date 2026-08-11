@@ -5,7 +5,7 @@
   </div>
 
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <%= form.input :nombre, label: "Nombre Completo", required: true, input_html: { class: "form-control" } %>
     </div>
     <div class="col-md-3">
@@ -14,6 +14,14 @@
     <div class="col-md-3">
       <%= form.input :email, label: "Correo Electrónico", input_html: { class: "form-control" } %>
     </div>
+    <div class="col-md-2">
+      <div class="card-body py-3">
+        <div class="form-check form-switch m-0">
+          <%= form.check_box :is_active, class: "form-check-input" %>
+          <%= form.label :is_active, "Cliente activo?", class: "form-check-label fw-bold text-dark me-2" %>
+        </div>
+      </div>
+    </div>       
   </div>
 
   <div class="row mt-4">

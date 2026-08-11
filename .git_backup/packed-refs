@@ -1,0 +1,12 @@
+# pack-refs with: peeled fully-peeled sorted 
+4b07d78577371cb68de793dc035927c98c9852ed refs/remotes/origin/develop01
+82f7a29629684c49e0901739a25915f095b94fd8 refs/remotes/origin/feature/01
+63b0431d1d7e32645e148857bdb546b292d99940 refs/remotes/origin/feature/02
+1ed1788ca7837462df3fcac2b1b2e0b9665ec1c8 refs/remotes/origin/feature/04
+990f20990ab3fd5b482183502e76ca1ffe0d5ab8 refs/remotes/origin/feature/05
+ad3e76ecd44e1a891589adba98fe06d4c715e09b refs/remotes/origin/feature/sprint01
+c661b0e112519d821123231903d70730685074a7 refs/remotes/origin/feature/sprint02
+514555b7c2c81e51fb21504696c2215411dafdf3 refs/remotes/origin/feature/sprint03
+5bf83daf82914a72cd093e208becc2b8fb404f3a refs/remotes/origin/main
+068c8f810f4b28f3570948677d875e859500e834 refs/remotes/origin/migrating_to_mongo
+6b2b01c2bb874773d6f4a17f83b2da6eeb89edd0 refs/remotes/origin/users

@@ -1,0 +1,133 @@
+0000000000000000000000000000000000000000 5bf83daf82914a72cd093e208becc2b8fb404f3a rogervaliente77 <vr20033@ues.edu.sv> 1757294965 -0600	clone: from github.com:rogervaliente77/proyectoDSI-2.git
+5bf83daf82914a72cd093e208becc2b8fb404f3a 990f20990ab3fd5b482183502e76ca1ffe0d5ab8 rogervaliente77 <vr20033@ues.edu.sv> 1757295535 -0600	checkout: moving from main to feature/05
+990f20990ab3fd5b482183502e76ca1ffe0d5ab8 fe2448d380abd166247be4169273cf938ec4264d rogervaliente77 <vr20033@ues.edu.sv> 1757299121 -0600	commit: Validando indice unico de imagenes y input de indice sea solo numerico entero
+fe2448d380abd166247be4169273cf938ec4264d 5bf83daf82914a72cd093e208becc2b8fb404f3a rogervaliente77 <vr20033@ues.edu.sv> 1757387014 -0600	checkout: moving from feature/05 to main
+5bf83daf82914a72cd093e208becc2b8fb404f3a 96d6b7f519c5300a63f6a2d0a0531ee89630c0b8 rogervaliente77 <vr20033@ues.edu.sv> 1757387024 -0600	pull origin main: Fast-forward
+96d6b7f519c5300a63f6a2d0a0531ee89630c0b8 7c389277f087d122ebf363e0774d0f623a8d308d rogervaliente77 <vr20033@ues.edu.sv> 1757645374 -0600	checkout: moving from main to feature/04
+7c389277f087d122ebf363e0774d0f623a8d308d 6fb634d9a6b31b080b4cd99c2bf56c6f564dd132 rogervaliente77 <vr20033@ues.edu.sv> 1757729660 -0600	pull origin feature/04: Fast-forward
+6fb634d9a6b31b080b4cd99c2bf56c6f564dd132 1e71e32ab6abeb1ba6696505a0ca9a4d52324282 rogervaliente77 <vr20033@ues.edu.sv> 1757729835 -0600	checkout: moving from feature/04 to feature/03
+1e71e32ab6abeb1ba6696505a0ca9a4d52324282 62f86a051d4c606b9339c0fd7e3edde4f638c25e rogervaliente77 <vr20033@ues.edu.sv> 1757736108 -0600	commit: Manejando roles de usuario desde modelo role
+62f86a051d4c606b9339c0fd7e3edde4f638c25e 96d6b7f519c5300a63f6a2d0a0531ee89630c0b8 rogervaliente77 <vr20033@ues.edu.sv> 1757736151 -0600	checkout: moving from feature/03 to main
+96d6b7f519c5300a63f6a2d0a0531ee89630c0b8 0801cec7f55b5b26ef376be864484224fc911633 rogervaliente77 <vr20033@ues.edu.sv> 1757736157 -0600	pull origin main: Fast-forward
+0801cec7f55b5b26ef376be864484224fc911633 c58792ab6312caa09d723721d86cf69713c11262 rogervaliente77 <vr20033@ues.edu.sv> 1757736723 -0600	commit: resolviendo error application controller de portal
+c58792ab6312caa09d723721d86cf69713c11262 6fb634d9a6b31b080b4cd99c2bf56c6f564dd132 rogervaliente77 <vr20033@ues.edu.sv> 1757737367 -0600	checkout: moving from main to feature/04
+6fb634d9a6b31b080b4cd99c2bf56c6f564dd132 589bf84cc229452d94e3c5fc796745162549723f rogervaliente77 <vr20033@ues.edu.sv> 1757737464 -0600	pull origin feature/04: Fast-forward
+589bf84cc229452d94e3c5fc796745162549723f c58792ab6312caa09d723721d86cf69713c11262 rogervaliente77 <vr20033@ues.edu.sv> 1757737840 -0600	checkout: moving from feature/04 to main
+c58792ab6312caa09d723721d86cf69713c11262 b0d4dd9462738dd390e402a8b5251ca6d560d4d0 rogervaliente77 <vr20033@ues.edu.sv> 1757737847 -0600	pull origin main: Fast-forward
+b0d4dd9462738dd390e402a8b5251ca6d560d4d0 39e48c4e8d5b9af0dde548cb90d93a22768eeb18 rogervaliente77 <vr20033@ues.edu.sv> 1757738656 -0600	commit: resolviendo error bin rails corrupto y sidebar con errores
+39e48c4e8d5b9af0dde548cb90d93a22768eeb18 287ba5e7daed7e46fc2221a94e026c70870f3a55 rogervaliente77 <vr20033@ues.edu.sv> 1757812649 -0600	pull origin main: Fast-forward
+287ba5e7daed7e46fc2221a94e026c70870f3a55 5b0743155f20e909661a05ea59d6bfa2d09d4c55 rogervaliente77 <vr20033@ues.edu.sv> 1757816219 -0600	commit: Resolviendo error al registrarse en el portal
+5b0743155f20e909661a05ea59d6bfa2d09d4c55 c62b7c8a31dc2eca9c7eb85876cb622868b22ff4 rogervaliente77 <vr20033@ues.edu.sv> 1757820033 -0600	pull origin main: Fast-forward
+c62b7c8a31dc2eca9c7eb85876cb622868b22ff4 f5879102907790b914d37a16fc0dac59a5d0050f rogervaliente77 <vr20033@ues.edu.sv> 1757820285 -0600	commit: Resolviendo advertencia config/puma
+f5879102907790b914d37a16fc0dac59a5d0050f 8176a1fc518c6fcc1b24f6ca938109a44658af09 rogervaliente77 <vr20033@ues.edu.sv> 1757820620 -0600	commit: Resolviendo advertencia config/puma 2
+8176a1fc518c6fcc1b24f6ca938109a44658af09 e76e259da1459d478b4fdaafa6b6b75f2a4b4c97 rogervaliente77 <vr20033@ues.edu.sv> 1757821102 -0600	commit: Resolviendo problema envio de correos en prod
+e76e259da1459d478b4fdaafa6b6b75f2a4b4c97 b33ceb82625e50b39d1372b4b21e9fcc55c2ecbc rogervaliente77 <vr20033@ues.edu.sv> 1757901989 -0600	commit: Resolviendo errores, usuario no existe en portal, logout cajero redirije a portal, no mostraba usuarios ni caja en formulario creacion cajeros
+b33ceb82625e50b39d1372b4b21e9fcc55c2ecbc fa807a0d13bb65ec96dd824f8c937d8be1c594c9 rogervaliente77 <vr20033@ues.edu.sv> 1759459209 -0600	pull origin main: Fast-forward
+fa807a0d13bb65ec96dd824f8c937d8be1c594c9 804a5124f1a6b2f983032227d9d502210fef3fd1 rogervaliente77 <vr20033@ues.edu.sv> 1759461929 -0600	commit: Resolviendo error de nombre en controlador inventory
+804a5124f1a6b2f983032227d9d502210fef3fd1 804a5124f1a6b2f983032227d9d502210fef3fd1 rogervaliente77 <vr20033@ues.edu.sv> 1759467697 -0600	checkout: moving from main to feature_PD1-35
+804a5124f1a6b2f983032227d9d502210fef3fd1 804a5124f1a6b2f983032227d9d502210fef3fd1 rogervaliente77 <vr20033@ues.edu.sv> 1759672611 -0600	checkout: moving from feature_PD1-35 to main
+804a5124f1a6b2f983032227d9d502210fef3fd1 804a5124f1a6b2f983032227d9d502210fef3fd1 rogervaliente77 <vr20033@ues.edu.sv> 1759672642 -0600	checkout: moving from main to feature_PD1-35
+804a5124f1a6b2f983032227d9d502210fef3fd1 b6d3bfa748da991fe2d1993a9c1ed7276cb2642c rogervaliente77 <vr20033@ues.edu.sv> 1759673235 -0600	pull origin feature_PD1-35: Fast-forward
+b6d3bfa748da991fe2d1993a9c1ed7276cb2642c b322a0779aa8ed68eb6b07b0494a1101c7f40e7a rogervaliente77 <vr20033@ues.edu.sv> 1759675506 -0600	commit: Acceso al modulo de devoluciones
+b322a0779aa8ed68eb6b07b0494a1101c7f40e7a 804a5124f1a6b2f983032227d9d502210fef3fd1 rogervaliente77 <vr20033@ues.edu.sv> 1759676604 -0600	checkout: moving from feature_PD1-35 to main
+804a5124f1a6b2f983032227d9d502210fef3fd1 80675d23a304cc451b754fa7605cabbdaafc40cb rogervaliente77 <vr20033@ues.edu.sv> 1759676641 -0600	pull origin main: Fast-forward
+80675d23a304cc451b754fa7605cabbdaafc40cb 80675d23a304cc451b754fa7605cabbdaafc40cb rogervaliente77 <vr20033@ues.edu.sv> 1759677630 -0600	checkout: moving from main to feature_PD1-24
+80675d23a304cc451b754fa7605cabbdaafc40cb 80675d23a304cc451b754fa7605cabbdaafc40cb rogervaliente77 <vr20033@ues.edu.sv> 1759686906 -0600	checkout: moving from feature_PD1-24 to main
+80675d23a304cc451b754fa7605cabbdaafc40cb ed6c15427f049582d2adfb4c82ce89adf8d56725 rogervaliente77 <vr20033@ues.edu.sv> 1759688219 -0600	commit: Agregando codigo de venta a index de ventas
+ed6c15427f049582d2adfb4c82ce89adf8d56725 4e318e4e26acde5826b3728bc4dec9ad6777398d rogervaliente77 <vr20033@ues.edu.sv> 1759688758 -0600	commit: FIltros y barra de busqueda en index ventas
+4e318e4e26acde5826b3728bc4dec9ad6777398d 2f65278ad41bf8bcc74324f09f4504b493f68f0f rogervaliente77 <vr20033@ues.edu.sv> 1759689382 -0600	commit: Columna en ventas si tiene devoluciones
+2f65278ad41bf8bcc74324f09f4504b493f68f0f 24ae371c4c95594ecd87fb9a4129bf0cef771127 rogervaliente77 <vr20033@ues.edu.sv> 1759699264 -0600	checkout: moving from main to feature/PDI-24
+24ae371c4c95594ecd87fb9a4129bf0cef771127 2f65278ad41bf8bcc74324f09f4504b493f68f0f rogervaliente77 <vr20033@ues.edu.sv> 1759701379 -0600	checkout: moving from feature/PDI-24 to main
+2f65278ad41bf8bcc74324f09f4504b493f68f0f 56609b31ef96af467f8d65862be598804d41926a rogervaliente77 <vr20033@ues.edu.sv> 1759701384 -0600	pull origin main: Fast-forward
+56609b31ef96af467f8d65862be598804d41926a 7212e828da87370bb4a444436f1ef483f13c0fcf rogervaliente77 <vr20033@ues.edu.sv> 1759707842 -0600	commit: Product History cuando se crea una venta, solo guarda
+7212e828da87370bb4a444436f1ef483f13c0fcf 1d45d368974e639787bf6606a340520ce820c8cc rogervaliente77 <vr20033@ues.edu.sv> 1759713127 -0600	commit: Cuando se autoriza una devolucion, agrega los productos a el modelo de productos retornados
+1d45d368974e639787bf6606a340520ce820c8cc 937bcca3e0164d25293103dbd00702019b15a8a1 rogervaliente77 <vr20033@ues.edu.sv> 1759716163 -0600	pull origin main: Fast-forward
+937bcca3e0164d25293103dbd00702019b15a8a1 b4bcf4b719b107a986cef1d1016c87bc55834d99 rogervaliente77 <vr20033@ues.edu.sv> 1759724949 -0600	pull origin main: Fast-forward
+b4bcf4b719b107a986cef1d1016c87bc55834d99 e3e15862c87efc15a6c30d1c2f0de355fa2fa748 rogervaliente77 <vr20033@ues.edu.sv> 1759725169 -0600	pull origin main: Fast-forward
+e3e15862c87efc15a6c30d1c2f0de355fa2fa748 3fff142270c60fa3ecc5adaf13594a5f289b78f6 rogervaliente77 <vr20033@ues.edu.sv> 1759725846 -0600	commit: Fusionando todas las ramas y cambios resolviendo conglicto de rutas
+3fff142270c60fa3ecc5adaf13594a5f289b78f6 0a15c2107cdeaca5381554eb0d03cffa72393e32 rogervaliente77 <vr20033@ues.edu.sv> 1759798983 -0600	pull origin main: Fast-forward
+0a15c2107cdeaca5381554eb0d03cffa72393e32 a44280bd380278b2db34242d078eeb7d2a65acdf rogervaliente77 <vr20033@ues.edu.sv> 1759799761 -0600	commit: Arreglando comprobante de devolucion
+a44280bd380278b2db34242d078eeb7d2a65acdf e4b1564e049a61c81456991498cbfcf912562fef rogervaliente77 <vr20033@ues.edu.sv> 1760590254 -0600	checkout: moving from main to PD1-12
+e4b1564e049a61c81456991498cbfcf912562fef c3cf05e2251756ed9c42ed8fd6a8572809bce0d6 rogervaliente77 <vr20033@ues.edu.sv> 1760593896 -0600	commit: Agregando cantidada, mayoreo, agregando nuevos detalles de ofertas
+c3cf05e2251756ed9c42ed8fd6a8572809bce0d6 a73f7ec69e8acc16ddf2beff406da7608c3e555c rogervaliente77 <vr20033@ues.edu.sv> 1760667359 -0600	commit: Agregando cantidada, mayoreo, tipos de oferta en landing y portal
+a73f7ec69e8acc16ddf2beff406da7608c3e555c a44280bd380278b2db34242d078eeb7d2a65acdf rogervaliente77 <vr20033@ues.edu.sv> 1760673970 -0600	checkout: moving from PD1-12 to main
+a44280bd380278b2db34242d078eeb7d2a65acdf d3b8cf041aa83c03fe7b41d656ffa5358c2fd735 rogervaliente77 <vr20033@ues.edu.sv> 1760673984 -0600	pull origin main: Fast-forward
+d3b8cf041aa83c03fe7b41d656ffa5358c2fd735 e651d7af174115ef4b6c2e5386e5ac04ea41d3f7 rogervaliente77 <vr20033@ues.edu.sv> 1760675274 -0600	commit: Agregando filtro de tipo de oferta en admin, lanfing y portal
+e651d7af174115ef4b6c2e5386e5ac04ea41d3f7 07bfcc32c7c2f5d3e712471d925ddac4def58d5c rogervaliente77 <vr20033@ues.edu.sv> 1760896697 -0600	pull origin main: Fast-forward
+07bfcc32c7c2f5d3e712471d925ddac4def58d5c d353095d6c9a1f5426e07fa38de10a04043b38d1 rogervaliente77 <vr20033@ues.edu.sv> 1760897854 -0600	commit: Agregando opcion de codigos de descuento al sidebar, y limitando al cajero solo a ver los codigos
+d353095d6c9a1f5426e07fa38de10a04043b38d1 ab64813accf32900c428aff6047567e65f99f19e rogervaliente77 <vr20033@ues.edu.sv> 1760902054 -0600	pull origin main: Fast-forward
+ab64813accf32900c428aff6047567e65f99f19e 64943578e70dd5cde7ea19452f423ba545403eca rogervaliente77 <vr20033@ues.edu.sv> 1760915864 -0600	commit: Agregando descuentos en venta
+64943578e70dd5cde7ea19452f423ba545403eca 2a0a0a8fdb9758081a7dd45267e3851204e06896 rogervaliente77 <vr20033@ues.edu.sv> 1761007472 -0600	pull origin main: Fast-forward
+2a0a0a8fdb9758081a7dd45267e3851204e06896 ab7a6c2b865804d85c292a6318c25fbf202ca451 rogervaliente77 <vr20033@ues.edu.sv> 1761010577 -0600	commit: Resolviendo problema compras en linea, devoluciones search
+ab7a6c2b865804d85c292a6318c25fbf202ca451 ab7a6c2b865804d85c292a6318c25fbf202ca451 rogervaliente77 <vr20033@ues.edu.sv> 1762233562 -0600	checkout: moving from main to delivery01
+ab7a6c2b865804d85c292a6318c25fbf202ca451 6dbbb742d4700c3a07595f0c20ea64ecad1c80d0 rogervaliente77 <vr20033@ues.edu.sv> 1762233583 -0600	commit: Empezando lo del delivery
+6dbbb742d4700c3a07595f0c20ea64ecad1c80d0 91072f70d6f5ec30fc500b52dd6c47fc5a6a37d3 rogervaliente77 <vr20033@ues.edu.sv> 1762304177 -0600	pull origin delivery01: Fast-forward
+91072f70d6f5ec30fc500b52dd6c47fc5a6a37d3 ab7a6c2b865804d85c292a6318c25fbf202ca451 rogervaliente77 <vr20033@ues.edu.sv> 1762393066 -0600	checkout: moving from delivery01 to main
+ab7a6c2b865804d85c292a6318c25fbf202ca451 c6ab16838088870fdb37c4b479e460eb1f5f67fd rogervaliente77 <vr20033@ues.edu.sv> 1762393073 -0600	pull origin main: Fast-forward
+c6ab16838088870fdb37c4b479e460eb1f5f67fd 91072f70d6f5ec30fc500b52dd6c47fc5a6a37d3 rogervaliente77 <vr20033@ues.edu.sv> 1762393534 -0600	checkout: moving from main to delivery01
+91072f70d6f5ec30fc500b52dd6c47fc5a6a37d3 fb1360df9b49d2befb6051b01d9d0fdaf91939b1 rogervaliente77 <vr20033@ues.edu.sv> 1762400280 -0600	commit: EMpezando lo de agendar cita
+fb1360df9b49d2befb6051b01d9d0fdaf91939b1 941a37a68a291ff71382d79c067010cbbf5d381b rogervaliente77 <vr20033@ues.edu.sv> 1762655039 -0600	pull origin delivery01: Fast-forward
+941a37a68a291ff71382d79c067010cbbf5d381b cd0a816ca83631372e3d6c5d7c4a743ba1d2c00a rogervaliente77 <vr20033@ues.edu.sv> 1762667628 -0600	commit: Hacer cita completo, se crea el deliery request
+cd0a816ca83631372e3d6c5d7c4a743ba1d2c00a acd0e18cd76f169679cddd2d1b8d79369f03d169 rogervaliente77 <vr20033@ues.edu.sv> 1762720736 -0600	commit: nuevos cambios para agendar cita y asignar mensajero
+acd0e18cd76f169679cddd2d1b8d79369f03d169 c6ab16838088870fdb37c4b479e460eb1f5f67fd rogervaliente77 <vr20033@ues.edu.sv> 1762720837 -0600	checkout: moving from delivery01 to main
+c6ab16838088870fdb37c4b479e460eb1f5f67fd b40127f8baf1088b582eb81f9778936505eae759 rogervaliente77 <vr20033@ues.edu.sv> 1762720842 -0600	pull origin main: Fast-forward
+b40127f8baf1088b582eb81f9778936505eae759 69923807cfb9daf7920050e00e2934620bc83438 rogervaliente77 <vr20033@ues.edu.sv> 1762720924 -0600	checkout: moving from main to profile
+69923807cfb9daf7920050e00e2934620bc83438 d770c834aab80ec9b123e450b69225d53607a121 rogervaliente77 <vr20033@ues.edu.sv> 1762721394 -0600	commit: Resolviendo problema de no tiene turbo en menu compras
+d770c834aab80ec9b123e450b69225d53607a121 b40127f8baf1088b582eb81f9778936505eae759 rogervaliente77 <vr20033@ues.edu.sv> 1762721692 -0600	checkout: moving from profile to main
+b40127f8baf1088b582eb81f9778936505eae759 2f6f348e5563bf8434b0b03deaf6e1a59f63e22b rogervaliente77 <vr20033@ues.edu.sv> 1762721706 -0600	pull origin main: Fast-forward
+2f6f348e5563bf8434b0b03deaf6e1a59f63e22b 0fef76bffbdd4bba5081b849c062a8eae813a76e rogervaliente77 <vr20033@ues.edu.sv> 1762722776 -0600	commit: Resolviendo graficos no cargan inmediatamente
+0fef76bffbdd4bba5081b849c062a8eae813a76e b322a0779aa8ed68eb6b07b0494a1101c7f40e7a rogervaliente77 <vr20033@ues.edu.sv> 1762723089 -0600	checkout: moving from main to feature_PD1-35
+b322a0779aa8ed68eb6b07b0494a1101c7f40e7a 0fef76bffbdd4bba5081b849c062a8eae813a76e rogervaliente77 <vr20033@ues.edu.sv> 1762723445 -0600	checkout: moving from feature_PD1-35 to main
+0fef76bffbdd4bba5081b849c062a8eae813a76e acd0e18cd76f169679cddd2d1b8d79369f03d169 rogervaliente77 <vr20033@ues.edu.sv> 1762744452 -0600	checkout: moving from main to delivery01
+acd0e18cd76f169679cddd2d1b8d79369f03d169 318e947e7b6dd3b988366ec88d786f9f5cd02b04 rogervaliente77 <vr20033@ues.edu.sv> 1762762071 -0600	commit: Flujo completo de delivery
+318e947e7b6dd3b988366ec88d786f9f5cd02b04 2d2096eeb463a6293773ace5d9b52b9e44d149c1 rogervaliente77 <vr20033@ues.edu.sv> 1762762436 -0600	checkout: moving from delivery01 to feature/config
+2d2096eeb463a6293773ace5d9b52b9e44d149c1 b322a0779aa8ed68eb6b07b0494a1101c7f40e7a rogervaliente77 <vr20033@ues.edu.sv> 1762762830 -0600	checkout: moving from feature/config to feature_PD1-35
+b322a0779aa8ed68eb6b07b0494a1101c7f40e7a 12d27eff3dab326270fce4666f4525245598eac9 rogervaliente77 <vr20033@ues.edu.sv> 1762762955 -0600	pull origin feature_PD1-35: Fast-forward
+12d27eff3dab326270fce4666f4525245598eac9 0fef76bffbdd4bba5081b849c062a8eae813a76e rogervaliente77 <vr20033@ues.edu.sv> 1762763506 -0600	checkout: moving from feature_PD1-35 to main
+0fef76bffbdd4bba5081b849c062a8eae813a76e 8a5254161404224802ade47f2e387f4b90261b9c rogervaliente77 <vr20033@ues.edu.sv> 1762763512 -0600	pull origin main: Fast-forward
+8a5254161404224802ade47f2e387f4b90261b9c a3dc377e2271556f76079dfa475c7254ca9e2984 rogervaliente77 <vr20033@ues.edu.sv> 1762765866 -0600	commit: Resolviendo conflictos
+a3dc377e2271556f76079dfa475c7254ca9e2984 9da80a897e47e14c9aa6c6c5cab6cf6a6e9d1e53 rogervaliente77 <vr20033@ues.edu.sv> 1762823585 -0600	pull origin main: Fast-forward
+9da80a897e47e14c9aa6c6c5cab6cf6a6e9d1e53 73ba4fa4dc40e17a9b94101250655e34ec99952f rogervaliente77 <vr20033@ues.edu.sv> 1762824223 -0600	commit: Resolviendo signup
+73ba4fa4dc40e17a9b94101250655e34ec99952f 6c4d24b88271255a3bbe46760aa4f3af43649afe rogervaliente77 <vr20033@ues.edu.sv> 1762824791 -0600	commit: Resolviendo signup2
+6c4d24b88271255a3bbe46760aa4f3af43649afe 2653df45de6fcc945e60ad7ffaf82f5d0c816395 rogervaliente77 <vr20033@ues.edu.sv> 1762825160 -0600	commit: Resolviendo signup3
+2653df45de6fcc945e60ad7ffaf82f5d0c816395 af2077be46f332dcbc98717b7a78e3fcf8ccf163 rogervaliente77 <vr20033@ues.edu.sv> 1762825525 -0600	commit: Resolviendo signup4
+af2077be46f332dcbc98717b7a78e3fcf8ccf163 8f9613a2f6c21c347909cd9c7d33cb822982952b rogervaliente77 <vr20033@ues.edu.sv> 1762825634 -0600	commit: Resolviendo signup5
+8f9613a2f6c21c347909cd9c7d33cb822982952b aaa20a6148aa050afbc6834c434dafc1e6f51644 rogervaliente77 <vr20033@ues.edu.sv> 1763699813 -0600	checkout: moving from main to cobros_main
+aaa20a6148aa050afbc6834c434dafc1e6f51644 cce5cbc5e4b7fa59ac35926b64352c0f36d21183 rogervaliente77 <vr20033@ues.edu.sv> 1763701812 -0600	commit: TRabajando en el index y new de clientes
+cce5cbc5e4b7fa59ac35926b64352c0f36d21183 915c95a0b82799fe6cccd663806ba75c18fe3206 rogervaliente77 <vr20033@ues.edu.sv> 1766802913 -0600	pull origin cobros_main: Fast-forward
+915c95a0b82799fe6cccd663806ba75c18fe3206 5a5ba494a82ad485341fbc055fa98c723e3f9f71 rogervaliente77 <vr20033@ues.edu.sv> 1766805255 -0600	commit: Trabajando en index empleados
+5a5ba494a82ad485341fbc055fa98c723e3f9f71 5a5ba494a82ad485341fbc055fa98c723e3f9f71 rogervaliente77 <vr20033@ues.edu.sv> 1770345238 -0600	checkout: moving from cobros_main to sistema_inventario_main
+5a5ba494a82ad485341fbc055fa98c723e3f9f71 49f313f67e3dbc0ac6b16c9e1cb5293e3c788a60 rogervaliente77 <vr20033@ues.edu.sv> 1777783373 -0600	commit: Cambios de inventario
+49f313f67e3dbc0ac6b16c9e1cb5293e3c788a60 5a5ba494a82ad485341fbc055fa98c723e3f9f71 rogervaliente77 <vr20033@ues.edu.sv> 1777783396 -0600	checkout: moving from sistema_inventario_main to cobros_main
+5a5ba494a82ad485341fbc055fa98c723e3f9f71 49f313f67e3dbc0ac6b16c9e1cb5293e3c788a60 rogervaliente77 <vr20033@ues.edu.sv> 1777783422 -0600	checkout: moving from cobros_main to sistema_inventario_main
+49f313f67e3dbc0ac6b16c9e1cb5293e3c788a60 5a5ba494a82ad485341fbc055fa98c723e3f9f71 rogervaliente77 <vr20033@ues.edu.sv> 1777783655 -0600	checkout: moving from sistema_inventario_main to cobros_main
+5a5ba494a82ad485341fbc055fa98c723e3f9f71 e32c4e0d9de43e29978fa92e8932eddbf4c17a1a rogervaliente77 <vr20033@ues.edu.sv> 1782105382 -0600	commit: Cmbios para control de empleados y planillas
+e32c4e0d9de43e29978fa92e8932eddbf4c17a1a 6123a3f4106b1b3298026006647c1a85c7e074d9 rogervaliente77 <vr20033@ues.edu.sv> 1782105691 -0600	pull origin cobros_main (start): checkout 6123a3f4106b1b3298026006647c1a85c7e074d9
+6123a3f4106b1b3298026006647c1a85c7e074d9 5bc9fcc2079881af72414697a197840a50d7666e rogervaliente77 <vr20033@ues.edu.sv> 1782105939 -0600	commit: Solving conflicts
+5bc9fcc2079881af72414697a197840a50d7666e 5bc9fcc2079881af72414697a197840a50d7666e rogervaliente77 <vr20033@ues.edu.sv> 1782106074 -0600	rebase (continue) (finish): returning to refs/heads/cobros_main
+5bc9fcc2079881af72414697a197840a50d7666e 57e93728ad7fe9d272c9b5d045eb2d5c0d8ce2e4 rogervaliente77 <vr20033@ues.edu.sv> 1782182529 -0600	commit: Solving conflicts 2
+57e93728ad7fe9d272c9b5d045eb2d5c0d8ce2e4 6a40bed95a67a3cfc7c63b4834d988d6b0eea165 rogervaliente77 <vr20033@ues.edu.sv> 1782189998 -0600	commit: Limpiando proyecto
+6a40bed95a67a3cfc7c63b4834d988d6b0eea165 75a97dcee34ec8d178eb5ad0c54203fd7492f974 rogervaliente77 <vr20033@ues.edu.sv> 1782192289 -0600	commit: Nuevos cambios para ver boleta
+75a97dcee34ec8d178eb5ad0c54203fd7492f974 59cb7941fca76682afe012a1c25bd7af9053e295 rogervaliente77 <vr20033@ues.edu.sv> 1782289142 -0600	commit: NUEVOS CAMBIOS PARA GENERAR PLANILLA
+59cb7941fca76682afe012a1c25bd7af9053e295 7856486851ad5ac81001e4f0f6cd7023f700e1c8 rogervaliente77 <vr20033@ues.edu.sv> 1782358964 -0600	commit: Nuevos cambios para planilla
+7856486851ad5ac81001e4f0f6cd7023f700e1c8 f3a62559408cf0dde179eefd396e1db0c050b1b2 rogervaliente77 <vr20033@ues.edu.sv> 1782362143 -0600	commit: New changes
+f3a62559408cf0dde179eefd396e1db0c050b1b2 f2d8941f9d1826697c071a6be8a4ddac17957498 rogervaliente77 <vr20033@ues.edu.sv> 1782616511 -0600	commit: New changes for planilla
+f2d8941f9d1826697c071a6be8a4ddac17957498 720b3a96db132d996921510cc4461e73ba30ae79 rogervaliente77 <vr20033@ues.edu.sv> 1782626400 -0600	commit: Arreglando planilla 25
+720b3a96db132d996921510cc4461e73ba30ae79 c5b2a3e1749b8c01aca5b688cb53aded49a20339 rogervaliente77 <vr20033@ues.edu.sv> 1782661286 -0600	commit: Arreglando visualmente
+c5b2a3e1749b8c01aca5b688cb53aded49a20339 85e67c936923f76e9eabe858e5c8997d87b44690 rogervaliente77 <vr20033@ues.edu.sv> 1782702592 -0600	commit: Arreglando errores en empleados
+85e67c936923f76e9eabe858e5c8997d87b44690 880e0512056258e58303be45401d4b3c18936a06 rogervaliente77 <vr20033@ues.edu.sv> 1784525655 -0600	commit: Arreglando errores en la tabla de renta
+880e0512056258e58303be45401d4b3c18936a06 187f7ceec1d161ec11e449b34e95fdd8dc7dd2d9 rogervaliente77 <vr20033@ues.edu.sv> 1784968183 -0600	commit: DEjo generar el pdf, dejo guardar todo, pero falta ponerle precio a los repuestos
+187f7ceec1d161ec11e449b34e95fdd8dc7dd2d9 43c13b4efd018d0bbea090e24f766e52b3d79f01 rogervaliente77 <vr20033@ues.edu.sv> 1784968204 -0600	pull origin cobros_main (start): checkout 43c13b4efd018d0bbea090e24f766e52b3d79f01
+43c13b4efd018d0bbea090e24f766e52b3d79f01 3f7b9794a69a6c2f39eba9d1b069087d4f5001f2 rogervaliente77 <vr20033@ues.edu.sv> 1784968204 -0600	pull origin cobros_main (pick): DEjo generar el pdf, dejo guardar todo, pero falta ponerle precio a los repuestos
+3f7b9794a69a6c2f39eba9d1b069087d4f5001f2 3f7b9794a69a6c2f39eba9d1b069087d4f5001f2 rogervaliente77 <vr20033@ues.edu.sv> 1784968204 -0600	pull origin cobros_main (finish): returning to refs/heads/cobros_main
+3f7b9794a69a6c2f39eba9d1b069087d4f5001f2 9093bb7faa5976a7032a99fda8023ba05885d218 rogervaliente77 <vr20033@ues.edu.sv> 1785045129 -0600	commit: Control de cotizaciones BIMERS y generacion de pdf
+9093bb7faa5976a7032a99fda8023ba05885d218 117a363f50439a21c49b489be0bd4f57c3928f3a rogervaliente77 <vr20033@ues.edu.sv> 1785082962 -0600	commit: arreglamdo los link con turbo false
+117a363f50439a21c49b489be0bd4f57c3928f3a 355bb8b70d75f8c3b56b30f6e2c1bdf0edf233fd rogervaliente77 <vr20033@ues.edu.sv> 1785483675 -0600	commit: Agregando encabezado al pdf
+355bb8b70d75f8c3b56b30f6e2c1bdf0edf233fd eb4513561503cab17659608f947a4624692a0aa7 rogervaliente77 <vr20033@ues.edu.sv> 1785484468 -0600	commit: Agregango vin
+eb4513561503cab17659608f947a4624692a0aa7 eb4513561503cab17659608f947a4624692a0aa7 rogervaliente77 <vr20033@ues.edu.sv> 1785705510 -0600	checkout: moving from cobros_main to bimers
+eb4513561503cab17659608f947a4624692a0aa7 0ec60ca4add22dd6980e8b4080006031f81b240c rogervaliente77 <vr20033@ues.edu.sv> 1785830903 -0600	commit: COntrol de clientes, carros, y servicios
+0ec60ca4add22dd6980e8b4080006031f81b240c 975ba8839eca28c7353649b152bd8206f4fc0cea rogervaliente77 <vr20033@ues.edu.sv> 1785910044 -0600	commit: Control de servicios de mantenimiento
+975ba8839eca28c7353649b152bd8206f4fc0cea 975ba8839eca28c7353649b152bd8206f4fc0cea rogervaliente77 <vr20033@ues.edu.sv> 1786090333 -0600	checkout: moving from bimers to bimers01
+975ba8839eca28c7353649b152bd8206f4fc0cea c88c8fd92247bd41f5acb5890752add77797009b rogervaliente77 <vr20033@ues.edu.sv> 1786090357 -0600	commit: Modelos, vista, controlador de productos, falta probar
+c88c8fd92247bd41f5acb5890752add77797009b 47c7aed082c29698e12eb02ec240c5443b8813a8 rogervaliente77 <vr20033@ues.edu.sv> 1786169845 -0600	commit: PDF DE MANTENIMIENTO DE SERVICIOS CON LOGO Y TODO
+                                                                                                                                                                                                                                                                                           

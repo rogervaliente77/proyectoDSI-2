@@ -46,7 +46,7 @@ module Admin
     end
 
     def client_params
-      params.require(:client).permit(:nombre, :telefono, :email)
+      params.require(:client).permit(:nombre, :telefono, :email, :is_active)
     end
   end
 end
