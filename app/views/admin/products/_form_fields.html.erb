@@ -57,15 +57,8 @@
     <!-- Fila 3: Categoría, Marca y Tipo de Vehículo -->
     <div class="row g-3 mb-3">
       <div class="col-12 col-md-4">
-        <% 
-          category_options = Category.main_categories.flat_map do |main_cat|
-            options = [[main_cat.name, main_cat.id]]
-            options += main_cat.subcategories.map { |sub_cat| ["— #{sub_cat.name}", sub_cat.id] }
-            options
-          end
-        %>
         <%= form.input :category_id,
-          collection: category_options,
+          collection: Category.options_for_select,
           include_blank: "Selecciona categoría",
           label: "Categoría",
           input_html: { class: "form-select" } %>

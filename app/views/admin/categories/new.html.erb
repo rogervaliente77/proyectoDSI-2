@@ -12,16 +12,6 @@
   <div class="card shadow-sm rounded-3 border-0">
     <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
       <h6 class="m-0 fw-bold text-primary">Formulario de categoría</h6>
-      <div class="dropdown no-arrow">
-        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-        </a>
-        <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-          <div class="dropdown-header">Opciones</div>
-          <a class="dropdown-item" href="#">Otra acción</a>
-        </div>
-      </div>
     </div>
 
     <div class="card-body p-4">
@@ -35,6 +25,7 @@
                           html: { 
                             class: "needs-validation", 
                             id: "form-category", 
+                            multipart: true,
                             novalidate: false, 
                             data: { turbo: false } 
                           } do |form| %>
@@ -45,13 +36,17 @@
 
         <div class="mb-3">
           <%= form.input :parent_id,
-                        collection: Category.main_categories,
-                        label_method: :name,
-                        value_method: :id,
+                        collection: Category.options_for_select,
                         include_blank: "Ninguna (Es una Categoría Principal)",
                         label: "Categoría Padre",
                         required: false,
                         input_html: { class: "form-select" } %>
+        </div>
+
+        <!-- Campo de Imagen -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Imagen de la Categoría</label>
+          <%= form.file_field :image_file, class: "form-control", accept: "image/*" %>
         </div>
 
         <div class="mb-3">
