@@ -109,6 +109,7 @@ Rails.application.routes.draw do
       member do
         get :pdf
         get :datos_pdf
+        get :descargar_pdf
       end
     end
 
