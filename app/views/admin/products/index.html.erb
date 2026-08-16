@@ -33,14 +33,13 @@
   </div>
 
   <!-- Filtros -->
-  <!-- Filtros -->
   <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-light">
     <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
       
-      <!-- Buscar (Ocupa más espacio proporcionalmente) -->
+      <!-- Buscar -->
       <div class="col-12 col-md-4 col-lg-3">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-search me-1"></i> Buscar</label>
-        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control filter-input w-100" %>
+        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Amortiguador...", class: "form-control filter-input w-100" %>
       </div>
 
       <!-- Categoría -->
@@ -55,7 +54,13 @@
         <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
       </div>
 
-      <!-- Precio ($) (Mantiene Min y Max exactamente como los tenías) -->
+      <!-- Tipo Vehículo -->
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-car me-1"></i> Tipo Vehículo</label>
+        <%= select_tag :car_type_id, options_from_collection_for_select(@car_types || CarType.all, :id, :name, params[:car_type_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
+      </div>
+
+      <!-- Precio ($) -->
       <div class="col-auto">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-dollar-sign me-1"></i> Precio ($)</label>
         <div class="d-flex gap-2 align-items-center">
@@ -153,6 +158,16 @@
             <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
             <p class="mb-0"><strong>Categoría:</strong> <%= product.category.name.upcase if product.category %></p>
             <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
+            <p class="mb-0">
+              <strong>Tipo Vehículo:</strong> 
+              <% if product.respond_to?(:car_type) && product.car_type.present? %>
+                <span class="badge bg-light text-dark border"><%= product.car_type.name.upcase %></span>
+              <% elsif product.respond_to?(:car_type_id) && product.car_type_id.present? %>
+                <span class="badge bg-light text-dark border"><%= product.car_type_id %></span>
+              <% else %>
+                <span class="text-muted">Universal</span>
+              <% end %>
+            </p>
             <p class="mb-0"><strong>Código:</strong> <%= product.code %></p>
           </div>
 
