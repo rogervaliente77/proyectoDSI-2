@@ -18,6 +18,6 @@ class ProductHistory
   field :movement_type, type: String  # Ingreso, Salida, Ajuste
   field :user_id,       type: BSON::ObjectId  # Usuario que realizó el movimiento
 
-  belongs_to :product
+  belongs_to :product, validate: false
   belongs_to :user, optional: true
 end

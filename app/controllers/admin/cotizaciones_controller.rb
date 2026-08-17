@@ -111,6 +111,18 @@ module Admin
       }
     end
 
+    # app/controllers/admin/cotizaciones_controller.rb
+    def descargar_pdf
+      @cotizacion = Cotizacion.find(params[:id])
+      
+      pdf_data = CotizacionPdfService.new(@cotizacion).call
+      
+      send_data pdf_data,
+                filename: "Cotizacion_#{@cotizacion.numero_cotizacion.presence || @cotizacion.id}.pdf",
+                type: "application/pdf",
+                disposition: "inline"
+    end
+
     private
 
     def set_cotizacion

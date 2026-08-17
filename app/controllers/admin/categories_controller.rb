@@ -52,7 +52,7 @@ module Admin
     end
 
     def category_params
-      params.require(:category).permit(:name, :description, :parent_id)
+      params.require(:category).permit(:name, :description, :parent_id, :image_url, :image_file)
     end
   end
 end

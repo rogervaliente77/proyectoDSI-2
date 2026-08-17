@@ -54,12 +54,13 @@
                     <div class="btn-group btn-group-sm" role="group">
                       
                       <!-- BOTÓN GENERAR Y DESCARGAR PDF POR JS -->
-                      <button id="btn-pdf-<%= cotizacion.id %>" 
-                              class="btn btn-outline-danger" 
-                              onclick="generarPDF('<%= cotizacion.id %>')" 
-                              title="Descargar PDF">
+                      <%= link_to descargar_pdf_admin_cotizacione_path(cotizacion), 
+                                  class: "btn btn-outline-danger", 
+                                  target: "_blank", 
+                                  title: "Descargar PDF",
+                                  data: { turbo: false } do %>
                         <i class="fas fa-file-pdf"></i> PDF
-                      </button>
+                      <% end %>
 
                       <%= link_to admin_cotizacione_path(cotizacion), class: "btn btn-outline-primary", title: "Ver Detalle", data: { turbo: false } do %>
                         <i class="fas fa-eye"></i>

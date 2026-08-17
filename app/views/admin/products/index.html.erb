@@ -34,23 +34,33 @@
 
   <!-- Filtros -->
   <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-light">
-    <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-2 align-items-end justify-content-between flex-nowrap flex-lg-wrap" do %>
+    <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
       
-      <div class="col-auto flex-grow-1">
+      <!-- Buscar -->
+      <div class="col-12 col-md-4 col-lg-3">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-search me-1"></i> Buscar</label>
-        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Laptop...", class: "form-control filter-input" %>
+        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Amortiguador...", class: "form-control filter-input w-100" %>
       </div>
 
-      <div class="col-auto">
+      <!-- Categoría -->
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-tags me-1"></i> Categoría</label>
-        <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), include_blank: "Seleccione...", class: "form-select filter-select" %>
+        <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
       </div>
 
-      <div class="col-auto">
+      <!-- Marca -->
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-industry me-1"></i> Marca</label>
-        <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), include_blank: "Seleccione...", class: "form-select filter-select" %>
+        <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
       </div>
 
+      <!-- Tipo Vehículo -->
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-car me-1"></i> Tipo Vehículo</label>
+        <%= select_tag :car_type_id, options_from_collection_for_select(@car_types || CarType.all, :id, :name, params[:car_type_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
+      </div>
+
+      <!-- Precio ($) -->
       <div class="col-auto">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-dollar-sign me-1"></i> Precio ($)</label>
         <div class="d-flex gap-2 align-items-center">
@@ -60,12 +70,14 @@
         </div>
       </div>
 
-      <div class="col-auto">
+      <!-- Oferta -->
+      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-gift me-1"></i> Oferta</label>
-        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select filter-select" %>
+        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
       </div>
 
-      <div class="col-auto d-flex gap-2 mt-3 mt-lg-0 align-items-end">
+      <!-- Botones de Acción -->
+      <div class="col-auto d-flex gap-2 ms-auto">
         <%= submit_tag "Aplicar", class: "btn btn-primary btn-md" %>
         <%= link_to admin_productos_path, class: "btn btn-outline-secondary btn-md" do %>
           <i class="fas fa-sync-alt me-1"></i> Limpiar
@@ -146,6 +158,16 @@
             <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
             <p class="mb-0"><strong>Categoría:</strong> <%= product.category.name.upcase if product.category %></p>
             <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
+            <p class="mb-0">
+              <strong>Tipo Vehículo:</strong> 
+              <% if product.respond_to?(:car_type) && product.car_type.present? %>
+                <span class="badge bg-light text-dark border"><%= product.car_type.name.upcase %></span>
+              <% elsif product.respond_to?(:car_type_id) && product.car_type_id.present? %>
+                <span class="badge bg-light text-dark border"><%= product.car_type_id %></span>
+              <% else %>
+                <span class="text-muted">Universal</span>
+              <% end %>
+            </p>
             <p class="mb-0"><strong>Código:</strong> <%= product.code %></p>
           </div>
 
