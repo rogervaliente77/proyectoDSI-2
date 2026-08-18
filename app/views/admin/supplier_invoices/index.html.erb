@@ -1,0 +1,189 @@
+<div class="container-fluid min-vh-100 py-4">
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
+    <div>
+      <h1 class="h3 text-gray-800 mb-0"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Facturas de Proveedores</h1>
+      <p class="text-muted small mb-0">Gestión de cuentas por pagar, vencimientos y créditos</p>
+    </div>
+    <%= link_to new_admin_supplier_invoice_path, class: "btn btn-primary shadow-sm text-nowrap" do %>
+      <i class="fas fa-plus me-1"></i> Nueva Factura
+    <% end %>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-danger">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-uppercase text-muted fw-bold small">Deuda Total Pendiente</span>
+            <h3 class="mb-0 fw-bold text-danger"><%= number_to_currency(@stats_total_debt) %></h3>
+          </div>
+          <div class="rounded-circle bg-danger bg-opacity-10 p-3 text-danger">
+            <i class="fas fa-hand-holding-usd fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-warning">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-uppercase text-muted fw-bold small">Deuda Vencida</span>
+            <h3 class="mb-0 fw-bold text-warning"><%= number_to_currency(@stats_overdue_debt) %></h3>
+          </div>
+          <div class="rounded-circle bg-warning bg-opacity-10 p-3 text-warning">
+            <i class="fas fa-exclamation-circle fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-info">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-uppercase text-muted fw-bold small">Por Vencer (Este Mes)</span>
+            <h3 class="mb-0 fw-bold text-info"><%= number_to_currency(@stats_due_this_month) %></h3>
+          </div>
+          <div class="rounded-circle bg-info bg-opacity-10 p-3 text-info">
+            <i class="fas fa-calendar-alt fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-success">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-uppercase text-muted fw-bold small">Pagado Este Mes</span>
+            <h3 class="mb-0 fw-bold text-success"><%= number_to_currency(@stats_total_paid_month) %></h3>
+          </div>
+          <div class="rounded-circle bg-success bg-opacity-10 p-3 text-success">
+            <i class="fas fa-check-double fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-light">
+    <%= form_with url: admin_supplier_invoices_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
+      
+      <div class="col-12 col-md-3">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-search me-1"></i> Factura / CCF</label>
+        <%= text_field_tag :query, params[:query], placeholder: "Ej. FAC-10293...", class: "form-control filter-input w-100" %>
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-3">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-truck me-1"></i> Proveedor</label>
+        <%= select_tag :supplier_id, options_from_collection_for_select(@suppliers, :id, :name, params[:supplier_id]), include_blank: "Todos los proveedores", class: "form-select filter-select w-100" %>
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-2">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-filter me-1"></i> Estado</label>
+        <%= select_tag :status, options_for_select([["Pendientes", "pendiente"], ["Vencidas", "vencida"], ["Pagadas", "pagada"]], params[:status]), include_blank: "Todos", class: "form-select filter-select w-100" %>
+      </div>
+
+      <div class="col-12 col-md-2">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-calendar me-1"></i> Desde</label>
+        <input type="date" name="start_date" value="<%= params[:start_date] %>" class="form-control filter-input">
+      </div>
+      <div class="col-12 col-md-2">
+        <label class="form-label small text-dark fw-semibold"><i class="fas fa-calendar me-1"></i> Hasta</label>
+        <input type="date" name="end_date" value="<%= params[:end_date] %>" class="form-control filter-input">
+      </div>
+
+      <div class="col-12 d-flex gap-2 justify-content-end mt-3">
+        <%= submit_tag "Aplicar Filtros", class: "btn btn-primary btn-md" %>
+        <%= link_to admin_supplier_invoices_path, class: "btn btn-outline-secondary btn-md" do %>
+          <i class="fas fa-sync-alt me-1"></i> Limpiar
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-light text-secondary small text-uppercase fw-bold">
+            <tr>
+              <th class="ps-3">N° Factura / CCF</th>
+              <th>Proveedor</th>
+              <th>Emisión</th>
+              <th>Vencimiento</th>
+              <th class="text-end">Monto Total</th>
+              <th class="text-end">Abonado</th>
+              <th class="text-end">Saldo Pendiente</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center pe-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @invoices.any? %>
+              <% @invoices.each do |inv| %>
+                <tr>
+                  <td class="ps-3 fw-bold text-dark">
+                    <%= link_to inv.invoice_number, admin_supplier_invoice_path(inv), class: "text-decoration-none text-primary" %>
+                    <br><small class="text-muted fw-normal"><%= inv.voucher_number %></small>
+                  </td>
+                  <td>
+                    <span class="fw-semibold text-dark"><%= inv.supplier.name %></span>
+                  </td>
+                  <td><%= inv.issue_date.strftime("%d/%m/%Y") if inv.issue_date %></td>
+                  <td>
+                    <span class="<%= 'text-danger fw-bold' if inv.is_overdue? %>">
+                      <%= inv.due_date.strftime("%d/%m/%Y") if inv.due_date %>
+                    </span>
+                  </td>
+                  <td class="text-end fw-semibold"><%= number_to_currency(inv.total_amount) %></td>
+                  <td class="text-end text-success"><%= number_to_currency(inv.paid_amount) %></td>
+                  <td class="text-end fw-bold <%= inv.balance > 0 ? 'text-danger' : 'text-muted' %>">
+                    <%= number_to_currency(inv.balance) %>
+                  </td>
+                  <td class="text-center">
+                    <% case inv.status %>
+                    <% when "pagada" %>
+                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1"><i class="fas fa-check-circle me-1"></i> Pagada</span>
+                    <% when "vencida" %>
+                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1"><i class="fas fa-exclamation-triangle me-1"></i> Vencida</span>
+                    <% else %>
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1"><i class="fas fa-clock me-1"></i> Pendiente</span>
+                    <% end %>
+                  </td>
+                  <td class="text-center pe-3">
+                    <div class="d-flex gap-1 justify-content-center">
+                      <%= link_to admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", title: "Ver Detalle / Abonar" do %>
+                        <i class="fas fa-eye text-primary"></i>
+                      <% end %>
+                      <%= link_to edit_admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", title: "Editar" do %>
+                        <i class="fas fa-edit text-secondary"></i>
+                      <% end %>
+                      <%= link_to admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", data: { turbo_method: :delete, turbo_confirm: "¿Eliminar factura?" }, title: "Eliminar" do %>
+                        <i class="fas fa-trash text-danger"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="9" class="text-center py-4 text-muted">
+                  <i class="fas fa-receipt fa-2x mb-2 d-block"></i> No se encontraron facturas registradas.
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
+      <small class="text-muted">Mostrando <%= @invoices.count %> de <%= @invoices.total_count rescue @invoices.count %> registros</small>
+      <div>
+        <%= paginate @invoices rescue nil %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -100,3 +100,5 @@ gem "dotenv-rails", groups: [:development, :test]
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
 gem 'grover'
+
+gem 'kaminari-mongoid'

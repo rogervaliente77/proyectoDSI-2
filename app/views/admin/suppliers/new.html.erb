@@ -1,0 +1,40 @@
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin - Proveedores - Nuevo</h1>
+    <%= link_to admin_suppliers_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-arrow-left"></i> Volver a proveedores
+    <% end %>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Crear proveedor</h6>
+    </div>
+
+    <div class="card-body">
+      <% if flash[:notice] %>
+        <div class="alert alert-success alert-dismissible fade show small mb-3" role="alert">
+          <%= flash[:notice] %>
+        </div>
+      <% elsif flash[:alert] %>
+        <div class="alert alert-danger alert-dismissible fade show small mb-3" role="alert">
+          <%= flash[:alert] %>
+        </div>
+      <% end %>
+
+      <% if @supplier.errors.any? %>
+        <div class="alert alert-danger mb-4">
+          <h6 class="alert-heading font-weight-bold mb-2">Por favor corrige los siguientes errores:</h6>
+          <ul class="mb-0 pl-3 small">
+            <% @supplier.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <%= render 'form', supplier: @supplier %>
+
+    </div>
+  </div>
+</div>

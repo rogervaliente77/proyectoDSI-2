@@ -1,0 +1,43 @@
+<%= form_with(model: [:admin, invoice], local: true, class: "needs-validation") do |f| %>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <%= f.label :supplier_id, "Proveedor", class: "form-label fw-semibold" %>
+      <%= f.collection_select :supplier_id, suppliers, :id, :name, { prompt: "Seleccione Proveedor" }, { class: "form-select", required: true } %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= f.label :invoice_number, "Número de Factura", class: "form-label fw-semibold" %>
+      <%= f.text_field :invoice_number, class: "form-control", placeholder: "Ej. FAC-10029", required: true %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= f.label :voucher_number, "Número CCF / Registro", class: "form-label fw-semibold" %>
+      <%= f.text_field :voucher_number, class: "form-control", placeholder: "Ej. CCF-8812" %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= f.label :total_amount, "Monto Total ($)", class: "form-label fw-semibold" %>
+      <%= f.number_field :total_amount, step: "0.01", class: "form-control", required: true %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= f.label :issue_date, "Fecha de Emisión", class: "form-label fw-semibold" %>
+      <%= f.date_field :issue_date, value: (invoice.issue_date || Date.today), class: "form-control", required: true %>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <%= f.label :due_date, "Fecha de Vencimiento", class: "form-label fw-semibold" %>
+      <%= f.date_field :due_date, value: (invoice.due_date || Date.today + 30.days), class: "form-control", required: true %>
+    </div>
+
+    <div class="col-12">
+      <%= f.label :description, "Descripción / Observaciones", class: "form-label fw-semibold" %>
+      <%= f.text_area :description, rows: 3, class: "form-control", placeholder: "Detalle de repuestos comprados..." %>
+    </div>
+
+    <div class="col-12 d-flex gap-2 justify-content-end mt-4">
+      <%= link_to "Cancelar", admin_supplier_invoices_path, class: "btn btn-outline-secondary" %>
+      <%= f.submit invoice.new_record? ? "Guardar Factura" : "Actualizar Factura", class: "btn btn-primary px-4" %>
+    </div>
+  </div>
+<% end %>

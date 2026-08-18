@@ -131,6 +131,17 @@ Rails.application.routes.draw do
       end
     end
 
+    #PROVEEDORES
+    resources :suppliers do
+      member do
+        get :invoices # Para ver rápido las facturas de este proveedor
+      end
+    end
+
+    resources :supplier_invoices do
+      resources :supplier_payments, only: [:create, :destroy] # Para agregar/eliminar abonos
+    end
+
     #TIPOS DE CARRO
     resources :car_types
 

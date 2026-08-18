@@ -1,163 +1,230 @@
-# db/seeds.rb
-require 'bcrypt'
+puts "Limpiando datos de proveedores y facturas..."
+SupplierPayment.destroy_all rescue nil
+SupplierInvoice.destroy_all rescue nil
+Supplier.destroy_all rescue nil
 
-puts "Creando usuarios"
+puts "Creando Proveedores..."
 
-super_admin = User.create!(
-  first_name: "Super",
-  last_name: "Admin",
-  email: "super_admin@ferrepro.com",
-  is_valid: true,
-  is_admin: true, # usualmente el super admin sí es admin
-  role: "super_admin",
-  password: "123123",
-  password_confirmation: "123123"
+suppliers_data = [
+  {
+    name: "Super Repuestos",
+    business_name: "Super Repuestos S.A. de C.V.",
+    nit_nrc: "0614-150880-101-2",
+    phone: "2257-7777",
+    email: "ventas@superrepuestos.com",
+    address: "Bulevar Los Héroes #123, San Salvador",
+    contact_person: "Carlos Mendoza",
+    credit_days: 30,
+    credit_limit: 10000.0,
+    active: true
+  },
+  {
+    name: "Impresa Repuestos",
+    business_name: "Impresa Repuestos S.A. de C.V.",
+    nit_nrc: "0614-200175-001-5",
+    phone: "2231-5555",
+    email: "contacto@impresarepuestos.com",
+    address: "Alameda Roosevelt y 45 Av. Sur, San Salvador",
+    contact_person: "Roberto Gómez",
+    credit_days: 45,
+    credit_limit: 15000.0,
+    active: true
+  },
+  {
+    name: "Disagro Repuestos",
+    business_name: "Distribuidora Agroindustrial S.A.",
+    nit_nrc: "0614-051192-102-8",
+    phone: "2298-1234",
+    email: "ventas.sv@disagro.com",
+    address: "Carretera a Santa Ana Km 28, La Libertad",
+    contact_person: "Ana Patricia Rivas",
+    credit_days: 15,
+    credit_limit: 5000.0,
+    active: true
+  },
+  {
+    name: "Autopartes El Globo",
+    business_name: "El Globo Auto Parts S.A. de C.V.",
+    nit_nrc: "0614-100288-103-1",
+    phone: "2440-9988",
+    email: "pedidos@elgloboautoparts.com",
+    address: "25 Avenida Sur y Calle Gerardo Barrios, San Salvador",
+    contact_person: "Luis Alberto Torres",
+    credit_days: 30,
+    credit_limit: 8000.0,
+    active: true
+  },
+  {
+    name: "Lubricantes y Filtros San José",
+    business_name: "Comercializadora San José S.A.",
+    nit_nrc: "0614-180401-002-9",
+    phone: "2510-4321",
+    email: "facturacion@lubrisanjose.com",
+    address: "Calle 5 de Noviembre #405, San Salvador",
+    contact_person: "Mariana Fuentes",
+    credit_days: 60,
+    credit_limit: 12000.0,
+    active: true
+  }
+]
+
+created_suppliers = suppliers_data.map do |s_data|
+  Supplier.create!(s_data)
+end
+
+puts "¡5 Proveedores creados exitosamente!"
+puts "Creando Facturas de Proveedores y Abonos..."
+
+super_repuestos = created_suppliers.find { |s| s.name == "Super Repuestos" }
+impresa         = created_suppliers.find { |s| s.name == "Impresa Repuestos" }
+disagro         = created_suppliers.find { |s| s.name == "Disagro Repuestos" }
+el_globo        = created_suppliers.find { |s| s.name == "Autopartes El Globo" }
+san_jose        = created_suppliers.find { |s| s.name == "Lubricantes y Filtros San José" }
+
+# ----------------------------------------------------------------------
+# FACTURAS PARA SUPER REPUESTOS
+# ----------------------------------------------------------------------
+inv1 = SupplierInvoice.new(
+  supplier: super_repuestos,
+  invoice_number: "FAC-10293",
+  voucher_number: "CCF-88120",
+  voucher_type: "ccf",
+  description: "Compra de pastillas de freno, amortiguadores y discos delanteros",
+  issue_date: 45.days.ago.to_date,
+  due_date: 15.days.ago.to_date,
+  total_amount: 1450.00
+)
+inv1.supplier_payments.build(
+  payment_date: 20.days.ago.to_date,
+  amount: 450.00,
+  payment_method: "transferencia",
+  reference_number: "TRX-48201",
+  notes: "Primer abono a la factura"
+)
+inv1.save!
+
+SupplierInvoice.create!(
+  supplier: super_repuestos,
+  invoice_number: "FAC-10450",
+  voucher_number: "CCF-88345",
+  voucher_type: "ccf",
+  description: "Kits de distribución, fajas de motor y bombas de agua",
+  issue_date: 10.days.ago.to_date,
+  due_date: 20.days.from_now.to_date,
+  total_amount: 820.50
 )
 
-admin = User.create!(
-  first_name: "Admin",
-  last_name: "Ferrepro",
-  email: "admin@ferrepro.com",
-  is_valid: true,
-  is_admin: true,
-  role: "admin",
-  password: "123123",
-  password_confirmation: "123123"
+# ----------------------------------------------------------------------
+# FACTURAS PARA IMPRESA REPUESTOS
+# ----------------------------------------------------------------------
+inv3 = SupplierInvoice.new(
+  supplier: impresa,
+  invoice_number: "IMP-7741",
+  voucher_number: "CCF-4410",
+  voucher_type: "ccf",
+  description: "Lote de sensores ABS, bujías de iridio y bobinas de encendido",
+  issue_date: 60.days.ago.to_date,
+  due_date: 15.days.ago.to_date,
+  total_amount: 2100.00
+)
+inv3.supplier_payments.build(
+  payment_date: 30.days.ago.to_date,
+  amount: 1000.00,
+  payment_method: "transferencia",
+  reference_number: "TRX-9912",
+  notes: "Abono 50%"
+)
+inv3.supplier_payments.build(
+  payment_date: 10.days.ago.to_date,
+  amount: 1100.00,
+  payment_method: "cheque",
+  reference_number: "CHQ-00129",
+  notes: "Pago del saldo restante"
+)
+inv3.save!
+
+SupplierInvoice.create!(
+  supplier: impresa,
+  invoice_number: "IMP-8102",
+  voucher_number: "CCF-4589",
+  voucher_type: "ccf",
+  description: "Faros LED, vías direccionales y silvines universales",
+  issue_date: 50.days.ago.to_date,
+  due_date: 5.days.ago.to_date,
+  total_amount: 675.25
 )
 
-cajero_user = User.create!(
-  first_name: "Julio Enrique",
-  last_name: "Martinez Hernandez",
-  email: "cajero1@ferrepro.com",
-  is_valid: true,
-  is_admin: false,
-  role: "cajero",
-  password: "123123",
-  password_confirmation: "123123"
+# ----------------------------------------------------------------------
+# FACTURAS PARA DISAGRO REPUESTOS
+# ----------------------------------------------------------------------
+SupplierInvoice.create!(
+  supplier: disagro,
+  invoice_number: "DIS-00381",
+  voucher_number: "CCF-1029",
+  voucher_type: "ccf",
+  description: "Filtros de aire agrícola, fajas industriales y rodamientos",
+  issue_date: 5.days.ago.to_date,
+  due_date: 10.days.from_now.to_date,
+  total_amount: 1250.00
 )
 
-puts "Creando categorias"
+# ----------------------------------------------------------------------
+# FACTURAS PARA AUTOPARTES EL GLOBO
+# ----------------------------------------------------------------------
+inv6 = SupplierInvoice.new(
+  supplier: el_globo,
+  invoice_number: "GLO-9011",
+  voucher_number: "CCF-6712",
+  voucher_type: "ccf",
+  description: "Radiadores, termostatos y mangueras de alta presión",
+  issue_date: 15.days.ago.to_date,
+  due_date: 15.days.from_now.to_date,
+  total_amount: 1800.00
+)
+inv6.supplier_payments.build(
+  payment_date: 5.days.ago.to_date,
+  amount: 800.00,
+  payment_method: "efectivo",
+  reference_number: "REC-041",
+  notes: "Anticipo entregado al vendedor"
+)
+inv6.save!
 
-cat_electricidad = Category.create!(
-  name: "Electricidad",
-  description: "Herramientas y productos eléctricos"
+# ----------------------------------------------------------------------
+# FACTURAS PARA LUBRICANTES Y FILTROS SAN JOSÉ
+# ----------------------------------------------------------------------
+inv7 = SupplierInvoice.new(
+  supplier: san_jose,
+  invoice_number: "LSJ-5510",
+  voucher_number: "CCF-3390",
+  voucher_type: "ccf",
+  description: "Tambores de aceite 20W50, 10W30 y galones de refrigerante",
+  issue_date: 25.days.ago.to_date,
+  due_date: 35.days.from_now.to_date,
+  total_amount: 3200.00
+)
+inv7.supplier_payments.build(
+  payment_date: 20.days.ago.to_date,
+  amount: 3200.00,
+  payment_method: "transferencia",
+  reference_number: "TRX-77102",
+  notes: "Pago total con descuento por pronto pago"
+)
+inv7.save!
+
+SupplierInvoice.create!(
+  supplier: san_jose,
+  invoice_number: "LSJ-5680",
+  voucher_number: "CCF-3450",
+  voucher_type: "ccf",
+  description: "Filtros de aceite, filtros de combustible diésel y grasa industrial",
+  issue_date: 2.days.ago.to_date,
+  due_date: 58.days.from_now.to_date,
+  total_amount: 940.00
 )
 
-cat_fontaneria = Category.create!(
-  name: "Fontaneria",
-  description: "Herramientas y productos de fontaneria"
-)
-
-puts "Creando productos"
-
-Product.create!(
-  name: "Tenaza trupper",
-  description: "Tenaza para cortar conductor",
-  quantity: 50,
-  price: 8.50,
-  image_url: "https://sv.epaenlinea.com/media/catalog/product/cache/e28d833c75ef32af78ed2f15967ef6e0/e/5/e596d954-3cb3-4f6a-8f1d-8c04cd08cb85.jpg",
-  category: cat_electricidad
-)
-
-Product.create!(
-  name: "Tester digital trupper",
-  description: "Multimetro digital, para medir voltaje, intensidad y resistencia AC/DC",
-  quantity: 30,
-  price: 12.75,
-  image_url: "https://sv.epaenlinea.com/media/catalog/product/cache/e28d833c75ef32af78ed2f15967ef6e0/e/2/e2a8c455-3416-497f-a1f7-50048b13d826.jpg",
-  category: cat_electricidad
-)
-
-Product.create!(
-  name: "Foco led 40 watts",
-  description: "Marca phillips, potencia 40 watts",
-  quantity: 50,
-  price: 7.25,
-  image_url: "https://www.freundferreteria.com/Productos/GetMultimedia?idProducto=622c6b69-f4d3-41e4-8d65-97546d2c4ba5&idMultimediaProducto=e076c884-c165-40ae-8d4c-11bfdcbd3685&width=500&height=500&qa=90&esImagen=True&ext=.jpg",
-  category: cat_electricidad
-)
-
-Product.create!(
-  name: "Juego de destornilladores aislados 7 pzs 1000 V",
-  description: "Set de 7 destornilladores aislados, cubiertos contra 1000 V, incluye puntas planas y Philips; ideal para instalaciones eléctricas.",
-  quantity: 30,
-  price: 39.99,
-  image_url: "https://globaltoolsgt.com/cdn/shop/files/STMT60175-LA-juego-de-desarmadores-aislados-stanley_1_1024x.jpg?v=1697936621",
-  category: cat_electricidad
-)
-
-Product.create!(
-  name: "Set destornilladores aislados Milwaukee 7 pzs",
-  description: "Destornilladores de punta fina aislados 1000 V de la marca Milwaukee, ideales para trabajos en espacios reducidos.",
-  quantity: 25,
-  price: 53.97,
-  image_url: "https://www.milwaukeetool.com/--/web-images/sc/f1a8d9649fdd47568181f3043fdb48aa?hash=7c1ed61a85a5692d75e138da79f4758f&lang=en",
-  category: cat_electricidad
-)
-
-Product.create!(
-  name: "Set destornilladores aislados Klein 6 pzs 1000 V",
-  description: "Set de 6 destornilladores aislados 1000 V Klein Tools, con puntas Slotted, Phillips y Square; mango ergonómico y seguro.",
-  quantity: 20,
-  price: 39.97,
-  image_url: "https://media.kleintools.io/images/original/klein/85076ins_mb.jpg",
-  category: cat_electricidad
-)
-
-Product.create!(
-  name: "Lavamanos",
-  description: "Lavamanos de porcelana blanco",
-  quantity: 10,
-  price: 75.00,
-  image_url: "https://sv.epaenlinea.com/media/catalog/product/cache/e28d833c75ef32af78ed2f15967ef6e0/3/5/35d47ed9-4d02-4ffd-90d3-ebca9e35990e.jpg",
-  category: cat_fontaneria
-)
-
-Product.create!(
-  name: "Grifo lavamanos monomando cuello bajo cromado pomo",
-  description: "Su diseño monomando de agua fría, con cuerpo, cartucho y manija de plástico, ofrece una solución práctica y moderna. Disfrute de un flujo de agua preciso y constante, ideal para lavamanos y espacios donde se requiere agua fría.",
-  quantity: 20,
-  price: 15.00,
-  image_url: "https://sv.epaenlinea.com/media/catalog/product/cache/e28d833c75ef32af78ed2f15967ef6e0/3/5/3599a2d7-27fe-487a-bda2-a18d7b8cda52.jpg",
-  category: cat_fontaneria
-)
-
-Product.create!(
-  name: "Válvula check PVC 3/4\" anti-retorno",
-  description: "Válvula check de PVC CED‑40 de 3/4\" para evitar retorno de agua en drenajes.",
-  quantity: 40,
-  price: 3.00,
-  image_url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTs4l4beK5GB_84cZ59iEwILmDItAdHket2iA&s",
-  category: cat_fontaneria
-)
-
-Product.create!(
-  name: "Válvula esfera PVC 3/4\"",
-  description: "Válvula de esfera en PVC CED‑40 de 3/4\" con palanca de metal ideal para sistemas hidráulicos.",
-  quantity: 25,
-  price: 5.50,
-  image_url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5leO4_JtfFwC6a3lRwbphF8np59dxUSwiIg&s",
-  category: cat_fontaneria
-)
-
-Product.create!(
-  name: "Válvula de drenaje 3/4\" PVC",
-  description: "Válvula especial de drenaje en PVC 3/4\" para sistemas sanitarios, con rosca y tapa superior.",
-  quantity: 30,
-  price: 4.75,
-  image_url: "https://m.media-amazon.com/images/I/61JwvJv2V4L._AC_UF894,1000_QL80_.jpg",
-  category: cat_fontaneria
-)
-
-puts "Creando cajas y cajeros"
-
-caja1 = Caja.create!(nombre: "Caja 1", caja_number: 1)
-caja2 = Caja.create!(nombre: "Caja 2", caja_number: 2)
-
-Cajero.create!(
-  nombre: "Cajero 1",
-  caja: caja1,
-  user: cajero_user
-)
-
-puts "Seeds completados con éxito"
+puts "=========================================="
+puts " ¡Seeds cargados exitosamente!"
+puts " 5 Proveedores creados."
+puts " 8 Facturas creadas con sus saldos y estados."
+puts "=========================================="

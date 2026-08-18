@@ -1,0 +1,116 @@
+<div class="container-fluid min-vh-100 py-4">
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
+    <div>
+      <h1 class="h3 text-gray-800 mb-0"><i class="fas fa-truck me-2 text-primary"></i><%= @supplier.name %></h1>
+      <p class="text-muted small mb-0"><%= @supplier.business_name %> — NIT/NRC: <%= @supplier.nit_nrc %></p>
+    </div>
+    <div class="d-flex gap-2">
+      <%= link_to edit_admin_supplier_path(@supplier), class: "btn btn-outline-primary btn-sm" do %>
+        <i class="fas fa-edit me-1"></i> Editar
+      <% end %>
+      <%= link_to admin_suppliers_path, class: "btn btn-secondary btn-sm" do %>
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      <% end %>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-primary">
+        <span class="text-muted small text-uppercase">Total Facturado</span>
+        <h4 class="fw-bold mb-0 text-primary"><%= number_to_currency(@total_invoiced) %></h4>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-success">
+        <span class="text-muted small text-uppercase">Total Abonado</span>
+        <h4 class="fw-bold mb-0 text-success"><%= number_to_currency(@total_paid) %></h4>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-danger">
+        <span class="text-muted small text-uppercase">Saldo Pendiente</span>
+        <h4 class="fw-bold mb-0 text-danger"><%= number_to_currency(@total_pending) %></h4>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-warning">
+        <span class="text-muted small text-uppercase">Facturas Vencidas</span>
+        <h4 class="fw-bold mb-0 text-warning"><%= @overdue_count %></h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom">
+          <h6 class="m-0 fw-bold text-primary"><i class="fas fa-address-card me-2"></i>Datos de Contacto</h6>
+        </div>
+        <div class="card-body">
+          <p class="mb-2"><strong>Contacto:</strong> <%= @supplier.contact_person.presence || "No especificado" %></p>
+          <p class="mb-2"><strong>Teléfono:</strong> <%= @supplier.phone %></p>
+          <p class="mb-2"><strong>Email:</strong> <%= @supplier.email %></p>
+          <p class="mb-2"><strong>Dirección:</strong> <%= @supplier.address %></p>
+          <hr>
+          <p class="mb-2"><strong>Días de Crédito:</strong> <span class="badge bg-info text-dark"><%= @supplier.credit_days %> Días</span></p>
+          <p class="mb-0"><strong>Límite de Crédito:</strong> <%= number_to_currency(@supplier.credit_limit) %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+          <h6 class="m-0 fw-bold text-primary"><i class="fas fa-file-invoice me-2"></i>Historial de Facturas</h6>
+          <%= link_to new_admin_supplier_invoice_path(supplier_id: @supplier.id), class: "btn btn-primary btn-sm" do %>
+            <i class="fas fa-plus me-1"></i> Nueva Factura
+          <% end %>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="bg-light small text-uppercase">
+                <tr>
+                  <th class="ps-3">N° Factura</th>
+                  <th>Emisión</th>
+                  <th>Vencimiento</th>
+                  <th class="text-end">Total</th>
+                  <th class="text-end">Saldo</th>
+                  <th class="text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if @invoices.any? %>
+                  <% @invoices.each do |inv| %>
+                    <tr>
+                      <td class="ps-3 fw-bold">
+                        <%= link_to inv.invoice_number, admin_supplier_invoice_path(inv), class: "text-decoration-none" %>
+                      </td>
+                      <td><%= inv.issue_date.strftime("%d/%m/%Y") %></td>
+                      <td><%= inv.due_date.strftime("%d/%m/%Y") %></td>
+                      <td class="text-end"><%= number_to_currency(inv.total_amount) %></td>
+                      <td class="text-end fw-bold text-danger"><%= number_to_currency(inv.balance) %></td>
+                      <td class="text-center">
+                        <span class="badge bg-<%= inv.status == 'pagada' ? 'success' : (inv.status == 'vencida' ? 'danger' : 'warning') %>">
+                          <%= inv.status.capitalize %>
+                        </span>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr>
+                    <td colspan="6" class="text-center py-3 text-muted">Sin facturas registradas.</td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white py-3">
+          <%= paginate @invoices rescue nil %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
