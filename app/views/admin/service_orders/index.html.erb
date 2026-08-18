@@ -97,6 +97,13 @@
                     <%= link_to edit_admin_client_car_service_order_path(car, so), data: { turbo: false }, class: "btn btn-sm btn-warning text-dark me-1", title: "Editar" do %>
                       <i class="fas fa-pencil"></i>
                     <% end %>
+
+                    <%= link_to print_pdf_admin_service_order_path(so, format: :pdf), 
+                          target: "_blank", 
+                          class: "btn btn-sm btn-danger shadow-sm me-1", 
+                          data: { turbo: false } do %>
+                      <i class="fas fa-print me-1"></i>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>

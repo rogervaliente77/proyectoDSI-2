@@ -33,7 +33,7 @@ class GenerateMantenimientoServicePdf < Prawn::Document
     bounding_box([0, bounds.top + 80], width: 532, height: 70) do
       logo_path = Rails.root.join('app/assets/images/logo_bimers.png')
       if File.exist?(logo_path)
-        image logo_path, at: [0, cursor], width: 130
+        image logo_path, at: [0, cursor + 10], width: 130
       end
   
       bounding_box([140, cursor], width: 390) do

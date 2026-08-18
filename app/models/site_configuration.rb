@@ -15,6 +15,9 @@ class SiteConfiguration
   field :maintenance_mode, type: Boolean, default: false
   field :debug_mode, type: Boolean, default: false
 
+  field :email_sender, type: String
+  field :app_password_sender, type: String
+
   def self.current_session_timeout
     (first&.session_timeout || 60).minutes
   end
