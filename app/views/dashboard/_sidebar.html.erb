@@ -76,7 +76,7 @@
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCotizaciones"
         aria-expanded="true" aria-controls="collapseCotizaciones">
-        <i class="fas fa-fw fa-folder"></i>
+        <i class="fas fa-fw fa-wrench"></i>
         <span>Bimers</span>
       </a>
       <div id="collapseCotizaciones" class="collapse" data-parent="#accordionSidebar">
@@ -92,7 +92,7 @@
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmpleados"
         aria-expanded="true" aria-controls="collapseEmpleados">
-        <i class="fas fa-fw fa-folder"></i>
+        <i class="fas fa-fw fa-people-group"></i>
         <span>RRHH</span>
       </a>
       <div id="collapseEmpleados" class="collapse" data-parent="#accordionSidebar">
@@ -145,6 +145,21 @@
         </div>
       </div>
     </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSuppliers"
+        aria-expanded="true" aria-controls="collapseSuppliers">
+        <i class="fas fa-fw fa-warehouse"></i>
+        <span>Proveedores</span>
+      </a>
+      <div id="collapseSuppliers" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Proveedores:</h6>
+          <a class="collapse-item" href="<%= admin_suppliers_path %>" data-turbo="false">Proveedores</a>
+          <a class="collapse-item" href="<%= admin_supplier_invoices_path %>" data-turbo="false">Facturas de proveedor</a>
+        </div>
+      </div>
+    </li>
   <% end %>
 
   <!-- Usuarios -->
@@ -152,7 +167,7 @@
     <li class="nav-item">
       <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUsers"
          aria-expanded="true" aria-controls="collapseUsers">
-        <i class="fas fa-users"></i>
+        <i class="fas fa-user"></i>
         <span>Users</span>
       </a>
       <div id="collapseUsers" class="collapse" data-parent="#accordionSidebar">

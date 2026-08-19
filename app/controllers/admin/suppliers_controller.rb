@@ -3,16 +3,21 @@ module Admin
     before_action :set_supplier, only: [:show, :edit, :update, :destroy]
     layout 'dashboard'
 
+    # app/controllers/admin/suppliers_controller.rb
     def index
-      @suppliers = Supplier.all
-      
+      scope = Supplier.all
+
       if params[:query].present?
         query_regex = /#{Regexp.escape(params[:query])}/i
-        @suppliers = @suppliers.any_of({ name: query_regex }, { nit_nrc: query_regex }, { phone: query_regex })
+        scope = scope.any_of({ name: query_regex }, { nit_nrc: query_regex }, { phone: query_regex })
       end
 
-      # Paginación (Páginas de 10)
-      @suppliers = @suppliers.order_by(name: :asc).page(params[:page]).per(10)
+      @suppliers = scope.includes(:supplier_invoices)
+                        .order_by(name: :asc)
+                        .page(params[:page] || 1)
+                        .per(10)
+
+      @total_suppliers = @suppliers.total_count
     end
 
     def show

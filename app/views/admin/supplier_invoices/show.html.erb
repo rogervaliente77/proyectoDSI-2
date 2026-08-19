@@ -1,116 +1,152 @@
-<div class="container-fluid min-vh-100 py-4">
-  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
+<%# app/views/admin/invoices/show.html.erb %>
+<div class="container-fluid py-4">
+  <!-- Encabezado y Acciones -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="h3 text-gray-800 mb-0"><i class="fas fa-truck me-2 text-primary"></i><%= @supplier.name %></h1>
-      <p class="text-muted small mb-0"><%= @supplier.business_name %> — NIT/NRC: <%= @supplier.nit_nrc %></p>
+      <h1 class="h3 text-gray-800">Factura #<%= @invoice.invoice_number %></h1>
+      <p class="text-muted mb-0">Proveedor: <strong><%= @invoice.supplier&.name %></strong></p>
     </div>
-    <div class="d-flex gap-2">
-      <%= link_to edit_admin_supplier_path(@supplier), class: "btn btn-outline-primary btn-sm" do %>
-        <i class="fas fa-edit me-1"></i> Editar
-      <% end %>
-      <%= link_to admin_suppliers_path, class: "btn btn-secondary btn-sm" do %>
-        <i class="fas fa-arrow-left me-1"></i> Volver
+    <div>
+      <%= link_to "Volver al listado", admin_supplier_invoices_path, class: "btn btn-outline-secondary me-2" %>
+      <% if @invoice.balance > 0 %>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
+          <i class="fas fa-plus-circle me-1"></i> Registrar Pago
+        </button>
       <% end %>
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-primary">
-        <span class="text-muted small text-uppercase">Total Facturado</span>
-        <h4 class="fw-bold mb-0 text-primary"><%= number_to_currency(@total_invoiced) %></h4>
-      </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-success">
-        <span class="text-muted small text-uppercase">Total Abonado</span>
-        <h4 class="fw-bold mb-0 text-success"><%= number_to_currency(@total_paid) %></h4>
-      </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-danger">
-        <span class="text-muted small text-uppercase">Saldo Pendiente</span>
-        <h4 class="fw-bold mb-0 text-danger"><%= number_to_currency(@total_pending) %></h4>
-      </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-      <div class="card border-0 shadow-sm rounded-3 p-3 text-center bg-white border-top border-4 border-warning">
-        <span class="text-muted small text-uppercase">Facturas Vencidas</span>
-        <h4 class="fw-bold mb-0 text-warning"><%= @overdue_count %></h4>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-12 col-lg-4">
-      <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white py-3 border-bottom">
-          <h6 class="m-0 fw-bold text-primary"><i class="fas fa-address-card me-2"></i>Datos de Contacto</h6>
-        </div>
+  <!-- Cards de Resumen de Saldo -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card border-left-primary shadow h-100 py-2">
         <div class="card-body">
-          <p class="mb-2"><strong>Contacto:</strong> <%= @supplier.contact_person.presence || "No especificado" %></p>
-          <p class="mb-2"><strong>Teléfono:</strong> <%= @supplier.phone %></p>
-          <p class="mb-2"><strong>Email:</strong> <%= @supplier.email %></p>
-          <p class="mb-2"><strong>Dirección:</strong> <%= @supplier.address %></p>
-          <hr>
-          <p class="mb-2"><strong>Días de Crédito:</strong> <span class="badge bg-info text-dark"><%= @supplier.credit_days %> Días</span></p>
-          <p class="mb-0"><strong>Límite de Crédito:</strong> <%= number_to_currency(@supplier.credit_limit) %></p>
+          <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Monto Total</div>
+          <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= sprintf('%.2f', @invoice.total_amount || 0) %></div>
         </div>
       </div>
     </div>
-
-    <div class="col-12 col-lg-8">
-      <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-          <h6 class="m-0 fw-bold text-primary"><i class="fas fa-file-invoice me-2"></i>Historial de Facturas</h6>
-          <%= link_to new_admin_supplier_invoice_path(supplier_id: @supplier.id), class: "btn btn-primary btn-sm" do %>
-            <i class="fas fa-plus me-1"></i> Nueva Factura
-          <% end %>
+    <div class="col-md-3">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Monto Pagado</div>
+          <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= sprintf('%.2f', (@invoice.total_amount || 0) - (@invoice.balance || 0)) %></div>
         </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="bg-light small text-uppercase">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Saldo Pendiente</div>
+          <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= sprintf('%.2f', @invoice.balance || 0) %></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Estado</div>
+          <span class="badge bg-<%= status_badge_class(@invoice.status) %> text-uppercase">
+            <%= @invoice.status %>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de Abonos / Pagos -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary">Historial de Pagos y Abonos</h6>
+    </div>
+    <div class="card-body">
+      <% if @payments.any? %>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Fecha de Pago</th>
+                <th>Método</th>
+                <th>Referencia / Comprobante</th>
+                <th>Notas</th>
+                <th class="text-end">Monto Abonado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @invoice.supplier_payments.each do |payment| %>
                 <tr>
-                  <th class="ps-3">N° Factura</th>
-                  <th>Emisión</th>
-                  <th>Vencimiento</th>
-                  <th class="text-end">Total</th>
-                  <th class="text-end">Saldo</th>
-                  <th class="text-center">Estado</th>
+                  <td><%= payment.payment_date&.strftime("%d/%m/%Y") %></td>
+                  <td><span class="badge bg-secondary"><%= payment.payment_method&.capitalize %></span></td>
+                  <td><%= payment.reference_number.presence || 'N/A' %></td>
+                  <td><%= payment.notes %></td>
+                  <td class="text-end font-weight-bold text-success">$<%= sprintf('%.2f', payment.amount) %></td>
+                  <td class="text-center">
+                    <%= button_to admin_supplier_invoice_supplier_payment_path(@invoice, payment.id),
+                                  method: :delete,
+                                  data: { confirm: "¿Estás seguro de anular este pago?" },
+                                  class: "btn btn-sm btn-outline-danger" do %>
+                      <i class="fas fa-trash"></i> Anular
+                    <% end %>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                <% if @invoices.any? %>
-                  <% @invoices.each do |inv| %>
-                    <tr>
-                      <td class="ps-3 fw-bold">
-                        <%= link_to inv.invoice_number, admin_supplier_invoice_path(inv), class: "text-decoration-none" %>
-                      </td>
-                      <td><%= inv.issue_date.strftime("%d/%m/%Y") %></td>
-                      <td><%= inv.due_date.strftime("%d/%m/%Y") %></td>
-                      <td class="text-end"><%= number_to_currency(inv.total_amount) %></td>
-                      <td class="text-end fw-bold text-danger"><%= number_to_currency(inv.balance) %></td>
-                      <td class="text-center">
-                        <span class="badge bg-<%= inv.status == 'pagada' ? 'success' : (inv.status == 'vencida' ? 'danger' : 'warning') %>">
-                          <%= inv.status.capitalize %>
-                        </span>
-                      </td>
-                    </tr>
-                  <% end %>
-                <% else %>
-                  <tr>
-                    <td colspan="6" class="text-center py-3 text-muted">Sin facturas registradas.</td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-receipt fa-2x mb-2"></i>
+          <p class="mb-0">No se han registrado pagos para esta factura aún.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Registrar Nuevo Pago -->
+<div class="modal fade" id="newPaymentModal" tabindex="-1" aria-labelledby="newPaymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newPaymentModalLabel">Registrar Abono / Pago</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <%= form_with(model: [@supplier_invoice, @payment], url: admin_supplier_invoice_supplier_payments_path(@invoice), local: true) do |f| %>
+        <div class="modal-body">
+          <div class="mb-3">
+            <%= f.label :amount, "Monto a Pagar ($)", class: "form-label" %>
+            <%= f.number_field :amount, value: @invoice.balance, step: '0.01', max: @invoice.balance, min: '0.01', class: "form-control", required: true %>
+            <small class="text-muted">Saldo pendiente actual: $<%= sprintf('%.2f', @invoice.balance) %></small>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :payment_date, "Fecha de Pago", class: "form-label" %>
+            <%= f.date_field :payment_date, value: Date.today, class: "form-control", required: true %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :payment_method, "Método de Pago", class: "form-label" %>
+            <%= f.select :payment_method, 
+                         options_for_select([['Transferencia Bancaria', 'transferencia'], ['Cheque', 'cheque'], ['Efectivo', 'efectivo']], 'transferencia'), 
+                         {}, class: "form-select" %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :reference_number, "Número de Referencia / Transacción", class: "form-label" %>
+            <%= f.text_field :reference_number, class: "form-control", placeholder: "Ej. TR-998122 o Cheque #4521" %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :notes, "Notas adicionales", class: "form-label" %>
+            <%= f.text_area :notes, rows: 2, class: "form-control", placeholder: "Detalles del pago..." %>
           </div>
         </div>
-        <div class="card-footer bg-white py-3">
-          <%= paginate @invoices rescue nil %>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <%= f.submit "Guardar Pago", class: "btn btn-success" %>
         </div>
-      </div>
+      <% end %>
     </div>
   </div>
 </div>

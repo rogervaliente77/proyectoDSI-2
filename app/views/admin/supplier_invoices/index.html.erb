@@ -9,6 +9,7 @@
     <% end %>
   </div>
 
+  <%# Tarjetas de Estadísticas %>
   <div class="row g-3 mb-4">
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-danger">
@@ -67,6 +68,7 @@
     </div>
   </div>
 
+  <%# Formulario de Filtros %>
   <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-light">
     <%= form_with url: admin_supplier_invoices_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
       
@@ -103,6 +105,7 @@
     <% end %>
   </div>
 
+  <%# Tabla de Registros %>
   <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -121,35 +124,44 @@
             </tr>
           </thead>
           <tbody>
-            <% if @invoices.any? %>
+            <%# Usamos .present? en lugar de .any? para no generar consulta extra %>
+            <% if @invoices.present? %>
               <% @invoices.each do |inv| %>
                 <tr>
                   <td class="ps-3 fw-bold text-dark">
                     <%= link_to inv.invoice_number, admin_supplier_invoice_path(inv), class: "text-decoration-none text-primary" %>
-                    <br><small class="text-muted fw-normal"><%= inv.voucher_number %></small>
+                    <% if inv.voucher_number.present? %>
+                      <br><small class="text-muted fw-normal"><%= inv.voucher_number %></small>
+                    <% end %>
                   </td>
                   <td>
-                    <span class="fw-semibold text-dark"><%= inv.supplier.name %></span>
+                    <span class="fw-semibold text-dark"><%= inv.supplier&.name || "N/A" %></span>
                   </td>
-                  <td><%= inv.issue_date.strftime("%d/%m/%Y") if inv.issue_date %></td>
+                  <td><%= inv.issue_date&.strftime("%d/%m/%Y") %></td>
                   <td>
-                    <span class="<%= 'text-danger fw-bold' if inv.is_overdue? %>">
-                      <%= inv.due_date.strftime("%d/%m/%Y") if inv.due_date %>
+                    <span class="<%= 'text-danger fw-bold' if inv.respond_to?(:is_overdue?) && inv.is_overdue? %>">
+                      <%= inv.due_date&.strftime("%d/%m/%Y") %>
                     </span>
                   </td>
                   <td class="text-end fw-semibold"><%= number_to_currency(inv.total_amount) %></td>
                   <td class="text-end text-success"><%= number_to_currency(inv.paid_amount) %></td>
-                  <td class="text-end fw-bold <%= inv.balance > 0 ? 'text-danger' : 'text-muted' %>">
+                  <td class="text-end fw-bold <%= (inv.balance || 0) > 0 ? 'text-danger' : 'text-muted' %>">
                     <%= number_to_currency(inv.balance) %>
                   </td>
                   <td class="text-center">
                     <% case inv.status %>
                     <% when "pagada" %>
-                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1"><i class="fas fa-check-circle me-1"></i> Pagada</span>
+                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                        <i class="fas fa-check-circle me-1"></i> Pagada
+                      </span>
                     <% when "vencida" %>
-                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1"><i class="fas fa-exclamation-triangle me-1"></i> Vencida</span>
+                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Vencida
+                      </span>
                     <% else %>
-                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1"><i class="fas fa-clock me-1"></i> Pendiente</span>
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                        <i class="fas fa-clock me-1"></i> Pendiente
+                      </span>
                     <% end %>
                   </td>
                   <td class="text-center pe-3">
@@ -169,8 +181,9 @@
               <% end %>
             <% else %>
               <tr>
-                <td colspan="9" class="text-center py-4 text-muted">
-                  <i class="fas fa-receipt fa-2x mb-2 d-block"></i> No se encontraron facturas registradas.
+                <td colspan="9" class="text-center py-5 text-muted">
+                  <i class="fas fa-receipt fa-3x mb-3 text-secondary opacity-50 d-block"></i>
+                  No se encontraron facturas registradas.
                 </td>
               </tr>
             <% end %>
@@ -179,11 +192,19 @@
       </div>
     </div>
 
-    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-3">
-      <small class="text-muted">Mostrando <%= @invoices.count %> de <%= @invoices.total_count rescue @invoices.count %> registros</small>
-      <div>
-        <%= paginate @invoices rescue nil %>
+    <%# Paginación %>
+    <% if @invoices.present? %>
+      <div class="card-footer bg-white d-flex flex-column flex-md-row justify-content-between align-items-center py-3 gap-2">
+        <small class="text-muted">
+          Mostrando <strong><%= @invoices.offset_value + 1 %></strong> - 
+          <strong><%= [@invoices.offset_value + @invoices.length, @total_invoices].min %></strong> 
+          de <strong><%= @total_invoices %></strong> registros
+        </small>
+        
+        <div data-turbo="false">
+          <%= paginate @invoices %>
+        </div>
       </div>
-    </div>
+    <% end %>
   </div>
 </div>

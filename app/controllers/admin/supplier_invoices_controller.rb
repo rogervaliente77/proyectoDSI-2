@@ -4,42 +4,82 @@ module Admin
     layout 'dashboard'
 
     def index
+      # 1. Proveedores para selectores/filtros en la vista
       @suppliers = Supplier.where(active: true).order_by(name: :asc)
-      @invoices = SupplierInvoice.all
 
-      # --- FILTROS ---
+      # 2. Construcción del scope con filtros dinámicos
+      scope = SupplierInvoice.all
+
       if params[:query].present?
-        q_regex = /#{Regexp.escape(params[:query])}/i
-        @invoices = @invoices.any_of({ invoice_number: q_regex }, { voucher_number: q_regex })
+        q_regex = /#{Regexp.escape(params[:query].strip)}/i
+        scope = scope.any_of({ invoice_number: q_regex }, { voucher_number: q_regex })
       end
 
-      if params[:supplier_id].present?
-        @invoices = @invoices.where(supplier_id: params[:supplier_id])
-      end
-
-      if params[:status].present?
-        @invoices = @invoices.where(status: params[:status])
-      end
+      scope = scope.where(supplier_id: params[:supplier_id]) if params[:supplier_id].present?
+      scope = scope.where(status: params[:status]) if params[:status].present?
 
       if params[:start_date].present? && params[:end_date].present?
         s_date = Date.parse(params[:start_date]) rescue nil
         e_date = Date.parse(params[:end_date]) rescue nil
-        @invoices = @invoices.where(:issue_date.gte => s_date, :issue_date.lte => e_date) if s_date && e_date
+        scope = scope.where(:issue_date.gte => s_date, :issue_date.lte => e_date) if s_date && e_date
       end
 
-      # --- ESTADÍSTICAS GLOBALES PARA LAS CARDS SUPERIORES ---
-      all_pending = SupplierInvoice.where(:status.in => ["pendiente", "vencida"])
-      @stats_total_debt = all_pending.sum(:balance) || 0.0
-      @stats_overdue_debt = SupplierInvoice.where(status: "vencida").sum(:balance) || 0.0
-      @stats_due_this_month = all_pending.where(:due_date.gte => Date.today.beginning_of_month, :due_date.lte => Date.today.end_of_month).sum(:balance) || 0.0
-      @stats_total_paid_month = SupplierInvoice.where(:payment_date.gte => Date.today.beginning_of_month, :payment_date.lte => Date.today.end_of_month).sum(:paid_amount) || 0.0
+      # 3. Rangos de fechas para métricas globales
+      today = Date.today
+      bom   = today.beginning_of_month.to_time.utc
+      eom   = today.end_of_month.to_time.utc
 
-      # --- PAGINACIÓN ---
-      @invoices = @invoices.order_by(due_date: :asc).page(params[:page]).per(10)
+      # 4. Agregación consolidada (4 cálculos en 1 sola consulta a MongoDB)
+      metrics = SupplierInvoice.collection.aggregate([
+        {
+          '$facet' => {
+            'total_debt' => [
+              { '$match' => { 'status' => { '$in' => %w[pendiente vencida] }, 'balance' => { '$exists' => true } } },
+              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
+            ],
+            'overdue_debt' => [
+              { '$match' => { 'status' => 'vencida', 'balance' => { '$exists' => true } } },
+              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
+            ],
+            'due_this_month' => [
+              { '$match' => { 'status' => { '$in' => %w[pendiente vencida] }, 'due_date' => { '$gte' => bom, '$lte' => eom }, 'balance' => { '$exists' => true } } },
+              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
+            ],
+            'total_paid_month' => [
+              { '$match' => { 'payment_date' => { '$gte' => bom, '$lte' => eom }, 'paid_amount' => { '$exists' => true } } },
+              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$paid_amount' } } }
+            ]
+          }
+        }
+      ]).first || {}
+
+      # Mapeo a las variables de instancia que consume tu vista
+      @stats_total_debt       = metrics.dig('total_debt', 0, 'total') || 0.0
+      @stats_overdue_debt     = metrics.dig('overdue_debt', 0, 'total') || 0.0
+      @stats_due_this_month   = metrics.dig('due_this_month', 0, 'total') || 0.0
+      @stats_total_paid_month = metrics.dig('total_paid_month', 0, 'total') || 0.0
+
+      # 5. Paginación y precarga de asociaciones
+      @invoices = scope.includes(:supplier)
+                       .order_by(due_date: :asc)
+                       .page(params[:page])
+                       .per(3)
+
+      # Conteo guardado en variable para evitar consultas duplicadas
+      @total_invoices = @invoices.total_count
     end
 
     def show
-      @payment = SupplierPayment.new
+      @invoice = SupplierInvoice.includes(:supplier).find(params[:id])
+      
+      # 1. Obtenemos solo los pagos que ya están persistidos en la base de datos
+      @payments = @invoice.supplier_payments.select(&:persisted?)
+
+      # 2. Instanciamos el objeto para el formulario sin vincularlo a @invoice
+      @payment = SupplierPayment.new(
+        payment_date: Date.today,
+        amount: @invoice.balance
+      )
     end
 
     def new

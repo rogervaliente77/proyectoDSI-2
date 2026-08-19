@@ -23,6 +23,8 @@ class Supplier
   
   # Métodos de apoyo
   def total_debt
-    supplier_invoices.where(:status.in => ["pendiente", "vencida"]).sum(:balance)
+    # select opera sobre el array en memoria sin ir a MongoDB
+    supplier_invoices.select { |inv| %w[pendiente vencida].include?(inv.status) && inv.balance.present? }
+                    .sum(&:balance)
   end
 end

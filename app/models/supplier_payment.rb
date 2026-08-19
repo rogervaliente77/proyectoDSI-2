@@ -1,14 +1,31 @@
+# app/models/supplier_payment.rb
 class SupplierPayment
   include Mongoid::Document
   include Mongoid::Timestamps
 
-  field :payment_date, type: Date, default: -> { Date.today } # Fecha del abono
-  field :amount, type: Float, default: 0.0                    # Monto abonado
-  field :payment_method, type: String, default: "transferencia" # efectivo, transferencia, cheque, tarjeta
-  field :reference_number, type: String                       # Número de cheque / transacción
-  field :notes, type: String                                  # Observaciones / Notas
+  # Campos propios del pago
+  field :amount, type: Float
+  field :payment_date, type: Date
+  field :payment_method, type: String
+  field :reference_number, type: String
+  field :notes, type: String
 
+  # Guardamos únicamente el ObjectId del usuario que crea el registro
+  field :created_by, type: BSON::ObjectId
+
+  # Relación con la factura (necesaria para subdocumentos embebidos en Mongoid)
   embedded_in :supplier_invoice
 
-  validates :amount, presence: true, numericality: { greater_than: 0 }
+  # Validaciones
+  validates :amount, :payment_date, :payment_method, presence: true
+  validates :amount, numericality: { greater_than: 0 }
+
+  after_create :update_invoice_balance_and_status
+  after_destroy :update_invoice_balance_and_status
+
+  private
+
+  def update_invoice_balance_and_status
+    supplier_invoice.recalculate_balance!
+  end
 end
