@@ -4,7 +4,7 @@
       <h1 class="h3 text-gray-800 mb-0"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Facturas de Proveedores</h1>
       <p class="text-muted small mb-0">Gestión de cuentas por pagar, vencimientos y créditos</p>
     </div>
-    <%= link_to new_admin_supplier_invoice_path, class: "btn btn-primary shadow-sm text-nowrap" do %>
+    <%= link_to new_admin_supplier_invoice_path, class: "btn btn-primary shadow-sm text-nowrap", data: { turbo: false } do %>
       <i class="fas fa-plus me-1"></i> Nueva Factura
     <% end %>
   </div>
@@ -70,8 +70,7 @@
 
   <%# Formulario de Filtros %>
   <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-light">
-    <%= form_with url: admin_supplier_invoices_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
-      
+    <%= form_with url: admin_supplier_invoices_path, method: :get, local: true, class: "row g-3 align-items-end", data: { turbo: false } do %>
       <div class="col-12 col-md-3">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-search me-1"></i> Factura / CCF</label>
         <%= text_field_tag :query, params[:query], placeholder: "Ej. FAC-10293...", class: "form-control filter-input w-100" %>
@@ -84,7 +83,7 @@
 
       <div class="col-12 col-sm-6 col-md-2">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-filter me-1"></i> Estado</label>
-        <%= select_tag :status, options_for_select([["Pendientes", "pendiente"], ["Vencidas", "vencida"], ["Pagadas", "pagada"]], params[:status]), include_blank: "Todos", class: "form-select filter-select w-100" %>
+        <%= select_tag :status, options_for_select([["Al Día", "al_dia"], ["Próxima a Vencer", "proxima_vencer"], ["Vencida", "vencida"], ["Pagada", "pagada"]], params[:status]), include_blank: "Todos", class: "form-select filter-select w-100" %>
       </div>
 
       <div class="col-12 col-md-2">
@@ -116,6 +115,7 @@
               <th>Proveedor</th>
               <th>Emisión</th>
               <th>Vencimiento</th>
+              <th class="text-center">Cuotas</th>
               <th class="text-end">Monto Total</th>
               <th class="text-end">Abonado</th>
               <th class="text-end">Saldo Pendiente</th>
@@ -124,7 +124,6 @@
             </tr>
           </thead>
           <tbody>
-            <%# Usamos .present? en lugar de .any? para no generar consulta extra %>
             <% if @invoices.present? %>
               <% @invoices.each do |inv| %>
                 <tr>
@@ -139,8 +138,13 @@
                   </td>
                   <td><%= inv.issue_date&.strftime("%d/%m/%Y") %></td>
                   <td>
-                    <span class="<%= 'text-danger fw-bold' if inv.respond_to?(:is_overdue?) && inv.is_overdue? %>">
+                    <span class="<%= 'text-danger fw-bold' if inv.status == 'vencida' %>">
                       <%= inv.due_date&.strftime("%d/%m/%Y") %>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-light text-dark border">
+                      <%= inv.respond_to?(:payment_installments) && inv.payment_installments.present? ? inv.payment_installments.size : 1 %>
                     </span>
                   </td>
                   <td class="text-end fw-semibold"><%= number_to_currency(inv.total_amount) %></td>
@@ -158,18 +162,22 @@
                       <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
                         <i class="fas fa-exclamation-triangle me-1"></i> Vencida
                       </span>
-                    <% else %>
+                    <% when "proxima_vencer" %>
                       <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
-                        <i class="fas fa-clock me-1"></i> Pendiente
+                        <i class="fas fa-clock me-1"></i> Próx. a Vencer
+                      </span>
+                    <% else %>
+                      <span class="badge bg-info-subtle text-info border border-info px-2 py-1">
+                        <i class="fas fa-calendar-check me-1"></i> Al Día
                       </span>
                     <% end %>
                   </td>
                   <td class="text-center pe-3">
                     <div class="d-flex gap-1 justify-content-center">
-                      <%= link_to admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", title: "Ver Detalle / Abonar" do %>
+                      <%= link_to admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", data: { turbo: false }, title: "Ver Detalle / Abonar" do %>
                         <i class="fas fa-eye text-primary"></i>
                       <% end %>
-                      <%= link_to edit_admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", title: "Editar" do %>
+                      <%= link_to edit_admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", data: { turbo: false }, title: "Editar" do %>
                         <i class="fas fa-edit text-secondary"></i>
                       <% end %>
                       <%= link_to admin_supplier_invoice_path(inv), class: "btn btn-light btn-sm border", data: { turbo_method: :delete, turbo_confirm: "¿Eliminar factura?" }, title: "Eliminar" do %>
@@ -181,7 +189,7 @@
               <% end %>
             <% else %>
               <tr>
-                <td colspan="9" class="text-center py-5 text-muted">
+                <td colspan="10" class="text-center py-5 text-muted">
                   <i class="fas fa-receipt fa-3x mb-3 text-secondary opacity-50 d-block"></i>
                   No se encontraron facturas registradas.
                 </td>

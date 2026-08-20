@@ -1,9 +1,9 @@
+# app/controllers/admin/suppliers_controller.rb
 module Admin
   class SuppliersController < ApplicationController
     before_action :set_supplier, only: [:show, :edit, :update, :destroy]
     layout 'dashboard'
 
-    # app/controllers/admin/suppliers_controller.rb
     def index
       scope = Supplier.all
 
@@ -21,13 +21,11 @@ module Admin
     end
 
     def show
-      # Facturas asociadas para la vista show con paginación
       @invoices = @supplier.supplier_invoices.order_by(due_date: :asc).page(params[:page]).per(10)
-      
-      # Estadísticas individuales del proveedor
+
       @total_invoiced = @supplier.supplier_invoices.sum(:total_amount) || 0.0
       @total_paid = @supplier.supplier_invoices.sum(:paid_amount) || 0.0
-      @total_pending = @supplier.supplier_invoices.where(:status.in => ["pendiente", "vencida"]).sum(:balance) || 0.0
+      @total_pending = @supplier.supplier_invoices.where(:status.in => ["al_dia", "proxima_vencer", "vencida", "pendiente"]).sum(:balance) || 0.0
       @overdue_count = @supplier.supplier_invoices.where(status: "vencida").count
     end
 

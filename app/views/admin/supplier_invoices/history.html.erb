@@ -1,0 +1,43 @@
+<%= turbo_frame_tag "invoice_status_history" do %>
+  <% if @history.present? %>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Estado Anterior</th>
+            <th>Nuevo Estado</th>
+            <th>Motivo / Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @history.each do |entry| %>
+            <tr>
+              <td>
+                <i class="far fa-clock text-muted me-1"></i>
+                <%= entry.created_at&.strftime("%d/%m/%Y %I:%M %p") %>
+              </td>
+              <td>
+                <span class="badge bg-secondary">
+                  <%= entry.previous_status.presence || 'Inicial' %>
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-info text-dark">
+                  <%= entry.new_status&.humanize %>
+                </span>
+              </td>
+              <td>
+                <small class="text-muted"><%= entry.reason.presence || "Sin observaciones" %></small>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="p-4 text-center text-muted">
+      <i class="fas fa-info-circle me-1"></i> No se han registrado cambios de estado para esta factura.
+    </div>
+  <% end %>
+<% end %>

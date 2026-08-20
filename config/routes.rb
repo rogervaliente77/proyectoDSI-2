@@ -139,6 +139,9 @@ Rails.application.routes.draw do
     end
 
     resources :supplier_invoices do
+      member do
+        get :history
+      end
       resources :supplier_payments, only: [:create, :destroy] # Para agregar/eliminar abonos
     end
 

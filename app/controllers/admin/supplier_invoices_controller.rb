@@ -4,10 +4,8 @@ module Admin
     layout 'dashboard'
 
     def index
-      # 1. Proveedores para selectores/filtros en la vista
       @suppliers = Supplier.where(active: true).order_by(name: :asc)
 
-      # 2. Construcción del scope con filtros dinámicos
       scope = SupplierInvoice.all
 
       if params[:query].present?
@@ -24,17 +22,16 @@ module Admin
         scope = scope.where(:issue_date.gte => s_date, :issue_date.lte => e_date) if s_date && e_date
       end
 
-      # 3. Rangos de fechas para métricas globales
       today = Date.today
       bom   = today.beginning_of_month.to_time.utc
       eom   = today.end_of_month.to_time.utc
 
-      # 4. Agregación consolidada (4 cálculos en 1 sola consulta a MongoDB)
+      # Agregación para métricas agregando el nuevo estado 'pendiente'
       metrics = SupplierInvoice.collection.aggregate([
         {
           '$facet' => {
             'total_debt' => [
-              { '$match' => { 'status' => { '$in' => %w[pendiente vencida] }, 'balance' => { '$exists' => true } } },
+              { '$match' => { 'status' => { '$in' => %w[al_dia proxima_vencer vencida pendiente] }, 'balance' => { '$exists' => true } } },
               { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
             ],
             'overdue_debt' => [
@@ -42,7 +39,7 @@ module Admin
               { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
             ],
             'due_this_month' => [
-              { '$match' => { 'status' => { '$in' => %w[pendiente vencida] }, 'due_date' => { '$gte' => bom, '$lte' => eom }, 'balance' => { '$exists' => true } } },
+              { '$match' => { 'status' => { '$in' => %w[al_dia proxima_vencer vencida pendiente] }, 'due_date' => { '$gte' => bom, '$lte' => eom }, 'balance' => { '$exists' => true } } },
               { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
             ],
             'total_paid_month' => [
@@ -53,29 +50,25 @@ module Admin
         }
       ]).first || {}
 
-      # Mapeo a las variables de instancia que consume tu vista
       @stats_total_debt       = metrics.dig('total_debt', 0, 'total') || 0.0
       @stats_overdue_debt     = metrics.dig('overdue_debt', 0, 'total') || 0.0
       @stats_due_this_month   = metrics.dig('due_this_month', 0, 'total') || 0.0
       @stats_total_paid_month = metrics.dig('total_paid_month', 0, 'total') || 0.0
 
-      # 5. Paginación y precarga de asociaciones
       @invoices = scope.includes(:supplier)
                        .order_by(due_date: :asc)
                        .page(params[:page])
-                       .per(3)
+                       .per(10)
 
-      # Conteo guardado en variable para evitar consultas duplicadas
       @total_invoices = @invoices.total_count
     end
 
     def show
       @invoice = SupplierInvoice.includes(:supplier).find(params[:id])
-      
-      # 1. Obtenemos solo los pagos que ya están persistidos en la base de datos
       @payments = @invoice.supplier_payments.select(&:persisted?)
+      @installments = @invoice.payment_installments.order_by(number: :asc)
+      @status_histories = @invoice.status_histories.order_by(changed_at: :desc)
 
-      # 2. Instanciamos el objeto para el formulario sin vincularlo a @invoice
       @payment = SupplierPayment.new(
         payment_date: Date.today,
         amount: @invoice.balance
@@ -83,7 +76,12 @@ module Admin
     end
 
     def new
-      @invoice = SupplierInvoice.new
+      @invoice = SupplierInvoice.new(
+        is_credit: true, 
+        installments_count: 1, 
+        credit_term_days: 30,
+        term_type: "mensual"
+      )
       @suppliers = Supplier.where(active: true)
     end
 
@@ -115,6 +113,12 @@ module Admin
       redirect_to admin_supplier_invoices_path, notice: "Factura eliminada con éxito."
     end
 
+    def history
+      @invoice = SupplierInvoice.find(params[:id])
+      @history = @invoice.status_histories.order_by(created_at: :desc)
+      render layout: false
+    end
+
     private
 
     def set_invoice
@@ -122,7 +126,12 @@ module Admin
     end
 
     def invoice_params
-      params.require(:supplier_invoice).permit(:supplier_id, :invoice_number, :voucher_number, :voucher_type, :description, :issue_date, :due_date, :total_amount)
+      params.require(:supplier_invoice).permit(
+        :supplier_id, :invoice_number, :voucher_number, :voucher_type,
+        :description, :issue_date, :due_date, :payment_date, :total_amount,
+        :is_credit, :credit_term_days, :installments_count, :interest_rate,
+        :term_type, :payment_day
+      )
     end
   end
 end
