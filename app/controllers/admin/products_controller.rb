@@ -9,17 +9,37 @@ module Admin
     def index
       @categories = Category.all
       @marcas = Marca.all
-      @products = Product.includes(:category, :marca).all
+      @car_types = CarType.all
+
+      @products = Product.includes(:category, :marca, :car_type).all
 
       # Filtros de búsqueda
       @products = @products.where(name: /#{Regexp.escape(params[:query].strip)}/i) if params[:query].present?
-      @products = @products.where(category_id: params[:category_id]) if params[:category_id].present?
+      
+      # === FILTRO DE CATEGORÍA CON JERARQUÍA (PADRES E HIJAS) ===
+      if params[:category_id].present?
+        selected_category = Category.where(id: params[:category_id]).first
+        if selected_category
+          # Busca productos cuya categoría esté dentro de la categoría seleccionada o sus subcategorías
+          @products = @products.where(:category_id.in => selected_category.self_and_descendant_ids)
+        end
+      end
+
+      # === FILTRO DE MARCA ===
       @products = @products.where(marca_id: params[:marca_id]) if params[:marca_id].present?
 
+      # === FILTRO DE TIPO DE VEHÍCULO ===
+      if params[:car_type_id].present?
+        car_type_id = BSON::ObjectId.legal?(params[:car_type_id]) ? BSON::ObjectId.from_string(params[:car_type_id]) : params[:car_type_id]
+        @products = @products.where(car_type_id: car_type_id)
+      end
+
+      # === FILTRO DE PRECIOS ===
       min_price = params[:min_price].present? ? params[:min_price].to_f : 0
       max_price = params[:max_price].present? ? params[:max_price].to_f : Float::INFINITY
       @products = @products.where(:price.gte => min_price, :price.lte => max_price)
 
+      # === FILTRO DE OFERTA ===
       if params[:offer].present? && params[:offer] != "todas"
         @products = @products.where(offer_type: params[:offer])
       end

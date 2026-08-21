@@ -1,4 +1,24 @@
 <div class="container-fluid py-4">
+  <!-- Mensajes Flash de Notificación y Alerta -->
+  <% flash.each do |type, message| %>
+    <% alert_class = case type.to_sym
+       when :notice, :success then "alert-success"
+       when :alert, :error, :danger then "alert-danger"
+       when :warning then "alert-warning"
+       else "alert-info"
+       end %>
+    
+    <div class="alert <%= alert_class %> alert-dismissible fade show shadow-sm mb-4" role="alert">
+      <% if %i[notice success].include?(type.to_sym) %>
+        <i class="fas fa-check-circle me-2"></i>
+      <% else %>
+        <i class="fas fa-exclamation-triangle me-2"></i>
+      <% end %>
+      <%= message %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
   <!-- Encabezado y Acciones -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -68,7 +88,7 @@
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
+            <thead class="table-dark">
               <tr>
                 <th class="text-center">Cuota #</th>
                 <th>Fecha Vencimiento</th>
@@ -95,7 +115,7 @@
                     <% when "proxima_vencer" %>
                       <span class="badge bg-warning text-dark">Próx. Vencer</span>
                     <% when "parcial" %>
-                      <span class="badge bg-info">Abonada</span>
+                      <span class="badge bg-info">Pago parcial</span>
                     <% else %>
                       <span class="badge bg-secondary">Pendiente</span>
                     <% end %>
@@ -118,7 +138,7 @@
       <% if @payments.any? %>
         <div class="table-responsive">
           <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
+            <thead class="table-dark">
               <tr>
                 <th>Fecha de Pago</th>
                 <th>Método</th>

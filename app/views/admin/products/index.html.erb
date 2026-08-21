@@ -33,7 +33,7 @@
   </div>
 
   <!-- Filtros -->
-  <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-light">
+  <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-white">
     <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
       
       <!-- Buscar -->
@@ -45,7 +45,10 @@
       <!-- Categoría -->
       <div class="col-12 col-sm-6 col-md-3 col-lg-2">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-tags me-1"></i> Categoría</label>
-        <%= select_tag :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
+        <%= select_tag :category_id, 
+                      options_for_select(Category.options_for_select, params[:category_id]), 
+                      include_blank: "Todas las categorías", 
+                      class: "form-select filter-select w-100" %>
       </div>
 
       <!-- Marca -->
