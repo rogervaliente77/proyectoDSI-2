@@ -1,0 +1,12 @@
+<% if products.any? %>
+  <% products.each do |product| %>
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
+      <%= render "product_card", product: product %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="col-12 text-center py-5 text-muted">
+    <i class="fas fa-box-open fa-3x mb-3 text-secondary"></i>
+    <h5>No hay productos registrados directamente en esta categoría.</h5>
+  </div>
+<% end %>

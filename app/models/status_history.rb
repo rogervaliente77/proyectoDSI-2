@@ -1,7 +1,9 @@
-# app/models/status_history.rb
 class StatusHistory
   include Mongoid::Document
   include Mongoid::Timestamps
+
+  field :created_at, type: Time, default: -> { Time.current }
+  field :updated_at, type: Time, default: -> { Time.current }
 
   field :changed_at, type: DateTime, default: -> { Time.current }
   field :previous_status, type: String

@@ -5,10 +5,10 @@
       <p class="text-muted small mb-0"><%= @supplier.business_name %> — NIT/NRC: <%= @supplier.nit_nrc %></p>
     </div>
     <div class="d-flex gap-2">
-      <%= link_to edit_admin_supplier_path(@supplier), class: "btn btn-outline-primary btn-sm" do %>
+      <%= link_to edit_admin_supplier_path(@supplier), class: "btn btn-outline-primary btn-sm", data: { turbo: false } do %>
         <i class="fas fa-edit me-1"></i> Editar
       <% end %>
-      <%= link_to admin_suppliers_path, class: "btn btn-secondary btn-sm" do %>
+      <%= link_to admin_suppliers_path, class: "btn btn-secondary btn-sm", data: { turbo: false } do %>
         <i class="fas fa-arrow-left me-1"></i> Volver
       <% end %>
     </div>
@@ -63,7 +63,7 @@
       <div class="card border-0 shadow-sm rounded-3">
         <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
           <h6 class="m-0 fw-bold text-primary"><i class="fas fa-file-invoice me-2"></i>Historial de Facturas</h6>
-          <%= link_to new_admin_supplier_invoice_path(supplier_id: @supplier.id), class: "btn btn-primary btn-sm" do %>
+          <%= link_to new_admin_supplier_invoice_path(supplier_id: @supplier.id), class: "btn btn-primary btn-sm", data: { turbo: false } do %>
             <i class="fas fa-plus me-1"></i> Nueva Factura
           <% end %>
         </div>
@@ -85,7 +85,7 @@
                   <% @invoices.each do |inv| %>
                     <tr>
                       <td class="ps-3 fw-bold">
-                        <%= link_to inv.invoice_number, admin_supplier_invoice_path(inv), class: "text-decoration-none" %>
+                        <%= link_to inv.invoice_number, admin_supplier_invoice_path(inv), class: "text-decoration-none", data: { turbo: false } %>
                       </td>
                       <td><%= inv.issue_date.strftime("%d/%m/%Y") if inv.issue_date %></td>
                       <td><%= inv.due_date.strftime("%d/%m/%Y") if inv.due_date %></td>
@@ -108,7 +108,9 @@
           </div>
         </div>
         <div class="card-footer bg-white py-3">
-          <%= paginate @invoices rescue nil %>
+          <div data-turbo="false">
+            <%= paginate @invoices rescue nil %>
+          </div>
         </div>
       </div>
     </div>

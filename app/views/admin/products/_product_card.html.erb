@@ -1,0 +1,93 @@
+<div class="card h-100 shadow-sm product-card position-relative border-0 rounded-3 overflow-hidden">
+
+  <!-- Badges -->
+  <% if product.quantity.to_i > 0 %>
+    <span class="badge badge-top-right bg-success">
+      <i class="fas fa-check-circle me-1"></i> Disponible
+    </span>
+  <% else %>
+    <span class="badge badge-top-right bg-secondary">
+      <i class="fas fa-times-circle me-1"></i> Agotado
+    </span>
+  <% end %>
+
+  <% if product.discount.to_i > 0 || product.offer_type.present? %>
+    <span class="badge badge-top-left bg-warning text-dark">
+      <i class="fas fa-gift me-1"></i> Oferta 
+      <%= " #{product.offer_type.capitalize}" if product.offer_type.present? %>
+    </span>
+  <% end %>
+
+  <!-- Carrusel -->
+  <div class="custom-carousel" data-current="0">
+    <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) rescue [] %>
+    <% if images.any? %>
+      <% images.each_with_index do |img, index| %>
+        <img src="<%= img.image_url %>" 
+             class="carousel-image <%= 'active' if index.zero? %>" 
+             alt="<%= product.name %> imagen <%= index+1 %>">
+      <% end %>
+      <button type="button" class="prev" onclick="prevSlide(this)">‹</button>
+      <button type="button" class="next" onclick="nextSlide(this)">›</button>
+      <div class="carousel-indicators">
+        <% images.each_with_index do |img, index| %>
+          <span class="dot <%= 'active' if index.zero? %>" onclick="goToSlide(this, <%= index %>)"></span>
+        <% end %>
+      </div>
+    <% else %>
+      <img src="https://via.placeholder.com/300x240" class="carousel-image active" alt="Placeholder">
+    <% end %>
+  </div>
+
+  <!-- Información -->
+  <div class="card-body">
+    <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
+    <p class="card-text text-muted small mb-2"><%= truncate(product.description, length: 80) %></p>
+
+    <% if product&.offer_type == "mayoreo" && product.discount.to_f > 0 %>
+      <p class="small mb-1">
+        <strong>Precio mayoreo a partir de <%= product.wholesale_quantity %></strong>
+      </p>
+    <% end %>
+
+    <p class="mb-2">
+      <% if product.discount.to_i > 0 %>
+        <% if product.offer_type == "descuento"%>
+          <span class="text-muted text-decoration-line-through"><%= number_to_currency(product.price) %></span>
+          <span class="badge bg-success ms-2"><%= product.discount %>% OFF</span><br>
+        <% end %>
+        <span class="fw-bold text-success fs-5"><%= number_to_currency(product.discounted_price.round(2)) %></span>
+      <% else %>
+        <span class="fw-bold fs-5"><%= number_to_currency(product.price) %></span>
+      <% end %>
+    </p>
+
+    <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
+    <p class="mb-0"><strong>Categoría:</strong> <%= product.category.name.upcase if product.category %></p>
+    <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
+    <p class="mb-0">
+      <strong>Tipo Vehículo:</strong> 
+      <% if product.respond_to?(:car_type) && product.car_type.present? %>
+        <span class="badge bg-light text-dark border"><%= product.car_type.name.upcase %></span>
+      <% elsif product.respond_to?(:car_type_id) && product.car_type_id.present? %>
+        <span class="badge bg-light text-dark border"><%= product.car_type_id %></span>
+      <% else %>
+        <span class="text-muted">Universal</span>
+      <% end %>
+    </p>
+    <p class="mb-0"><strong>Código:</strong> <%= product.code %></p>
+  </div>
+
+  <!-- Botones -->
+  <% if @current_user&.role&.name.in?(["super_admin","admin"]) %>
+    <div class="btn-group w-100 p-2">
+      <%= link_to admin_edit_product_path(product_id: product.id), class:"btn btn-primary btn-sm" do %>
+        <i class="fa fa-edit"></i> Editar
+      <% end %>
+      <%= link_to admin_destroy_product_path(product_id: product.id), class:"btn btn-danger btn-sm", data:{ turbo_method: :delete }, onclick:"return confirm('¿Eliminar producto?');" do %>
+        <i class="fa fa-trash"></i> Eliminar
+      <% end %>
+    </div>
+  <% end %>
+
+</div>

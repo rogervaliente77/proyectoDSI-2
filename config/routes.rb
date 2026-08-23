@@ -158,6 +158,7 @@ Rails.application.routes.draw do
     delete "/productos/destroy", to: "products#destroy", as: :destroy_product
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
     get 'products/search', to: 'products#search'
+    get 'products/catalogo', to: 'products#catalogo'
 
     # INVENTARIO
     get "/productos/inventario", to: "products#inventory", as: :inventory_admin_products

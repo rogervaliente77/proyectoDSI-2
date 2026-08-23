@@ -46,7 +46,7 @@ module Admin
 
     def update
       if @supplier.update(supplier_params)
-        redirect_to admin_supplier_path(@supplier), notice: "Proveedor actualizado correctamente."
+       redirect_to admin_suppliers_path, notice: "Proveedor actualizado correctamente."
       else
         render :edit, status: :unprocessable_entity
       end

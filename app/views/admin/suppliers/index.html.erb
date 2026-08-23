@@ -6,18 +6,25 @@
       <p class="text-muted small mb-0">Listado general de proveedores registrados en el sistema.</p>
     </div>
     <div>
-      <%= link_to new_admin_supplier_path, class: "btn btn-primary shadow-sm" do %>
+      <%= link_to new_admin_supplier_path, class: "btn btn-primary shadow-sm", data: { turbo: false } do %>
         <i class="fas fa-plus me-1"></i> Nuevo Proveedor
       <% end %>
     </div>
   </div>
+
+  <% if flash[:notice] %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flash[:notice] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
 
   <%# Barra de Búsqueda y Estadísticas %>
   <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
       <div class="row align-items-center">
         <div class="col-md-8">
-          <%= form_with url: admin_suppliers_path, method: :get, local: true, class: "d-flex gap-2" do |f| %>
+          <%= form_with url: admin_suppliers_path, method: :get, local: true, data: { turbo: false }, class: "d-flex gap-2" do |f| %>
             <div class="input-group">
               <span class="input-group-text bg-light border-end-0">
                 <i class="fas fa-search text-muted"></i>
@@ -29,7 +36,7 @@
             </div>
             <%= f.submit "Buscar", class: "btn btn-secondary px-4" %>
             <% if params[:query].present? %>
-              <%= link_to "Limpiar", admin_suppliers_path, class: "btn btn-outline-secondary" %>
+              <%= link_to "Limpiar", admin_suppliers_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
             <% end %>
           <% end %>
         </div>
@@ -59,11 +66,9 @@
             </tr>
           </thead>
           <tbody>
-            <%# Usamos .present? para evitar la consulta duplicada de .any? %>
             <% if @suppliers.present? %>
               <% offset = @suppliers.offset_value %>
               <% @suppliers.each_with_index do |sup, index| %>
-                <%# Evaluamos la deuda en una variable local para no invocarla múltiples veces %>
                 <% debt = sup.total_debt %>
                 <tr>
                   <td class="ps-3 text-center fw-bold text-muted small">
@@ -98,10 +103,10 @@
                   </td>
                   <td class="text-center pe-3">
                     <div class="btn-group btn-group-sm">
-                      <%= link_to admin_supplier_path(sup), class: "btn btn-outline-secondary", title: "Ver detalles" do %>
+                      <%= link_to admin_supplier_path(sup), class: "btn btn-outline-secondary", title: "Ver detalles", data: { turbo: false } do %>
                         <i class="fas fa-eye"></i>
                       <% end %>
-                      <%= link_to edit_admin_supplier_path(sup), class: "btn btn-outline-primary", title: "Editar" do %>
+                      <%= link_to edit_admin_supplier_path(sup), class: "btn btn-outline-primary", title: "Editar", data: { turbo: false } do %>
                         <i class="fas fa-edit"></i>
                       <% end %>
                     </div>
@@ -131,7 +136,6 @@
             de <strong><%= @total_suppliers %></strong> resultados
           </div>
           
-          <%# data-turbo="false" evita la doble petición causada por Turbo %>
           <div data-turbo="false">
             <%= paginate @suppliers %>
           </div>

@@ -1,204 +1,185 @@
-<div class="container-fluid">
+<% 
+  # Detectamos si viene algún filtro activo en la URL
+  has_filters = params[:active_tab] == "all_products" || 
+                params[:query].present? || 
+                params[:category_id].present? || 
+                params[:marca_id].present? || 
+                params[:car_type_id].present? || 
+                params[:min_price].present? || 
+                params[:max_price].present? || 
+                params[:offer].present?
+%>
 
-  <!-- Mensajes Flash (Alertas) -->
+<div class="container-fluid min-vh-100 py-4">
+
+  <!-- Alert Flashes -->
   <% if flash[:notice] || flash[:success] %>
-    <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 my-3" role="alert">
+    <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 mb-4" role="alert">
       <i class="fas fa-check-circle me-2"></i><%= flash[:notice] || flash[:success] %>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <% end %>
 
   <% if flash[:alert] || flash[:error] %>
-    <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 my-3" role="alert">
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 mb-4" role="alert">
       <i class="fas fa-exclamation-triangle me-2"></i><%= flash[:alert] || flash[:error] %>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <% end %>
 
   <!-- Encabezado -->
-  <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">
-      <% if @current_user.role.name.in?(["super_admin","admin","cajero"]) %>
-        <i class="fas fa-boxes me-2"></i> Admin - Productos
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
+    <h1 class="h3 text-gray-800 mb-0 fw-bold">
+      <% if @current_user&.role&.name.in?(["super_admin","admin","cajero"]) %>
+        <i class="fas fa-boxes text-primary me-2"></i> Catálogo de Productos
       <% else %>
-        <i class="fas fa-store me-2"></i> Portal - Productos
+        <i class="fas fa-store text-primary me-2"></i> Portal de Productos
       <% end %>
     </h1>
 
-    <% if @current_user.role.name.in?(["super_admin","admin"]) %>
-      <%= link_to admin_productos_new_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+    <% if @current_user&.role&.name.in?(["super_admin","admin"]) %>
+      <%= link_to admin_productos_new_path, class: "btn btn-primary shadow-sm text-nowrap" do %>
         <i class="fas fa-plus-circle me-1"></i> Crear Producto
       <% end %>
     <% end %>
   </div>
 
-  <!-- Filtros -->
-  <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-white">
-    <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
+  <!-- Pestañas de Navegación (Tabs) -->
+  <div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body p-3 p-md-4 bg-light">
       
-      <!-- Buscar -->
-      <div class="col-12 col-md-4 col-lg-3">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-search me-1"></i> Buscar</label>
-        <%= text_field_tag :query, params[:query], placeholder: "Ej. Camiseta, Amortiguador...", class: "form-control filter-input w-100" %>
-      </div>
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-white p-3 rounded-3 shadow-sm border mb-0" id="category-explorer-breadcrumb">
+          <!-- Renderizado dinámicamente con JS -->
+        </ol>
+      </nav>
 
-      <!-- Categoría -->
-      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-tags me-1"></i> Categoría</label>
-        <%= select_tag :category_id, 
-                      options_for_select(Category.options_for_select, params[:category_id]), 
-                      include_blank: "Todas las categorías", 
-                      class: "form-select filter-select w-100" %>
-      </div>
+      <!-- SECCIÓN DE CARDS DE CATEGORÍAS -->
+      <div class="card border-0 shadow-sm rounded-3 mb-4 p-3 bg-white">
+        <h5 class="fw-bold text-dark mb-3" id="current-category-title">
+          <i class="fas fa-folder-open text-primary me-2"></i> Seleccione una Categoría
+        </h5>
 
-      <!-- Marca -->
-      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-industry me-1"></i> Marca</label>
-        <%= select_tag :marca_id, options_from_collection_for_select(@marcas, :id, :name, params[:marca_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
-      </div>
+        <!-- Grid optimizado con g-2 para aprovechar el ancho -->
+        <div class="row g-1" id="categories-cards-grid">
+          <% @categories.each do |cat| %>
+            <% 
+              parent_id_val = cat.parent_id.present? ? cat.parent_id.to_s : "root"
+              subcategories_count = cat.respond_to?(:subcategories) ? cat.subcategories.count : 0
+            %>
+            <!-- Distribución: 2 por fila en móvil (col-6), 4 en tablet (col-md-3), 6 en escritorio (col-lg-2) -->
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2 category-card-item" 
+                 data-id="<%= cat.id %>" 
+                 data-parent-id="<%= parent_id_val %>"
+                 data-name="<%= cat.name %>"
+                 data-subcategories-count="<%= subcategories_count %>">
 
-      <!-- Tipo Vehículo -->
-      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-car me-1"></i> Tipo Vehículo</label>
-        <%= select_tag :car_type_id, options_from_collection_for_select(@car_types || CarType.all, :id, :name, params[:car_type_id]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
-      </div>
-
-      <!-- Precio ($) -->
-      <div class="col-auto">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-dollar-sign me-1"></i> Precio ($)</label>
-        <div class="d-flex gap-2 align-items-center">
-          <input type="number" name="min_price" value="<%= params[:min_price] || '' %>" class="form-control filter-input" placeholder="Min" min="0" style="width: 80px;">
-          <span class="text-muted fw-bold">-</span>
-          <input type="number" name="max_price" value="<%= params[:max_price] || '' %>" class="form-control filter-input" placeholder="Max" min="0" style="width: 80px;">
-        </div>
-      </div>
-
-      <!-- Oferta -->
-      <div class="col-12 col-sm-6 col-md-3 col-lg-2">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-gift me-1"></i> Oferta</label>
-        <%= select_tag :offer, options_for_select([["Descuento", "descuento"], ["2x1", "2x1"], ["3x1", "3x1"], ["Mayoreo", "mayoreo"]], params[:offer]), include_blank: "Seleccione...", class: "form-select filter-select w-100" %>
-      </div>
-
-      <!-- Botones de Acción -->
-      <div class="col-auto d-flex gap-2 ms-auto">
-        <%= submit_tag "Aplicar", class: "btn btn-primary btn-md" %>
-        <%= link_to admin_productos_path, class: "btn btn-outline-secondary btn-md" do %>
-          <i class="fas fa-sync-alt me-1"></i> Limpiar
-        <% end %>
-      </div>
-
-    <% end %>
-  </div>
-
-  <!-- Productos -->
-  <div class="row">
-    <% @products.each do |product| %>
-      <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
-        <div class="card h-100 shadow-sm product-card position-relative border-0 rounded-3 overflow-hidden">
-
-          <!-- Badges -->
-          <% if product.quantity.to_i > 0 %>
-            <span class="badge badge-top-right bg-success">
-              <i class="fas fa-check-circle me-1"></i> Disponible
-            </span>
-          <% else %>
-            <span class="badge badge-top-right bg-secondary">
-              <i class="fas fa-times-circle me-1"></i> Agotado
-            </span>
-          <% end %>
-
-          <% if product.discount.to_i > 0 || product.offer_type.present? %>
-            <span class="badge badge-top-left bg-warning text-dark">
-              <i class="fas fa-gift me-1"></i> Oferta 
-              <%= " #{product.offer_type.capitalize}" if product.offer_type.present? %>
-            </span>
-          <% end %>
-
-          <!-- Carrusel -->
-          <div class="custom-carousel" data-current="0">
-            <% images = product.product_images.select { |img| img.image_url.present? }.sort_by(&:image_index) %>
-            <% if images.any? %>
-              <% images.each_with_index do |img, index| %>
-                <img src="<%= img.image_url %>" 
-                     class="carousel-image <%= 'active' if index.zero? %>" 
-                     alt="<%= product.name %> imagen <%= index+1 %>">
-              <% end %>
-              <button class="prev" onclick="prevSlide(this)">‹</button>
-              <button class="next" onclick="nextSlide(this)">›</button>
-              <div class="carousel-indicators">
-                <% images.each_with_index do |img, index| %>
-                  <span class="dot <%= 'active' if index.zero? %>" onclick="goToSlide(this, <%= index %>)"></span>
+              <div class="card h-100 border hover-category-card shadow-sm rounded-3 overflow-hidden cursor-pointer">
+                <% if cat.respond_to?(:image_url) && cat.image_url.present? %>
+                  <img src="<%= cat.image_url %>" class="card-img-top cat-img-height" alt="<%= cat.name %>">
+                <% else %>
+                  <div class="bg-light d-flex align-items-center justify-content-center text-muted cat-img-height">
+                    <i class="fas fa-folder fa-2x text-secondary"></i>
+                  </div>
                 <% end %>
+
+                <!-- Padding interno p-2 para cards más esbeltas -->
+                <div class="card-body p-2 text-center d-flex flex-column justify-content-between">
+                  <h6 class="fw-bold text-dark mb-1 text-truncate style-cat-title"><%= cat.name %></h6>
+
+                  <% if subcategories_count > 0 %>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill small-badge">
+                      <%= subcategories_count %> subcat. <i class="fas fa-chevron-right ms-1"></i>
+                    </span>
+                  <% else %>
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill small-badge">
+                      Final
+                    </span>
+                  <% end %>
+                </div>
               </div>
-            <% else %>
-              <img src="https://via.placeholder.com/300x240" class="carousel-image active" alt="Placeholder">
-            <% end %>
-          </div>
 
-          <!-- Información -->
-          <div class="card-body">
-            <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
-            <p class="card-text text-muted small mb-2"><%= truncate(product.description, length:80) %></p>
-
-            <% if product&.offer_type == "mayoreo" && product.discount.to_f > 0 %>
-              <p class="small mb-1">
-                <strong>Precio mayoreo a partir de <%= product.wholesale_quantity %></strong>
-              </p>
-            <% end %>
-
-            <p class="mb-2">
-              <% if product.discount.to_i > 0 %>
-                <% if product.offer_type == "descuento"%>
-                  <span class="text-muted text-decoration-line-through"><%= number_to_currency(product.price) %></span>
-                  <span class="badge bg-success ms-2"><%= product.discount %>% OFF</span><br>
-                <% end %>
-                <span class="fw-bold text-success fs-5"><%= number_to_currency(product.discounted_price.round(2)) %></span>
-              <% else %>
-                <span class="fw-bold fs-5"><%= number_to_currency(product.price) %></span>
-              <% end %>
-            </p>
-
-            <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
-            <p class="mb-0"><strong>Categoría:</strong> <%= product.category.name.upcase if product.category %></p>
-            <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
-            <p class="mb-0">
-              <strong>Tipo Vehículo:</strong> 
-              <% if product.respond_to?(:car_type) && product.car_type.present? %>
-                <span class="badge bg-light text-dark border"><%= product.car_type.name.upcase %></span>
-              <% elsif product.respond_to?(:car_type_id) && product.car_type_id.present? %>
-                <span class="badge bg-light text-dark border"><%= product.car_type_id %></span>
-              <% else %>
-                <span class="text-muted">Universal</span>
-              <% end %>
-            </p>
-            <p class="mb-0"><strong>Código:</strong> <%= product.code %></p>
-          </div>
-
-          <!-- Botones -->
-          <% if @current_user.role.name.in?(["super_admin","admin"]) %>
-            <div class="btn-group w-100 p-2">
-              <%= link_to admin_edit_product_path(product_id: product.id), class:"btn btn-primary btn-sm" do %>
-                <i class="fa fa-edit"></i> Editar
-              <% end %>
-              <%= link_to admin_destroy_product_path(product_id: product.id), class:"btn btn-danger btn-sm", data:{ turbo_method: :delete }, onclick:"return confirm('¿Eliminar producto?');" do %>
-                <i class="fa fa-trash"></i> Eliminar
-              <% end %>
             </div>
           <% end %>
         </div>
       </div>
-    <% end %>
+
+      <!-- LISTADO DE PRODUCTOS DE LA CATEGORÍA SELECCIONADA -->
+      <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2" id="category-products-title">
+          <i class="fas fa-boxes text-secondary me-2"></i> Seleccione una categoría para ver sus productos
+        </h5>
+
+        <div class="row" id="explorer-products-container">
+          <% @products.each do |product| %>
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4 explorer-product-item" 
+                 data-category-id="<%= product.category_id %>">
+              <%= render "product_card", product: product %>
+            </div>
+          <% end %>
+        </div>
+
+        <div id="no-products-alert" class="text-center py-5 text-muted d-none">
+          <i class="fas fa-box-open fa-3x mb-3 text-secondary"></i>
+          <h5>No hay productos registrados en esta categoría.</h5>
+        </div>
+      </div>
+
+    </div>
   </div>
+
 </div>
 
-<!-- Estilos -->
+<!-- CSS Estilos -->
 <style>
+/* Altura de imagen reducida para hacer la card más delgada */
+.cat-img-height {
+  height: 130px;
+  object-fit: cover;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.hover-category-card {
+  transition: all 0.25s ease-in-out;
+}
+
+.hover-category-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+
+.selected-cat-card {
+  border: 2px solid #0d6efd !important;
+  background-color: #e7f1ff !important;
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 0.4rem 0.8rem rgba(13, 110, 253, 0.18) !important;
+}
+
+.selected-cat-card .card-body {
+  background-color: #a3e3ff !important;
+}
+
+/* Tipografía y badgets más compactos */
+.style-cat-title { 
+  font-size: 0.85rem; 
+}
+
+.small-badge { 
+  font-size: 0.7rem; 
+  padding: 0.25em 0.5em; 
+}
+
 .product-card {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
 
 .badge-top-right, .badge-top-left {
@@ -209,6 +190,7 @@
   z-index: 3;
   border-radius: 0.4rem;
 }
+
 .badge-top-right { right: 10px; }
 .badge-top-left { left: 10px; }
 
@@ -219,6 +201,7 @@
   background-color: #f8f9fa;
   overflow: hidden;
 }
+
 .carousel-image {
   position: absolute;
   top: 0;
@@ -228,8 +211,9 @@
   object-fit: contain;
   background: #fff;
   opacity: 0;
-  transition: opacity 0.5s ease-in-out;
+  transition: opacity 0.4s ease-in-out;
 }
+
 .carousel-image.active { opacity: 1; }
 
 .custom-carousel button {
@@ -239,14 +223,13 @@
   background: rgba(0,0,0,0.5);
   color: white;
   border: none;
-  padding: 0.3rem 0.6rem;
+  padding: 0.2rem 0.6rem;
   cursor: pointer;
   font-size: 1.2rem;
   border-radius: 50%;
   z-index: 2;
-  transition: background 0.3s;
 }
-.custom-carousel button:hover { background: rgba(0,0,0,0.7); }
+
 .prev { left: 8px; }
 .next { right: 8px; }
 
@@ -259,39 +242,163 @@
   gap: 5px;
   z-index: 2;
 }
+
 .carousel-indicators .dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: rgba(255,255,255,0.6);
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.3s;
 }
-.carousel-indicators .dot.active { background: rgba(255,255,255,1); }
+
+.carousel-indicators .dot.active { background: #0d6efd; }
 
 .filter-input, .filter-select {
   border-radius: 0.5rem;
   border: 1px solid #ced4da;
   padding: 0.45rem 0.75rem;
   font-size: 0.9rem;
-  transition: all 0.25s ease;
-  background-color: #fff;
-}
-.filter-input:focus, .filter-select:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 8px rgba(13,110,253,0.2);
-  outline: none;
-}
-
-@media (max-width: 992px) {
-  .row.flex-nowrap { flex-wrap: wrap !important; }
-  .col-auto { flex: 1 1 100% !important; }
-  .col-auto.d-flex { justify-content: flex-start; gap: 0.5rem; }
 }
 </style>
 
-<!-- Script -->
+<!-- Lógica JavaScript -->
 <script>
+function setupProductExplorer() {
+  const cardsGrid = document.getElementById("categories-cards-grid");
+  const breadcrumb = document.getElementById("category-explorer-breadcrumb");
+  const explorerProducts = document.querySelectorAll(".explorer-product-item");
+  const noProductsAlert = document.getElementById("no-products-alert");
+  const currentCategoryTitle = document.getElementById("current-category-title");
+  const categoryProductsTitle = document.getElementById("category-products-title");
+
+  if (!cardsGrid || !breadcrumb) return;
+
+  // Estructura de navegación
+  let navigationHistory = [{ id: 'root', name: 'Categorías Principales', parentId: null, level: 0 }];
+  let activeCategoryId = 'root';
+
+  function renderExplorerLevel(parentId, selectedId = null) {
+    const allCategoryCards = cardsGrid.querySelectorAll(".category-card-item");
+
+    allCategoryCards.forEach(wrapper => {
+      const card = wrapper.querySelector(".card");
+      const cardBody = wrapper.querySelector(".card-body");
+      
+      card.classList.remove("selected-cat-card");
+      if (cardBody) cardBody.classList.remove("bg-white");
+
+      if (wrapper.dataset.parentId === parentId) {
+        wrapper.classList.remove("d-none");
+        if (selectedId && wrapper.dataset.id === selectedId) {
+          card.classList.add("selected-cat-card");
+        } else {
+          if (cardBody) cardBody.classList.add("bg-white");
+        }
+      } else {
+        wrapper.classList.add("d-none");
+      }
+    });
+
+    const currentLevel = navigationHistory[navigationHistory.length - 1];
+    if (currentCategoryTitle) {
+      currentCategoryTitle.innerHTML = `<i class="fas fa-folder-open text-primary me-2"></i> ${currentLevel.name}`;
+    }
+
+    activeCategoryId = selectedId || parentId;
+
+    renderBreadcrumb();
+    filterProductsByCategory();
+  }
+
+  function filterProductsByCategory() {
+    let visibleCount = 0;
+
+    explorerProducts.forEach(prod => {
+      const pCatId = prod.dataset.categoryId;
+
+      if (activeCategoryId !== 'root' && pCatId === activeCategoryId) {
+        prod.classList.remove("d-none");
+        visibleCount++;
+      } else {
+        prod.classList.add("d-none");
+      }
+    });
+
+    if (!categoryProductsTitle || !noProductsAlert) return;
+
+    if (activeCategoryId === 'root') {
+      categoryProductsTitle.innerHTML = `<i class="fas fa-boxes text-secondary me-2"></i> Seleccione una categoría para ver sus productos`;
+      noProductsAlert.classList.add("d-none");
+    } else {
+      const currentLevelName = navigationHistory[navigationHistory.length - 1].name;
+      categoryProductsTitle.innerHTML = `<i class="fas fa-boxes text-success me-2"></i> Productos en "${currentLevelName}"`;
+
+      if (visibleCount === 0) {
+        noProductsAlert.classList.remove("d-none");
+      } else {
+        noProductsAlert.classList.add("d-none");
+      }
+    }
+  }
+
+  function renderBreadcrumb() {
+    breadcrumb.innerHTML = "";
+    navigationHistory.forEach((item, index) => {
+      const isLast = index === navigationHistory.length - 1;
+      const li = document.createElement("li");
+      li.className = `breadcrumb-item ${isLast ? "active fw-bold text-primary" : ""}`;
+
+      if (isLast) {
+        li.textContent = item.name;
+      } else {
+        const a = document.createElement("a");
+        a.href = "#";
+        a.className = "text-decoration-none";
+        a.textContent = item.name;
+        a.addEventListener("click", function(e) {
+          e.preventDefault();
+          navigationHistory = navigationHistory.slice(0, index + 1);
+          renderExplorerLevel(item.id);
+        });
+        li.appendChild(a);
+      }
+      breadcrumb.appendChild(li);
+    });
+  }
+
+  // Clic en tarjetas de categoría
+  cardsGrid.onclick = function(e) {
+    const cardItem = e.target.closest(".category-card-item");
+    if (!cardItem) return;
+
+    const catId = cardItem.dataset.id;
+    const catName = cardItem.dataset.name;
+    const parentId = cardItem.dataset.parentId;
+    const subcount = parseInt(cardItem.dataset.subcategoriesCount || "0");
+
+    const currentLevelIndex = navigationHistory.findIndex(item => item.id === parentId);
+
+    if (currentLevelIndex !== -1) {
+      navigationHistory = navigationHistory.slice(0, currentLevelIndex + 1);
+    }
+
+    if (subcount > 0) {
+      navigationHistory.push({ id: catId, name: catName, parentId: parentId, level: navigationHistory.length });
+      renderExplorerLevel(catId);
+    } else {
+      navigationHistory.push({ id: catId, name: catName, parentId: parentId, level: navigationHistory.length });
+      renderExplorerLevel(parentId, catId);
+    }
+  };
+
+  renderExplorerLevel("root");
+}
+
+document.addEventListener("DOMContentLoaded", setupProductExplorer);
+document.addEventListener("turbo:load", setupProductExplorer);
+document.addEventListener("turbolinks:load", setupProductExplorer);
+
+// Funciones del Carrusel de Imágenes
 function showSlide(carousel, index) {
   const slides = carousel.querySelectorAll('.carousel-image');
   const dots = carousel.querySelectorAll('.dot');
@@ -299,49 +406,23 @@ function showSlide(carousel, index) {
   dots.forEach((d, i) => d.classList.toggle('active', i === index));
   carousel.dataset.current = index;
 }
+
 function nextSlide(btn) {
   const carousel = btn.closest('.custom-carousel');
   let index = parseInt(carousel.dataset.current || 0);
   const slides = carousel.querySelectorAll('.carousel-image');
   showSlide(carousel, (index + 1) % slides.length);
 }
+
 function prevSlide(btn) {
   const carousel = btn.closest('.custom-carousel');
   let index = parseInt(carousel.dataset.current || 0);
   const slides = carousel.querySelectorAll('.carousel-image');
   showSlide(carousel, (index - 1 + slides.length) % slides.length);
 }
+
 function goToSlide(dot, index) {
   const carousel = dot.closest('.custom-carousel');
   showSlide(carousel, index);
 }
-
-document.addEventListener("DOMContentLoaded", function() {
-  document.querySelectorAll('.product-card').forEach(card => {
-    const carousel = card.querySelector('.custom-carousel');
-    if (!carousel) return;
-    let interval = null;
-
-    card.addEventListener('mouseenter', () => {
-      let index = parseInt(carousel.dataset.current || 0);
-      interval = setInterval(() => {
-        const slides = carousel.querySelectorAll('.carousel-image');
-        index = (index + 1) % slides.length;
-        showSlide(carousel, index);
-      }, 2500);
-    });
-    card.addEventListener('mouseleave', () => clearInterval(interval));
-
-    let startX = 0;
-    carousel.addEventListener('touchstart', e => { startX = e.touches[0].clientX; });
-    carousel.addEventListener('touchend', e => {
-      const endX = e.changedTouches[0].clientX;
-      const diff = endX - startX;
-      if (Math.abs(diff) > 50) {
-        if (diff < 0) nextSlide({closest: () => carousel});
-        else prevSlide({closest: () => carousel});
-      }
-    });
-  });
-});
 </script>
