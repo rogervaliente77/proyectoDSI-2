@@ -1,0 +1,83 @@
+<%= simple_form_for [:admin, @customer_list], data: { turbo: false } do |f| %>
+  <% if @customer_list.errors.any? %>
+    <div class="alert alert-danger">
+      <h6 class="alert-heading font-weight-bold">Se encontraron errores al guardar:</h6>
+      <ul class="mb-0">
+        <% @customer_list.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= f.input :name, label: "Nombre de la lista", placeholder: "Ej. Clientes VIP / Frecuentes Mayo", input_html: { class: "form-control" } %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.input :description, label: "Descripción breve", as: :text, input_html: { class: "form-control", rows: 2 } %>
+  </div>
+
+  <!-- Contenedor de Selección de Clientes -->
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <label class="form-label fw-bold mb-0">Seleccionar Clientes para la Lista:</label>
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn btn-outline-primary" id="btn-select-all">
+          <i class="fas fa-check-square me-1"></i> Seleccionar todo
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="btn-deselect-all">
+          <i class="fas fa-square me-1"></i> Desmarcar todo
+        </button>
+      </div>
+    </div>
+
+    <!-- IDs de clientes ya guardados en esta lista -->
+    <% current_selected_ids = @customer_list.clients_data.map { |c| (c['id'] || c[:id]).to_s } %>
+
+    <div class="card border p-3" style="max-height: 350px; overflow-y: auto;">
+      <div class="row">
+        <% Client.all.each do |client| %>
+          <div class="col-md-6 mb-2">
+            <div class="form-check">
+              <input class="form-check-input client-checkbox" 
+                     type="checkbox" 
+                     name="customer_list[selected_client_ids][]" 
+                     value="<%= client.id %>" 
+                     id="client_<%= client.id %>" 
+                     <%= 'checked' if current_selected_ids.include?(client.id.to_s) %>>
+              <label class="form-check-label" for="client_<%= client.id %>">
+                <span class="fw-bold text-dark"><%= client.try(:name) || client.try(:full_name) || "#{client.nombre}" %></span>
+                <br>
+                <small class="text-muted"><i class="fas fa-envelope me-1"></i><%= client.email %></small>
+              </label>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2">
+    <%= link_to "Cancelar", admin_customer_lists_path, class: "btn btn-secondary", data: { turbo: false } %>
+    <%= f.submit "💾 Guardar Lista", class: "btn btn-success px-4" %>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const selectAllBtn = document.getElementById("btn-select-all");
+    const deselectAllBtn = document.getElementById("btn-deselect-all");
+    const checkboxes = document.querySelectorAll(".client-checkbox");
+
+    if (selectAllBtn && deselectAllBtn) {
+      selectAllBtn.addEventListener("click", function() {
+        checkboxes.forEach(cb => cb.checked = true);
+      });
+
+      deselectAllBtn.addEventListener("click", function() {
+        checkboxes.forEach(cb => cb.checked = false);
+      });
+    }
+  });
+</script>

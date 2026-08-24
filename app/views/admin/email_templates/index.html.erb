@@ -1,0 +1,109 @@
+<div class="container-fluid py-4">
+
+  <!-- Encabezado de la página -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+      <i class="fas fa-envelope-open-text me-2 text-primary"></i>Plantillas de Correo
+    </h1>
+    <%= link_to new_admin_email_template_path, class: "btn btn-primary shadow-sm", data: { turbo: false } do %>
+      <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Nueva Plantilla
+    <% end %>
+  </div>
+
+  <!-- Mensajes Flash de Notificación -->
+  <% if notice.present? %>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+      <i class="fas fa-check-circle me-2"></i><%= notice %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- Tabla / Card contenedora -->
+  <div class="card shadow mb-4 border-0">
+    <div class="card-header py-3 bg-white d-flex align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Listado de Plantillas Configuradas</h6>
+      <span class="badge bg-secondary"><%= @templates.count %> Registradas</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if @templates.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" class="ps-4">Nombre Interno</th>
+                <th scope="col">Asunto</th>
+                <th scope="col">Tema Visual</th>
+                <th scope="col">Fecha de Creación</th>
+                <th scope="col" class="text-end pe-4">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @templates.each do |template| %>
+                <tr>
+                  <td class="ps-4 font-weight-bold text-dark">
+                    <%= template.name %>
+                  </td>
+                  <td>
+                    <span class="text-muted"><%= template.subject %></span>
+                  </td>
+                  <td>
+                    <span class="badge rounded-pill" style="background-color: <%= template.theme.primary_color %>; color: #fff;">
+                      <i class="fas fa-palette me-1"></i><%= template.theme.name %>
+                    </span>
+                  </td>
+                  <td>
+                    <small class="text-muted">
+                      <%= template.created_at.strftime("%d/%m/%Y - %H:%M") if template.created_at.present? %>
+                    </small>
+                  </td>
+                  <td class="text-end pe-4">
+                    <div class="btn-group" role="group">
+                      <!-- Ver / Previsualizar -->
+                      <%= link_to admin_email_template_path(template), class: "btn btn-sm btn-outline-info", title: "Previsualizar", data: { turbo: false } do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+
+                      <!-- Editar -->
+                      <%= link_to edit_admin_email_template_path(template), class: "btn btn-sm btn-outline-warning", title: "Editar", data: { turbo: false } do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+
+                      <!-- Botón de Envío Masivo -->
+                      <%= button_to send_to_active_clients_admin_email_template_path(template), 
+                                    method: :post, 
+                                    class: "btn btn-sm btn-outline-success", 
+                                    title: "Enviar a clientes activos",
+                                    data: { turbo: false, confirm: "¿Estás seguro de que deseas enviar la plantilla '#{template.name}' a TODOS los clientes activos?" } do %>
+                        <i class="fas fa-paper-plane"></i>
+                      <% end %>
+
+                      <!-- Eliminar -->
+                      <%= link_to admin_email_template_path(template), 
+                                  data: { turbo_method: :delete, turbo_confirm: "¿Deseas eliminar esta plantilla?" }, 
+                                  class: "btn btn-sm btn-outline-danger", 
+                                  title: "Eliminar" do %>
+                        <i class="fas fa-trash-alt"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <!-- Estado Vacío (Sin Plantillas) -->
+        <div class="text-center py-5">
+          <i class="fas fa-envelope-open fa-3x text-gray-300 mb-3"></i>
+          <h5 class="text-gray-600">No hay plantillas de correo guardadas</h5>
+          <p class="text-muted small mb-3">Crea tu primera plantilla con texto formateado y estilos personalizados.</p>
+          <%= link_to new_admin_email_template_path, class: "btn btn-primary btn-sm", data: { turbo: false } do %>
+            <i class="fas fa-plus me-1"></i> Crear Plantilla Ahora
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+</div>

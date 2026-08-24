@@ -63,9 +63,7 @@
        <% if @current_user.role.name == "super_admin" %>
         <div class="dropdown-divider"></div>
         <h6 class="collapse-header">Configuraciones del sitio:</h6>
-        <a class="collapse-item" href="<%= admin_site_configuration_path %>" data-turbo="false">Configuración general</a>
-        <a class="collapse-item" href="<%= admin_update_site_configuration_path %>" data-turbo="false">Notificaciones y ofertas</a>
-        <a class="collapse-item" href="<%= admin_mass_mail_path %>" data-turbo="false">Correos masivos</a>
+        <%= link_to "Notificaciones y ofertas", admin_site_configuration_path, class: "collapse-item", data: { turbo: false } %>
       <% end %>
       </div>
     </div>
@@ -158,6 +156,20 @@
           <h6 class="collapse-header">Proveedores:</h6>
           <a class="collapse-item" href="<%= admin_suppliers_path %>" data-turbo="false">Proveedores</a>
           <a class="collapse-item" href="<%= admin_supplier_invoices_path %>" data-turbo="false">Facturas de proveedor</a>
+        </div>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseEmails"
+        aria-expanded="true" aria-controls="collapseEmais">
+        <i class="fas fa-fw fa-envelope"></i>
+        <span>Emails</span>
+      </a>
+      <div id="collapseEmails" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <a class="collapse-item" href="<%= admin_email_themes_path %>" data-turbo="false">Diseños de plantillas</a>
+          <a class="collapse-item" href="<%= admin_email_templates_path %>" data-turbo="false">Plantillas de correo</a>
         </div>
       </div>
     </li>

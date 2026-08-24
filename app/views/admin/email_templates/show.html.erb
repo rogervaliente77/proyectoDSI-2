@@ -1,0 +1,31 @@
+<%# app/views/admin/email_templates/show.html.erb %>
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><%= @template.name %></h1>
+    <div class="d-flex gap-2">
+      <%= link_to edit_admin_email_template_path(@template), class: "btn btn-outline-primary", data: { turbo: false } do %>
+        <i class="fas fa-edit me-1"></i> Editar
+      <% end %>
+      
+      <%= button_to send_to_active_clients_admin_email_template_path(@template), method: :post, class: "btn btn-success", data: { turbo: false, confirm: "¿Seguro que deseas enviar esta plantilla a todos los clientes activos?" } do %>
+        <i class="fas fa-paper-plane me-1"></i> Enviar a Clientes Activos
+      <% end %>
+
+      <%= link_to admin_email_templates_path, class: "btn btn-secondary", data: { turbo: false } do %>
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+      <strong>Asunto:</strong> <%= @template.subject %> | 
+      <strong>Tema:</strong> <span class="badge bg-primary"><%= @template.theme.name %></span>
+    </div>
+    <div class="card-body p-4" style="background-color: <%= @template.theme&.background_color || '#f4f6f9' %>;">
+        <div class="p-4 rounded shadow-sm mx-auto" style="max-width: 600px; background-color: <%= @template.theme&.card_bg_color || '#ffffff' %>; border-top: 4px solid <%= @template.theme&.primary_color || '#0d6efd' %>; color: <%= @template.theme&.text_color || '#212529' %>;">
+            <%= @template.render_body_for(OpenStruct.new(name: "Cliente de Prueba", email: "prueba@cliente.com")).html_safe %>
+        </div>
+    </div>
+  </div>
+</div>

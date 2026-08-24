@@ -173,6 +173,16 @@ Rails.application.routes.draw do
     #PRODUCT HISTORIES
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
  
+    resources :customer_lists
+
+    resources :email_themes
+    resources :email_templates do
+      member do
+        post :send_to_active_clients
+        post :send_broadcast
+      end
+    end
+
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports
     get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
@@ -180,11 +190,10 @@ Rails.application.routes.draw do
     get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
     get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
 
-   # 🔹 Configuraciones del sitio
-  get "configuraciones", to: "site_configurations#show", as: :site_configuration
-  patch "configuraciones/update", to: "site_configurations#update", as: :update_site_configuration
-  post "configuraciones/mass_mail", to: "site_configurations#mass_mail", as: :mass_mail
-  #get "configuraciones/not", to: "site_configurations#not", as: :site_notifications_alerts  
+    # 🔹 Configuraciones del sitio
+    resource :site_configuration, only: [:show, :edit, :update] do
+      post :mass_mail
+    end
   
   end
 

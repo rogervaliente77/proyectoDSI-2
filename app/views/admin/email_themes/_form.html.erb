@@ -1,0 +1,100 @@
+<%= form_with(model: [:admin, theme], local: true, data: { turbo: false }) do |f| %>
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card shadow mb-4 border-0">
+        <div class="card-header py-3 bg-white">
+          <h6 class="m-0 font-weight-bold text-primary">Parámetros del Tema</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <%= f.label :name, "Nombre del Tema", class: "form-label font-weight-bold" %>
+            <%= f.text_field :name, class: "form-control", placeholder: "Ej. Tema Navideño", required: true %>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-6">
+              <%= f.label :primary_color, "Color Primario (Borde)", class: "form-label font-weight-bold" %>
+              <%= f.color_field :primary_color, class: "form-control form-control-color w-100", id: "input_primary_color" %>
+            </div>
+            <div class="col-6">
+              <%= f.label :background_color, "Color de Fondo General", class: "form-label font-weight-bold" %>
+              <%= f.color_field :background_color, class: "form-control form-control-color w-100", id: "input_bg_color" %>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-6">
+              <%= f.label :card_bg_color, "Fondo de Tarjeta", class: "form-label font-weight-bold" %>
+              <%= f.color_field :card_bg_color, class: "form-control form-control-color w-100", id: "input_card_bg_color" %>
+            </div>
+            <div class="col-6">
+              <%= f.label :text_color, "Color de Texto", class: "form-label font-weight-bold" %>
+              <%= f.color_field :text_color, class: "form-control form-control-color w-100", id: "input_text_color" %>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :header_html, "Encabezado HTML (Header)", class: "form-label font-weight-bold" %>
+            <%= f.text_area :header_html, class: "form-control font-monospace", rows: 3, id: "input_header" %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :footer_html, "Pie de Página HTML (Footer)", class: "form-label font-weight-bold" %>
+            <%= f.text_area :footer_html, class: "form-control font-monospace", rows: 3, id: "input_footer" %>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <%= link_to "Cancelar", admin_email_themes_path, class: "btn btn-secondary", data: { turbo: false } %>
+            <%= f.submit "Guardar Tema", class: "btn btn-primary" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Previsualización -->
+    <div class="col-lg-6">
+      <div class="card shadow mb-4 border-0 sticky-top" style="top: 20px;">
+        <div class="card-header py-3 bg-dark text-white">
+          <span class="small font-weight-bold"><i class="fas fa-desktop me-2"></i>Vista Previa del Tema</span>
+        </div>
+        <div id="preview_wrapper" class="card-body p-4" style="background-color: <%= theme.background_color %>;">
+          <div id="preview_card" class="p-4 rounded shadow-sm" style="background-color: <%= theme.card_bg_color %>; border-top: 5px solid <%= theme.primary_color %>; color: <%= theme.text_color %>;">
+            <div id="preview_header_content" class="mb-3 pb-2 border-bottom"><%= theme.header_html.to_s.html_safe %></div>
+            <div class="my-4 py-3 bg-light border rounded text-center text-muted">
+              [Aquí se mostrará el cuerpo dinámico del correo]
+            </div>
+            <div id="preview_footer_content" class="mt-3 pt-2 border-top"><%= theme.footer_html.to_s.html_safe %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const bindInputToStyle = (inputId, targetId, styleProp) => {
+      const input = document.getElementById(inputId);
+      const target = document.getElementById(targetId);
+      if (input && target) {
+        input.addEventListener('input', () => target.style[styleProp] = input.value);
+      }
+    };
+
+    const bindInputToHTML = (inputId, targetId) => {
+      const input = document.getElementById(inputId);
+      const target = document.getElementById(targetId);
+      if (input && target) {
+        input.addEventListener('input', () => target.innerHTML = input.value);
+      }
+    };
+
+    bindInputToStyle('input_primary_color', 'preview_card', 'borderTopColor');
+    bindInputToStyle('input_bg_color', 'preview_wrapper', 'backgroundColor');
+    bindInputToStyle('input_card_bg_color', 'preview_card', 'backgroundColor');
+    bindInputToStyle('input_text_color', 'preview_card', 'color');
+
+    bindInputToHTML('input_header', 'preview_header_content');
+    bindInputToHTML('input_footer', 'preview_footer_content');
+  });
+</script>

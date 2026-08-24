@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+      body {
+        background-color: <%= @theme.background_color %>;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        margin: 0;
+      }
+      .card-container {
+        background-color: <%= @theme.card_bg_color %>;
+        border-top: 5px solid <%= @theme.primary_color %>;
+        color: <%= @theme.text_color %>;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 30px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card-container">
+      <% if @theme.header_html.present? %>
+        <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+          <%= @theme.header_html.html_safe %>
+        </div>
+      <% end %>
+
+      <%= yield %>
+
+      <% if @theme.footer_html.present? %>
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+          <%= @theme.footer_html.html_safe %>
+        </div>
+      <% end %>
+    </div>
+  </body>
+</html>

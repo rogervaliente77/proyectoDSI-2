@@ -1,101 +1,130 @@
 <!-- app/views/admin/site_configurations/show.html.erb -->
-
-<!-- Begin Page Content -->
-<div class="container-fluid">
-  <!-- Page Heading -->
+<div class="container-fluid py-4">
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Configuraciones Generales del Sitio</h1>
-
-    <%= link_to admin_home_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" do %>
-      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver al panel
+    <h1 class="h3 mb-0 text-gray-800">
+      <i class="fas fa-cogs me-2 text-primary"></i>Configuraciones Generales del Sitio
+    </h1>
+    <%= link_to admin_home_path, class: "btn btn-sm btn-secondary shadow-sm", data: { turbo: false } do %>
+      <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Volver al panel
     <% end %>
   </div>
 
-  <!-- Content Row -->
   <div class="row">
     <div class="col-lg-12">
-      <div class="card shadow mb-4">
-        <!-- Card Header -->
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-          <h6 class="m-0 font-weight-bold text-primary">Ajustes Generales</h6>
-          <div class="dropdown no-arrow">
-            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-            </a>
-            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                 aria-labelledby="dropdownMenuLink">
-              <div class="dropdown-header">Opciones:</div>
-              <a class="dropdown-item" href="#">Ver documentación</a>
-              <a class="dropdown-item" href="#">Soporte técnico</a>
-            </div>
-          </div>
+      <div class="card shadow mb-4 border-0">
+        <div class="card-header py-3 bg-white border-bottom">
+          <h6 class="m-0 font-weight-bold text-primary">Ajustes del Sistema</h6>
         </div>
 
-        <!-- Card Body -->
-        <div class="card-body">
+        <div class="card-body p-4">
           <% if flash[:notice] %>
-            <div class="alert alert-success"><%= flash[:notice] %></div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="fas fa-check-circle me-2"></i><%= flash[:notice] %>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
           <% elsif flash[:alert] %>
-            <div class="alert alert-danger"><%= flash[:alert] %></div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="fas fa-exclamation-circle me-2"></i><%= flash[:alert] %>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
           <% end %>
 
           <%= simple_form_for @config,
               url: admin_site_configuration_path,
               method: :patch,
-              html: { class: "needs-validation", id: "form-configuracion-general", novalidate: false },
+              html: { class: "needs-validation", id: "form-configuracion-general" },
               data: { turbo: false } do |f| %>
 
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <%= f.input :session_timeout,
-                      label: "Tiempo de inactividad (minutos)",
-                      required: true,
-                      input_html: { class: "form-control", min: 1 } %>
-                </div>
+            <!-- SECCIÓN 1: GENERAL -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2">Información General</h5>
+            <div class="row mb-3">
+              <div class="col-md-4 mb-3">
+                <%= f.input :company_name,
+                    label: "Nombre de la empresa",
+                    input_html: { class: "form-control" } %>
+              </div>
 
-                <div class="col-md-4 mb-3">
-                  <%= f.input :company_name,
-                      label: "Nombre de la empresa",
-                      input_html: { class: "form-control" } %>
-                </div>
+              <div class="col-md-4 mb-3">
+                <%= f.input :currency_symbol,
+                    label: "Símbolo de moneda",
+                    input_html: { class: "form-control", maxlength: 3 } %>
+              </div>
 
-                <div class="col-md-4 mb-3">
-                  <%= f.input :currency_symbol,
-                      label: "Símbolo de moneda predeterminado",
-                      input_html: { class: "form-control", maxlength: 3 } %>
+              <div class="col-md-4 mb-3">
+                <%= f.input :timezone,
+                    label: "Zona horaria",
+                    collection: ActiveSupport::TimeZone.all.map(&:name),
+                    prompt: "Seleccione zona horaria",
+                    input_html: { class: "form-control" } %>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 2: SEGURIDAD Y SERVIDOR -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">Seguridad y Sesión</h5>
+            <div class="row mb-3">
+              <div class="col-md-4 mb-3">
+                <%= f.input :session_timeout,
+                    label: "Tiempo de inactividad (minutos)",
+                    required: true,
+                    input_html: { class: "form-control", min: 1 } %>
+              </div>
+
+              <div class="col-md-4 mb-3 d-flex align-items-center">
+                <div class="form-check mt-3">
+                  <%= f.check_box :maintenance_mode, class: "form-check-input", id: "maintenance_mode" %>
+                  <%= f.label :maintenance_mode, "Activar modo mantenimiento", class: "form-check-label fw-bold" %>
                 </div>
               </div>
 
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <%= f.input :timezone,
-                      label: "Zona horaria del sistema",
-                      collection: ActiveSupport::TimeZone.all.map(&:name),
-                      prompt: "Seleccione zona horaria",
-                      input_html: { class: "form-control" } %>
+              <div class="col-md-4 mb-3 d-flex align-items-center">
+                <div class="form-check mt-3">
+                  <%= f.check_box :debug_mode, class: "form-check-input", id: "debug_mode" %>
+                  <%= f.label :debug_mode, "Activar modo desarrollador", class: "form-check-label fw-bold" %>
                 </div>
+              </div>
+            </div>
 
-                <div class="col-md-4 mb-3 d-flex align-items-center">
-                  <div class="form-check mt-4">
-                    <%= f.check_box :maintenance_mode, class: "form-check-input", id: "maintenance_mode" %>
-                    <%= f.label :maintenance_mode, "Activar modo mantenimiento", class: "form-check-label" %>
-                  </div>
-                </div>
+            <!-- SECCIÓN 3: CONFIGURACIÓN DE CORREO -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">Configuración de Envío de Correos</h5>
+            <div class="row mb-3">
+              <div class="col-md-6 mb-3">
+                <%= f.input :email_sender,
+                    label: "Correo emisor (SMTP / Gmail)",
+                    placeholder: "ejemplo@gmail.com",
+                    input_html: { class: "form-control" } %>
+              </div>
 
-                <div class="col-md-4 mb-3 d-flex align-items-center">
-                  <div class="form-check mt-4">
-                    <%= f.check_box :debug_mode, class: "form-check-input", id: "debug_mode" %>
-                    <%= f.label :debug_mode, "Activar modo desarrollador", class: "form-check-label" %>
-                  </div>
+              <div class="col-md-6 mb-3">
+                <%= f.input :app_password_sender,
+                    label: "Contraseña de aplicación",
+                    as: :password,
+                    placeholder: "•••• •••• •••• ••••",
+                    input_html: { class: "form-control" } %>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <%= f.check_box :offer_notifications_enabled, class: "form-check-input", id: "offer_notifications" %>
+                  <%= f.label :offer_notifications_enabled, "Habilitar notificaciones de ofertas", class: "form-check-label" %>
                 </div>
               </div>
 
-              <div class="row mt-4">
-                <div class="col-md-12 text-center">
-                  <%= f.submit '💾 Guardar Cambios', class: 'btn btn-success px-4' %>
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <%= f.check_box :mass_mail_enabled, class: "form-check-input", id: "mass_mail" %>
+                  <%= f.label :mass_mail_enabled, "Habilitar envíos de correo masivo", class: "form-check-label" %>
                 </div>
               </div>
+            </div>
+
+            <!-- BOTÓN GUARDAR -->
+            <div class="row mt-4">
+              <div class="col-md-12 text-end">
+                <%= f.submit '💾 Guardar Cambios', class: 'btn btn-primary px-4 shadow-sm' %>
+              </div>
+            </div>
 
           <% end %>
         </div>
@@ -103,4 +132,3 @@
     </div>
   </div>
 </div>
-<!-- /.container-fluid -->

@@ -10,7 +10,8 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
     if @config.update(config_params)
       redirect_to admin_site_configuration_path, notice: "Configuración actualizada correctamente."
     else
-      render :show, alert: "Error al actualizar configuración."
+      flash.now[:alert] = "Error al actualizar la configuración."
+      render :show, status: :unprocessable_entity
     end
   end
 
@@ -29,16 +30,21 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
   private
 
   def set_config
-    @config = SiteConfiguration.first_or_create!
+    @config = SiteConfiguration.first_or_create
   end
 
   def config_params
-    params.require(:site_configuration).permit(:session_timeout, :offer_notifications_enabled, :mass_mail_enabled)
+    params.require(:site_configuration).permit(
+      :session_timeout, 
+      :offer_notifications_enabled, 
+      :mass_mail_enabled,
+      :company_name,
+      :currency_symbol,
+      :timezone,
+      :maintenance_mode,
+      :debug_mode,
+      :email_sender,
+      :app_password_sender
+    )
   end
-
-  def not
-  @config = SiteConfiguration.first_or_create!
-  end
-
-
 end
