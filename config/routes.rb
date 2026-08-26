@@ -102,7 +102,7 @@ Rails.application.routes.draw do
     resources :roles, except: [:show]
 
     #CONFIGURACION PLANILLA
-    resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuraciones_planilla'
+    resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuracion_planillas'
 
     #COTIZACIONES
     resources :cotizaciones do

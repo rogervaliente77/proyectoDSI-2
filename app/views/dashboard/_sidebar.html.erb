@@ -63,7 +63,7 @@
        <% if @current_user.role.name == "super_admin" %>
         <div class="dropdown-divider"></div>
         <h6 class="collapse-header">Configuraciones del sitio:</h6>
-        <%= link_to "Notificaciones y ofertas", admin_site_configuration_path, class: "collapse-item", data: { turbo: false } %>
+        <%= link_to "Configuraciones", admin_site_configuration_path, class: "collapse-item", data: { turbo: false } %>
       <% end %>
       </div>
     </div>
@@ -170,6 +170,7 @@
         <div class="bg-white py-2 collapse-inner rounded">
           <a class="collapse-item" href="<%= admin_email_themes_path %>" data-turbo="false">Diseños de plantillas</a>
           <a class="collapse-item" href="<%= admin_email_templates_path %>" data-turbo="false">Plantillas de correo</a>
+          <a class="collapse-item" href="<%= admin_customer_lists_path %>" data-turbo="false">Listas de clientes</a>
         </div>
       </div>
     </li>

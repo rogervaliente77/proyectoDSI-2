@@ -4,35 +4,40 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <style>
       body {
-        background-color: <%= @theme.background_color %>;
+        background-color: <%= @theme&.background_color || '#f4f6f9' %>;
+        color: <%= @theme&.text_color || '#333333' %>;
         font-family: Arial, sans-serif;
-        padding: 20px;
         margin: 0;
+        padding: 20px;
       }
-      .card-container {
-        background-color: <%= @theme.card_bg_color %>;
-        border-top: 5px solid <%= @theme.primary_color %>;
-        color: <%= @theme.text_color %>;
+      .email-container {
+        background-color: <%= @theme&.card_bg_color || '#ffffff' %>;
         max-width: 600px;
         margin: 0 auto;
-        padding: 30px;
         border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       }
     </style>
   </head>
   <body>
-    <div class="card-container">
-      <% if @theme.header_html.present? %>
-        <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-          <%= @theme.header_html.html_safe %>
+    <div class="email-container">
+      <!-- HEADER PARSEADO -->
+      <% if @header_content.present? %>
+        <div class="email-header">
+          <%= @header_content.html_safe %>
         </div>
       <% end %>
 
-      <%= yield %>
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="email-body">
+        <%= @content.html_safe %>
+      </div>
 
-      <% if @theme.footer_html.present? %>
-        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
-          <%= @theme.footer_html.html_safe %>
+      <!-- FOOTER PARSEADO -->
+      <% if @footer_content.present? %>
+        <div class="email-footer">
+          <%= @footer_content.html_safe %>
         </div>
       <% end %>
     </div>

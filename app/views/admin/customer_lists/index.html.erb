@@ -46,7 +46,12 @@
                     <%= link_to edit_admin_customer_list_path(list), class: "btn btn-sm btn-warning me-1", title: "Editar", data: { turbo: false } do %>
                       <i class="fas fa-edit"></i>
                     <% end %>
-                    <%= link_to admin_customer_list_path(list), method: :delete, data: { confirm: "¿Estás seguro de eliminar esta lista?" }, class: "btn btn-sm btn-danger", title: "Eliminar" do %>
+                    
+                    <!-- Botón Eliminar Corregido -->
+                    <%= link_to admin_customer_list_path(list), 
+                                data: { turbo_method: :delete, turbo_confirm: "¿Estás seguro de eliminar esta lista?" }, 
+                                class: "btn btn-sm btn-danger", 
+                                title: "Eliminar" do %>
                       <i class="fas fa-trash"></i>
                     <% end %>
                   </td>

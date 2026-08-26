@@ -1,7 +1,8 @@
 # app/controllers/admin/email_templates_controller.rb
 module Admin
   class EmailTemplatesController < ApplicationController
-    before_action :set_template, only: [:show, :edit, :update, :destroy, :send_to_active_clients]
+    before_action :set_template, only: [:show, :edit, :update, :destroy, 
+                  :send_to_active_clients, :send_broadcast]
     layout 'dashboard'
 
     def index
@@ -55,34 +56,33 @@ module Admin
       active_clients = Client.where(active: true) 
 
       active_clients.each do |client|
-        TemplateMailer.send_broadcast(@template, client).deliver_later
+        TemplateMailer.send_broadcast(@template, client).deliver_now
       end
 
       redirect_to admin_email_template_path(@template), notice: "Envío masivo iniciado para #{active_clients.count} clientes activos."
     end
 
     def send_broadcast
-      @template = EmailTemplate.find(params[:id])
       customer_list = @template.customer_list
 
       unless customer_list
-        redirect_to admin_email_template_path(@template), alert: "La plantilla no tiene una lista de clientes asignada."
+        redirect_to admin_email_templates_path, alert: "La plantilla '#{@template.name}' no tiene una lista de clientes asignada."
         return
       end
 
       clients = customer_list.clients
 
       if clients.empty?
-        redirect_to admin_email_template_path(@template), alert: "La lista '#{customer_list.name}' no contiene clientes."
+        redirect_to admin_email_templates_path, alert: "La lista '#{customer_list.name}' no contiene clientes."
         return
       end
 
       # Enviar a cada cliente de la lista
       clients.each do |client|
-        TemplateMailer.send_broadcast(@template, client).deliver_later
+        TemplateMailer.send_broadcast(@template, client).deliver_now # Usa deliver_now para pruebas
       end
 
-      redirect_to admin_email_template_path(@template), notice: "Correo en cola de envío para #{clients.count} clientes de la lista '#{customer_list.name}'."
+      redirect_to admin_email_templates_path, notice: "Se enviaron #{clients.count} correos correctamente a la lista '#{customer_list.name}'."
     end
 
     private
@@ -92,7 +92,7 @@ module Admin
     end
 
     def template_params
-      params.require(:email_template).permit(:name, :subject, :body_html, :slug, :email_theme_id, :customer_list_id)
+      params.require(:email_template).permit(:name, :subject, :body_html, :email_theme_id, :customer_list_id, custom_placeholders: {})
     end
   end
 end

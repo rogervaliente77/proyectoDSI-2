@@ -69,12 +69,12 @@
                         <i class="fas fa-edit"></i>
                       <% end %>
 
-                      <!-- Botón de Envío Masivo -->
-                      <%= button_to send_to_active_clients_admin_email_template_path(template), 
+                      <!-- Botón de Envío Masivo a la Lista Asignada -->
+                      <%= button_to send_broadcast_admin_email_template_path(template), 
                                     method: :post, 
                                     class: "btn btn-sm btn-outline-success", 
-                                    title: "Enviar a clientes activos",
-                                    data: { turbo: false, confirm: "¿Estás seguro de que deseas enviar la plantilla '#{template.name}' a TODOS los clientes activos?" } do %>
+                                    title: "Enviar correo a la lista asignada",
+                                    data: { turbo: false, confirm: "¿Estás seguro de que deseas enviar la plantilla '#{template.name}' a su lista de clientes?" } do %>
                         <i class="fas fa-paper-plane"></i>
                       <% end %>
 

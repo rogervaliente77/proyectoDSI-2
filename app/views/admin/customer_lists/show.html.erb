@@ -37,7 +37,7 @@
             <table class="table table-hover align-middle mb-0">
               <thead class="table-light">
                 <tr>
-                  <th>ID Cliente</th>
+                  <th>Cliente</th>
                   <th>Correo Electrónico</th>
                 </tr>
               </thead>
@@ -45,7 +45,7 @@
                 <% if @customer_list.clients_data.any? %>
                   <% @customer_list.clients_data.each do |data| %>
                     <tr>
-                      <td class="fw-bold font-monospace"><%= data['id'] || data[:id] %></td>
+                      <td class="fw-bold font-monospace"><%= data['name'] || data[:name] %></td>
                       <td><i class="fas fa-envelope text-muted me-2"></i><%= data['email'] || data[:email] %></td>
                     </tr>
                   <% end %>
