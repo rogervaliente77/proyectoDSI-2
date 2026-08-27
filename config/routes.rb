@@ -202,5 +202,5 @@ Rails.application.routes.draw do
   get 'landing/index', to: 'landing#index', as: 'landing_index'
   
   # Cambiamos la ruta raíz para que haga un redirect permanente/temporal al login de admin
-  root to: redirect('/admin/login')
+  root to: redirect('/landing/index')
 end

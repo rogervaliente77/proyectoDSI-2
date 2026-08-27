@@ -1,30 +1,121 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>FerrePro</title>
+    <title>FerrePro | Taller Especializado & Repuestos</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "sb-admin-2", media: "all" %>
-    <%= stylesheet_link_tag "login", media: "all", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "bimers_catalog", media: "all", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-    <%= csrf_meta_tags %>
 
-    <link
-      href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-      rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   </head>
 
-  <body class="bg-gradient-primary">
+  <body>
+    <!-- 1. TOP BAR SUPERIOR -->
+    <div class="top-bar">
+      <div class="top-bar-info">
+        <span><i class="fa-solid fa-envelope"></i> contacto@ferrepro.com</span>
+        <span><i class="fa-solid fa-phone"></i> +503 2222-0000</span>
+        <span><i class="fa-brands fa-whatsapp"></i> WhatsApp</span>
+        <span><i class="fa-solid fa-location-dot"></i> San Salvador, El Salvador</span>
+      </div>
+      <div class="top-bar-social">
+        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+      </div>
+    </div>
+
+    <!-- 2. NAVEGACIÓN PRINCIPAL -->
+    <nav class="main-nav">
+      <div class="logo-container">
+        <div class="bimers-stripes">
+          <div class="stripe cyan"></div>
+          <div class="stripe navy"></div>
+          <div class="stripe red"></div>
+        </div>
+        <div class="logo-text">
+          <span class="logo-main">FERREPRO</span>
+          <span class="logo-sub">HARDWARE & TOOLS</span>
+        </div>
+      </div>
+
+      <button class="mobile-toggle" id="menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-links" id="nav-menu">
+        <li><%= link_to "Inicio", portal_home_path %></li>
+        <li><a href="#catalogo">Catálogo</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </nav>
+
+    <!-- AQUÍ SE RENDERIZAN TUS VISTAS -->
     <%= yield %>
 
-    <!-- Bootstrap JS (activación de componentes dinámicos) -->
+    <!-- 3. FOOTER GLOBAL -->
+    <footer id="contacto">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <div class="logo-container" style="margin-bottom: 15px;">
+            <div class="bimers-stripes">
+              <div class="stripe cyan"></div>
+              <div class="stripe navy"></div>
+              <div class="stripe red"></div>
+            </div>
+            <div class="logo-text">
+              <span class="logo-main">FERREPRO</span>
+              <span class="logo-sub">HARDWARE & TOOLS</span>
+            </div>
+          </div>
+          <p>Tu tienda de confianza para herramientas, repuestos y suministros de alta calidad.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contacto Info</h4>
+          <div class="contact-item">
+            <i class="fa-solid fa-phone"></i>
+            <div>+503 2222-0000</div>
+          </div>
+          <div class="contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>San Salvador, El Salvador</div>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Sociales</h4>
+          <ul>
+            <li><a href="#"><i class="fa-brands fa-instagram"></i> Instagram</a></li>
+            <li><a href="#"><i class="fa-brands fa-facebook"></i> Facebook</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; <%= Time.current.year %> FerrePro. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <!-- JS Bootstrap Bundle para Offcanvas y modales -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
+    <script>
+      // Menú móvil hamburguesa
+      document.addEventListener("DOMContentLoaded", () => {
+        const menuToggle = document.getElementById('menu-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        if (menuToggle && navMenu) {
+          menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+          });
+        }
+      });
+    </script>
   </body>  
 </html>
-
