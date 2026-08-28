@@ -5,7 +5,7 @@
       --cyan-bimers: #00d2ff;
       --blue-bimers: #003399;
       --red-bimers: #e60000;
-      --dark-bg: #12161f;
+      --dark-bg: #d9edfa;
       --card-bg: #1c2230;
       --card-light-bg: #242c3d;
       --text-main: #f8fafc;
@@ -310,7 +310,7 @@
     }
 
     .action-btn {
-      background: #e2e8f0;
+      background: #ffffff;
       color: #0f172a;
       border-radius: var(--radius);
       padding: 22px 15px;
@@ -335,7 +335,7 @@
     }
 
     .action-btn:hover {
-      background: #ffffff;
+      background: #b3b6b8;
       transform: translateY(-6px);
       border-color: var(--cyan-bimers);
       box-shadow: 0 15px 30px rgba(0, 210, 255, 0.25);

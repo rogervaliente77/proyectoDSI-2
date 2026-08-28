@@ -50,11 +50,11 @@
 <!-- 5. CARDS DE CATEGORÍAS (DINÁMICAS CON BREADCRUMB) -->
 <section id="servicios" class="text-center">
   <div class="section-title text-center">
-    <h2>Categorías Principales</h2>
-    <p>Explora nuestras líneas de productos y servicios especializados</p>
+    <h2 style="color: #0f172a;">TODAS LAS CATEGORIAS</h2>
+    <p style="color: #0f172a;">Explora nuestras líneas de productos y servicios especializados</p>
   </div>
 
-  <!-- Breadcrumb Centrado -->
+  <!-- Breadcrumb -->
   <nav class="landing-breadcrumb-container mb-4 flex-center">
     <ul class="landing-breadcrumb" id="category-breadcrumb">
       <li class="breadcrumb-item active" data-category-id="root">
@@ -63,7 +63,7 @@
     </ul>
   </nav>
 
-  <!-- Grid dinámico de categorías (Centrado) -->
+  <!-- Grid dinámico de categorías -->
   <div class="categories-grid" id="categories-grid">
     <% @categories.each do |category| %>
       <% 
@@ -77,7 +77,6 @@
            data-name="<%= category.name %>"
            data-slug="<%= category.name.parameterize %>">
         
-        <!-- Imagen o Fallback -->
         <div class="category-card-img-wrapper">
           <% if has_image %>
             <img src="<%= category.image_url %>" alt="<%= category.name %>">
@@ -88,7 +87,6 @@
           <% end %>
         </div>
         
-        <!-- Cuerpo de la card -->
         <div class="category-card-body">
           <div class="category-card-title" title="<%= category.name %>">
             <span><%= category.name %></span>
@@ -125,12 +123,15 @@
       <i class="fa-solid fa-sliders"></i> Filtros
     </div>
 
+    <!-- Select de Categorías -->
     <div class="filter-group">
       <label>Categoría</label>
       <select id="category-select" onchange="filterProducts()">
         <option value="all">Todas las categorías</option>
-        <% @categories.each do |cat| %>
-          <option value="<%= cat.name.parameterize %>"><%= cat.name %></option>
+        <% if defined?(@categories) && @categories.present? %>
+          <% @categories.each do |cat| %>
+            <option value="<%= cat.name.parameterize %>"><%= cat.name %></option>
+          <% end %>
         <% end %>
       </select>
     </div>
@@ -169,7 +170,7 @@
     <button class="btn-apply-filters" onclick="filterProducts()">Filtrar</button>
   </aside>
 
-  <!-- Products Cards Grid Dinámico -->
+  <!-- Products Cards Grid Dinámico con Paginación -->
   <main>
     <div class="products-grid" id="products-grid">
       <% if @products.present? && @products.any? %>
@@ -213,12 +214,15 @@
         </div>
       <% end %>
     </div>
+
+    <!-- Contenedor para Controles de Paginación -->
+    <div class="pagination-container" id="pagination-container"></div>
   </main>
 </section>
 
-<!-- ESTILOS LIGEROS ORIGINALES DE LA VISTA -->
+<!-- ESTILOS CORREGIDOS -->
 <style>
-  /* 1. Breadcrumb con alineación e integración original */
+  /* Breadcrumb original */
   .landing-breadcrumb-container {
     max-width: 1200px;
     margin: 0 auto 20px auto;
@@ -258,7 +262,6 @@
     color: #6c757d;
   }
 
-  /* Centrar títulos y encabezados de la sección */
   #servicios {
     text-align: center;
   }
@@ -268,28 +271,26 @@
     margin-bottom: 25px;
   }
 
-  /* 2. Grid de Categorías en una sola línea (Scroll Horizontal Flex) */
+  /* Grid de Categorías Scroll Horizontal */
   .categories-grid {
     display: flex;
-    flex-wrap: nowrap;          /* Forzado a 1 sola línea en pantallas grandes */
-    overflow-x: auto;           /* Habilita scroll si no caben todas */
-    justify-content: center;    /* Centra las tarjetas en pantalla */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: center;
     gap: 16px;
     max-width: 100%;
     margin: 0 auto;
-    padding: 10px 5px 20px 5px; /* Espacio para sombras y barra de scroll */
+    padding: 10px 5px 20px 5px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Si hay muchas categorías y sobrepasan el ancho de pantalla, desactiva el centrado para scroll limpio */
   @media (max-width: 1200px) {
     .categories-grid {
       justify-content: flex-start;
     }
   }
 
-  /* Personalización de la barra de scroll */
   .categories-grid::-webkit-scrollbar {
     height: 6px;
   }
@@ -308,12 +309,14 @@
     background: #0d6efd;
   }
 
-  /* 3. Card de Categoría con dimensiones fijas y alineadas */
+  /* Card de Categoría Restablecida */
   .category-card {
-    flex: 0 0 200px;            /* Ancho fijo de 200px por card */
-    height: 270px;              /* Altura uniforme estándar */
+    flex: 0 0 200px;
+    width: 200px;
+    height: 270px;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
     background: #ffffff;
     border-radius: 10px;
     overflow: hidden;
@@ -327,10 +330,10 @@
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
   }
 
-  /* Imagen y Placeholder */
   .category-card-img-wrapper {
     width: 100%;
     height: 140px;
+    flex-shrink: 0;
     overflow: hidden;
     background-color: #f8f9fa;
     position: relative;
@@ -347,7 +350,6 @@
     transform: scale(1.06);
   }
 
-  /* Placeholder cuando no hay category.image_url */
   .category-card-placeholder {
     width: 100%;
     height: 100%;
@@ -368,17 +370,17 @@
     color: #6c757d;
   }
 
-  /* Cuerpo inferior de la card */
   .category-card-body {
     padding: 12px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     flex-grow: 1;
+    width: 100%;
+    box-sizing: border-box;
     background-color: #ffffff;
   }
 
-  /* Título reservando altura fija exacta de 2 líneas para nivelar botones */
   .category-card-title {
     height: 2.6em;
     display: flex;
@@ -386,6 +388,7 @@
     justify-content: center;
     text-align: center;
     margin-bottom: 8px;
+    width: 100%;
   }
 
   .category-card-title span {
@@ -400,7 +403,6 @@
     text-overflow: ellipsis;
   }
 
-  /* Botón de acción fijado al fondo */
   .category-card-action {
     width: 100%;
     margin-top: auto;
@@ -417,10 +419,12 @@
     cursor: pointer;
     transition: background 0.2s ease;
     width: 100%;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    white-space: nowrap;
   }
 
   .btn-subcategories:hover {
@@ -428,7 +432,7 @@
     color: #ffffff;
   }
 
-  /* 4. Estilos para el mensaje de "Sin Productos" */
+  /* Mensaje Sin Productos */
   .no-products-msg {
     grid-column: 1 / -1;
     width: 100%;
@@ -452,9 +456,55 @@
     font-weight: 500;
     margin: 0;
   }
+
+  /* ESTILOS DE PAGINACIÓN DE PRODUCTOS */
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #0d6efd;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-btn:hover:not(:disabled) {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #0b5ed7;
+  }
+
+  .page-btn.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+  }
+
+  .page-btn:disabled {
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 </style>
 
-<!-- JAVASCRIPT CON SOPORTE PARA TURBO / TURBOLINKS -->
+<!-- JAVASCRIPT CORREGIDO -->
 <script>
   function setupLandingScript() {
     // 1. Menú hamburguesa móvil
@@ -488,78 +538,83 @@
     const categoriesGrid = document.getElementById("categories-grid");
     const breadcrumb = document.getElementById("category-breadcrumb");
     
-    if (!categoriesGrid || !breadcrumb) return;
+    if (categoriesGrid && breadcrumb) {
+      let navigationHistory = [{ id: 'root', name: 'Categorías Principales' }];
 
-    let navigationHistory = [{ id: 'root', name: 'Categorías Principales' }];
+      function renderCurrentLevel(parentId) {
+        const allWrappers = categoriesGrid.querySelectorAll(".category-card-wrapper");
+        let countVisible = 0;
 
-    function renderCurrentLevel(parentId) {
-      const allWrappers = categoriesGrid.querySelectorAll(".category-card-wrapper");
-      let countVisible = 0;
+        allWrappers.forEach(wrapper => {
+          if (wrapper.dataset.parentId === parentId) {
+            // Asegura display: flex para respetar la estructura de la tarjeta
+            wrapper.style.display = 'flex';
+            countVisible++;
+          } else {
+            wrapper.style.display = 'none';
+          }
+        });
 
-      allWrappers.forEach(wrapper => {
-        if (wrapper.dataset.parentId === parentId) {
-          wrapper.style.display = 'block';
-          countVisible++;
-        } else {
-          wrapper.style.display = 'none';
+        let noCatMsg = document.getElementById("no-categories-msg");
+        if (countVisible === 0) {
+          if (!noCatMsg) {
+            noCatMsg = document.createElement("div");
+            noCatMsg.id = "no-categories-msg";
+            noCatMsg.style.cssText = "width: 100%; text-align: center; padding: 40px; color: #6c757d;";
+            noCatMsg.innerHTML = '<i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 10px;"></i><p>No hay subcategorías disponibles en este nivel.</p>';
+            categoriesGrid.appendChild(noCatMsg);
+          }
+        } else if (noCatMsg) {
+          noCatMsg.remove();
         }
-      });
 
-      let noCatMsg = document.getElementById("no-categories-msg");
-      if (countVisible === 0) {
-        if (!noCatMsg) {
-          noCatMsg = document.createElement("div");
-          noCatMsg.id = "no-categories-msg";
-          noCatMsg.style.cssText = "width: 100%; text-align: center; padding: 40px; color: #6c757d;";
-          noCatMsg.innerHTML = '<i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 10px;"></i><p>No hay subcategorías disponibles en este nivel.</p>';
-          categoriesGrid.appendChild(noCatMsg);
-        }
-      } else if (noCatMsg) {
-        noCatMsg.remove();
+        renderBreadcrumb();
       }
 
-      renderBreadcrumb();
-    }
-
-    function renderBreadcrumb() {
-      breadcrumb.innerHTML = "";
-      navigationHistory.forEach((item, index) => {
-        const isLast = index === navigationHistory.length - 1;
-        const li = document.createElement("li");
-        li.className = `breadcrumb-item ${isLast ? "active" : ""}`;
-        
-        if (isLast) {
-          li.textContent = item.name;
-        } else {
-          const a = document.createElement("a");
-          a.href = "#servicios";
-          a.textContent = item.name;
-          a.addEventListener("click", function(e) {
-            e.preventDefault();
-            navigationHistory = navigationHistory.slice(0, index + 1);
-            renderCurrentLevel(item.id);
-          });
-          li.appendChild(a);
-        }
-        breadcrumb.appendChild(li);
-      });
-    }
-
-    categoriesGrid.onclick = function(e) {
-      const btn = e.target.closest(".view-subcategories-btn");
-      if (btn) {
-        e.stopPropagation();
-        const catId = btn.dataset.id;
-        const catName = btn.dataset.name;
-
-        navigationHistory.push({ id: catId, name: catName });
-        renderCurrentLevel(catId);
+      function renderBreadcrumb() {
+        breadcrumb.innerHTML = "";
+        navigationHistory.forEach((item, index) => {
+          const isLast = index === navigationHistory.length - 1;
+          const li = document.createElement("li");
+          li.className = `breadcrumb-item ${isLast ? "active" : ""}`;
+          
+          if (isLast) {
+            li.textContent = item.name;
+          } else {
+            const a = document.createElement("a");
+            a.href = "#servicios";
+            a.textContent = item.name;
+            a.addEventListener("click", function(e) {
+              e.preventDefault();
+              navigationHistory = navigationHistory.slice(0, index + 1);
+              renderCurrentLevel(item.id);
+            });
+            li.appendChild(a);
+          }
+          breadcrumb.appendChild(li);
+        });
       }
-    };
 
-    renderCurrentLevel("root");
+      categoriesGrid.onclick = function(e) {
+        const btn = e.target.closest(".view-subcategories-btn");
+        if (btn) {
+          e.stopPropagation();
+          const catId = btn.dataset.id;
+          const catName = btn.dataset.name;
 
-    // 4. Filtrado de Productos por Categoría, Marca, Tipo y Búsqueda
+          navigationHistory.push({ id: catId, name: catName });
+          renderCurrentLevel(catId);
+        }
+      };
+
+      renderCurrentLevel("root");
+    }
+
+    // 4. SISTEMA DE FILTRADO Y PAGINACIÓN EN CLIENTE (10 CARDS POR PÁGINA)
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let filteredCards = [];
+
     window.filterCategory = function(catSlug) {
       const catSelect = document.getElementById('category-select');
       if (catSelect) {
@@ -579,9 +634,11 @@
       const selectedBrand = document.getElementById('brand-select')?.value || 'all';
       const selectedType = document.getElementById('type-select')?.value || 'all';
       
-      const cards = document.querySelectorAll('.product-card');
+      const allCards = Array.from(document.querySelectorAll('.product-card'));
+      const productsGrid = document.getElementById('products-grid');
 
-      cards.forEach(card => {
+      // Filtrar elementos según las selecciones
+      filteredCards = allCards.filter(card => {
         const cardCategory = card.dataset.category;
         const cardBrand = card.dataset.brand;
         const cardType = card.dataset.type;
@@ -592,16 +649,115 @@
         const matchesType = (selectedType === 'all' || cardType === selectedType);
         const matchesSearch = cardName.includes(searchVal);
 
-        if (matchesCategory && matchesBrand && matchesType && matchesSearch) {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
+        return matchesCategory && matchesBrand && matchesType && matchesSearch;
       });
+
+      // Ocultar de entrada todos los elementos
+      allCards.forEach(card => card.style.display = 'none');
+
+      // Manejar estado cuando no hay resultados
+      let noProductsMsg = document.getElementById('no-products-empty-msg');
+      if (filteredCards.length === 0) {
+        if (!noProductsMsg && productsGrid) {
+          noProductsMsg = document.createElement('div');
+          noProductsMsg.id = 'no-products-empty-msg';
+          noProductsMsg.className = 'no-products-msg';
+          noProductsMsg.innerHTML = `
+            <i class="fa-solid fa-box-open"></i>
+            <p>No se encontraron productos para esta búsqueda o filtro.</p>
+          `;
+          productsGrid.appendChild(noProductsMsg);
+        }
+      } else if (noProductsMsg) {
+        noProductsMsg.remove();
+      }
+
+      // Resetear a la página 1 cada vez que se aplica un filtro nuevo
+      currentPage = 1;
+      renderPage();
     };
+
+    function renderPage() {
+      const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
+      
+      // Ocultar todos los ítems filtrados
+      filteredCards.forEach(card => card.style.display = 'none');
+
+      // Determinar los límites de la página actual
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const pageItems = filteredCards.slice(startIndex, endIndex);
+
+      // Mostrar los ítems correspondientes a la página
+      pageItems.forEach(card => card.style.display = 'flex');
+
+      // Actualizar botones de paginación
+      renderPaginationControls(totalPages);
+    }
+
+    function renderPaginationControls(totalPages) {
+      const paginationContainer = document.getElementById('pagination-container');
+      if (!paginationContainer) return;
+
+      paginationContainer.innerHTML = '';
+
+      // Ocultar paginador si no hay productos o solo hay 1 página
+      if (totalPages <= 1) return;
+
+      // Botón "Anterior"
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'page-btn';
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      prevBtn.disabled = (currentPage === 1);
+      prevBtn.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderPage();
+          scrollToTienda();
+        }
+      };
+      paginationContainer.appendChild(prevBtn);
+
+      // Botones Numéricos
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => {
+          currentPage = i;
+          renderPage();
+          scrollToTienda();
+        };
+        paginationContainer.appendChild(pageBtn);
+      }
+
+      // Botón "Siguiente"
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'page-btn';
+      nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      nextBtn.disabled = (currentPage === totalPages);
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderPage();
+          scrollToTienda();
+        }
+      };
+      paginationContainer.appendChild(nextBtn);
+    }
+
+    function scrollToTienda() {
+      const tiendaSection = document.getElementById('tienda');
+      if (tiendaSection) {
+        tiendaSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Inicializar filtrado y paginación
+    window.filterProducts();
   }
 
-  // Compatibilidad con eventos de carga de Rails
+  // Compatibilidad con eventos de carga de Rails (Turbolinks/Turbo)
   document.addEventListener("DOMContentLoaded", setupLandingScript);
   document.addEventListener("turbo:load", setupLandingScript);
   document.addEventListener("turbolinks:load", setupLandingScript);
