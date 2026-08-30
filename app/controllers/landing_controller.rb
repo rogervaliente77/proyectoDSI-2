@@ -5,7 +5,8 @@ class LandingController < ApplicationController
   def index
     @categories = Category.all
     # Carga de productos optimizada con sus asociaciones
-    @products = Product.includes(:category, :marca, :car_type).all
+    @products = Product.includes(:category, :marca, :car_type).where(kind: "producto")
+    @services = Product.where(kind: "servicio")
   end
 
   # Acción para aceptar notificaciones

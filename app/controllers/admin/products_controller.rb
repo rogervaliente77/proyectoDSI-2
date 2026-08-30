@@ -71,11 +71,15 @@ module Admin
 
     # CREAR PRODUCTO
     def create
-      @categories = Category.all
-      @marcas = Marca.all
       @product = Product.new(product_params)
       if @product.save
-        create_product_history(@product, 0, @product.quantity, "Ingreso inicial")
+        create_product_history(
+          @product, 
+          @product.producto? ? 0 : nil, 
+          @product.producto? ? @product.quantity : nil, 
+          "Creación de #{@product.kind}"
+        )
+
         redirect_to admin_productos_path, notice: "Producto creado con éxito."
       else
         flash[:alert] = "Hubo un error al crear el producto"
@@ -92,16 +96,21 @@ module Admin
 
     # ACTUALIZAR PRODUCTO
     def update
-      @categories = Category.all
-      @marcas = Marca.all
-      stock_before = @product.quantity
+      stock_before = @product.quantity.to_i
+      price_before = @product.price
 
       if @product.update(product_params)
-        if product_params[:quantity].to_i != stock_before
+        # 1. Movimiento de inventario para Producto Físico
+        if @product.producto? && product_params[:quantity].present? && product_params[:quantity].to_i != stock_before
           movement_type = product_params[:quantity].to_i > stock_before ? "Ingreso" : "Salida"
           create_product_history(@product, stock_before, @product.quantity, movement_type)
+
+        # 2. Movimiento por cambio de tarifa para Servicio
+        elsif @product.servicio? && product_params[:price].present? && product_params[:price].to_f != price_before
+          create_product_history(@product, nil, nil, "Ajuste de tarifa ($#{price_before} -> $#{@product.price})")
         end
-        redirect_to admin_edit_product_path(product_id: @product.id), notice: "Producto actualizado con éxito"
+
+        redirect_to admin_edit_product_path(product_id: @product.id), notice: "#{@product.servicio? ? 'Servicio' : 'Producto'} actualizado con éxito"
       else
         flash[:alert] = @product.errors.full_messages.join(", ")
         render :edit
@@ -172,7 +181,7 @@ module Admin
 
     def product_params
       params.require(:product).permit(
-        :name, :description, :quantity, :price, :category_id, :marca_id, :discount, :code,
+        :kind, :name, :description, :quantity, :price, :category_id, :marca_id, :discount, :code,
         :offer_type, :offer_expires_at, :wholesale_quantity, :car_type_id,
         product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy] # <-- Se agregó :file
       )
@@ -184,7 +193,7 @@ module Admin
         name: product.name,
         description: product.description,
         code: product.code,
-        quantity: (stock_after - stock_before).abs,
+        quantity: product.producto? ? product.quantity : 0,
         price: product.price,
         discount: product.discount,
         stock_before: stock_before,

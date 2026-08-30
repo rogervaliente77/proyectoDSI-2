@@ -13,18 +13,21 @@ class Product
   field :offer_expires_at, type: DateTime
   field :wholesale_quantity, type: Integer
   field :wholesale_price, type: Float
+  field :kind, type: String, default: "producto"
 
   # -------- RELACIONES --------
   has_many :product_sales, dependent: :destroy
   belongs_to :category
-  belongs_to :marca
+  belongs_to :marca, optional: true
   belongs_to :car_type, optional: true
 
   embeds_many :product_images
   accepts_nested_attributes_for :product_images, allow_destroy: true
 
   # -------- VALIDACIONES --------
-  validates :name, :price, :quantity, presence: true
+  validates :kind, presence: true, inclusion: { in: %w[producto servicio] }
+  validates :quantity, presence: true, numericality: { greater_than_or_equal_to: 0 }, if: :producto?
+  validates :marca, presence: true, if: :producto?
   validate :unique_image_indexes
 
   # -------- CALLBACKS --------
@@ -78,6 +81,27 @@ class Product
     else
       "En stock (#{quantity})"
     end
+  end
+
+  # -------- SCOPES / HELPER METHODS --------
+  def servicio?
+    kind == "servicio"
+  end
+
+  def producto?
+    kind == "producto"
+  end
+
+  def stock_status
+    return "Servicio Activo" if servicio?
+    return "Agotado" if quantity.to_i == 0
+    return "Stock bajo (#{quantity})" if low_stock?
+
+    "En stock (#{quantity})"
+  end
+
+  def low_stock?
+    producto? && quantity.present? && quantity < 25
   end
 
   def category_full_name

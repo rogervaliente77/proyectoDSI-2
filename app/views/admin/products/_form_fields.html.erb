@@ -3,20 +3,24 @@
 <!-- Información del producto -->
 <div class="card mb-4 shadow-sm">
   <div class="card-header bg-primary text-white">
-    Información del producto
+    Información del producto / servicio
   </div>
   <div class="card-body">
-    <!-- Fila 1: Nombre, Cantidad, Precio -->
+    <!-- Fila 1: Nombre, Cantidad, Precio, Tipo -->
     <div class="row g-3 mb-3">
-      <div class="col-12 col-md-6">
-        <%= form.input :name, required: true, label: "Nombre del producto", input_html: { class: "form-control" } %>
+      <div class="col-12 col-md-4">
+        <%= form.input :name, required: true, label: "Nombre", input_html: { class: "form-control" } %>
       </div>
-      <div class="col-6 col-md-3">
+      <div class="col-6 col-md-2">
+        <label class="form-label fw-bold">Tipo de Item</label>
+        <%= form.select :kind, [["Producto Físico", "producto"], ["Servicio", "servicio"]], {}, { class: "form-select", id: "product_kind_select" } %>
+      </div>
+      <div class="col-6 col-md-3" id="quantity_container">
         <%= form.input :quantity, 
                        as: :integer, 
-                       required: true, 
+                       required: false, 
                        label: "Cantidad", 
-                       input_html: { class: "form-control", min: 0, step: 1 } %>
+                       input_html: { class: "form-control", min: 0, step: 1, id: "product_quantity_input" } %>
       </div>
       <div class="col-6 col-md-3">
         <%= form.input :price, 
@@ -27,8 +31,8 @@
       </div>
     </div>
 
-    <!-- Fila 2: Descuento, Tipo de Oferta, Fecha de Expiración, Cantidad Mayoreo -->
-    <div class="row g-3 mb-3 align-items-end">
+    <!-- Fila 2: Descuento, Tipo de Oferta, Fecha de Expiración, Cantidad Mayoreo (SOLO PRODUCTOS) -->
+    <div class="row g-3 mb-3 align-items-end physical-only-field">
       <div class="col-6 col-md-2">
         <label for="product_discount" class="form-label fw-bold">Descuento (%)</label>
         <div class="input-group">
@@ -64,20 +68,20 @@
           input_html: { class: "form-select" } %>
       </div>
 
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-4 physical-only-field">
         <%= form.input :marca_id,
           collection: Marca.all.map { |m| [m.name, m.id] },
           include_blank: "Selecciona marca",
           label: "Marca",
-          input_html: { class: "form-select" } %>
+          input_html: { class: "form-select", id: "product_marca_id" } %>
       </div>
 
-      <div class="col-12 col-md-4">
+      <div class="col-12 col-md-4 physical-only-field">
         <%= form.input :car_type_id,
           collection: CarType.all.map { |c| [c.name, c.id] },
           include_blank: "Selecciona tipo de vehículo",
           label: "Tipo de Vehículo",
-          input_html: { class: "form-select" } %>
+          input_html: { class: "form-select", id: "product_car_type_id" } %>
       </div>
     </div>
 
@@ -93,7 +97,7 @@
 <!-- Imágenes del producto -->
 <div class="card mb-4 shadow-sm">
   <div class="card-header bg-secondary text-white">
-    Imágenes del producto
+    Imágenes del producto / servicio
   </div>
   <div class="card-body">
     <div class="row g-3" id="product-images-container">
@@ -103,13 +107,11 @@
             <div class="card-body d-flex flex-column">
               <%= img_form.input :title, label: "Título", input_html: { class: "form-control mb-2" } %>
 
-              <!-- Input de subida de archivo para Cloudinary -->
               <div class="mb-2">
                 <label class="form-label fw-bold">Subir Imagen</label>
                 <%= img_form.file_field :file, class: "form-control mb-2", accept: "image/*" %>
               </div>
 
-              <!-- Muestra la imagen previa y conserva la URL en campo oculto si existe -->
               <% if img_form.object.image_url.present? %>
                 <div class="text-center mb-2">
                   <%= image_tag(img_form.object.image_url, class: "img-fluid rounded", style: "max-height:150px; object-fit:cover;") %>
@@ -129,48 +131,92 @@
   </div>
 </div>
 
-<!-- Script para agregar/eliminar imágenes dinámicamente -->
+<!-- Scripts de interacción -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+  const kindSelect = document.getElementById("product_kind_select");
+  const quantityContainer = document.getElementById("quantity_container");
+  const quantityInput = document.getElementById("product_quantity_input");
+  const physicalOnlyFields = document.querySelectorAll(".physical-only-field");
+
+  function toggleFieldsByKind() {
+    if (!kindSelect) return;
+    const isService = kindSelect.value === "servicio";
+
+    // Ocultar / mostrar contenedor de cantidad
+    if (quantityContainer) {
+      quantityContainer.style.display = isService ? "none" : "block";
+    }
+
+    // Manejar atributo required en el input de cantidad
+    if (quantityInput) {
+      if (isService) {
+        quantityInput.removeAttribute("required");
+        quantityInput.value = "0"; // Valor por defecto neutro
+      } else {
+        quantityInput.setAttribute("required", "required");
+      }
+    }
+
+    // Ocultar / mostrar filas completas de Ofertas, Marca y Tipo de Vehículo
+    physicalOnlyFields.forEach(el => {
+      el.style.display = isService ? "none" : "";
+      
+      // Deshabilitar inputs internos cuando es servicio para evitar enviar datos basura
+      const inputs = el.querySelectorAll("input, select");
+      inputs.forEach(input => {
+        input.disabled = isService;
+      });
+    });
+  }
+
+  if (kindSelect) {
+    kindSelect.addEventListener("change", toggleFieldsByKind);
+    toggleFieldsByKind(); // Ejecutar al cargar la página
+  }
+
+  // Lógica de imágenes dinámicas
   const container = document.getElementById("product-images-container");
   const addBtn = document.getElementById("add-image");
 
-  addBtn.addEventListener("click", function() {
-    const index = container.querySelectorAll(".image-item").length;
-    const newItem = document.createElement("div");
-    newItem.classList.add("col-12", "col-sm-6", "col-md-4", "image-item");
+  if (addBtn && container) {
+    addBtn.addEventListener("click", function() {
+      const index = container.querySelectorAll(".image-item").length;
+      const newItem = document.createElement("div");
+      newItem.classList.add("col-12", "col-sm-6", "col-md-4", "image-item");
 
-    newItem.innerHTML = `
-      <div class="card h-100">
-        <div class="card-body d-flex flex-column">
-          <label for="product_images_${index}_title" class="form-label">Título</label>
-          <input id="product_images_${index}_title" class="form-control mb-2" name="product[product_images_attributes][${index}][title]" type="text" placeholder="Título">
+      newItem.innerHTML = `
+        <div class="card h-100">
+          <div class="card-body d-flex flex-column">
+            <label for="product_images_${index}_title" class="form-label">Título</label>
+            <input id="product_images_${index}_title" class="form-control mb-2" name="product[product_images_attributes][${index}][title]" type="text" placeholder="Título">
 
-          <label for="product_images_${index}_file" class="form-label fw-bold">Subir Imagen</label>
-          <input id="product_images_${index}_file" class="form-control mb-2" name="product[product_images_attributes][${index}][file]" type="file" accept="image/*">
+            <label for="product_images_${index}_file" class="form-label fw-bold">Subir Imagen</label>
+            <input id="product_images_${index}_file" class="form-control mb-2" name="product[product_images_attributes][${index}][file]" type="file" accept="image/*">
 
-          <label for="product_images_${index}_index" class="form-label">Orden</label>
-          <input id="product_images_${index}_index" class="form-control mb-2" name="product[product_images_attributes][${index}][image_index]" type="number" placeholder="Orden" min="0" step="1">
+            <label for="product_images_${index}_index" class="form-label">Orden</label>
+            <input id="product_images_${index}_index" class="form-control mb-2" name="product[product_images_attributes][${index}][image_index]" type="number" placeholder="Orden" min="0" step="1">
 
-          <input type="hidden" name="product[product_images_attributes][${index}][_destroy]" value="false">
-          <button type="button" class="btn btn-danger btn-sm mt-auto remove-image">Eliminar</button>
+            <input type="hidden" name="product[product_images_attributes][${index}][_destroy]" value="false">
+            <button type="button" class="btn btn-danger btn-sm mt-auto remove-image">Eliminar</button>
+          </div>
         </div>
-      </div>
-    `;
-    container.appendChild(newItem);
-  });
+      `;
+      container.appendChild(newItem);
+    });
 
-  container.addEventListener("click", function(e) {
-    if(e.target && e.target.classList.contains("remove-image")) {
-      const row = e.target.closest(".image-item");
-      const destroyInput = row.querySelector('input[type="hidden"][name*="_destroy"]');
-      if(destroyInput) {
-        destroyInput.value = "1";
-        row.style.display = "none";
-      } else {
-        row.remove();
+    container.addEventListener("click", function(e) {
+      if(e.target && e.target.classList.contains("remove-image")) {
+        const row = e.target.closest(".image-item");
+        const destroyInput = row.querySelector('input[type="hidden"][name*="_destroy"]');
+        if(destroyInput) {
+          destroyInput.value = "1";
+          row.style.display = "none";
+        } else {
+          row.remove();
+        }
       }
-    }
-  });
+    });
+  }
 });
 </script>
