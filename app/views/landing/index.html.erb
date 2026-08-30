@@ -50,8 +50,8 @@
 <!-- SECCIÓN: SERVICIOS DEL TALLER (TARJETAS ANCHAS CENTRADAS) -->
 <section id="servicios-taller" class="services-section">
   <div class="section-title text-center">
-    <h2>NUESTROS SERVICIOS ESPECIALIZADOS</h2>
-    <p>Mantenimiento, diagnóstico y reparaciones ejecutadas por profesionales certificados</p>
+    <h2 style="color: #0f172a;">NUESTROS SERVICIOS ESPECIALIZADOS</h2>
+    <p>Mantenimiento, diagnóstico, etc</p>
   </div>
 
   <div class="services-carousel-wrapper">
@@ -612,7 +612,8 @@
 
 /* Tarjeta Alargada Horizontamente */
 .service-wide-card {
-  flex: 0 0 calc(50% - 12px); /* Ocupa exactamente la mitad del contenedor (2 por pantalla) */
+  flex: 0 0 calc(50% - 12px);
+  height: 300px; /* Altura uniforme para todas */
   max-width: 580px;
   min-width: 480px;
   background: #ffffff;
@@ -621,7 +622,7 @@
   border: 1px solid #e2e8f0;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
   display: flex;
-  flex-direction: row; /* Layout horizontal interno */
+  flex-direction: row;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -663,12 +664,15 @@
   backdrop-filter: blur(4px);
 }
 
+/* 2. Distribuye el espacio interno */
 .service-card-body {
-  width: 60%; /* 60% para el texto */
+  width: 60%;
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  height: 100%; /* Ocupa el 100% de los 300px */
+  box-sizing: border-box;
 }
 
 .service-title {
@@ -679,15 +683,31 @@
   line-height: 1.3;
 }
 
+/* 3. Permite scroll solo en la descripción si supera el espacio */
 .service-desc {
   font-size: 0.88rem;
   color: #475569;
   line-height: 1.5;
   margin-bottom: 15px;
-  display: -webkit-box;
-  -webkit-line-clamp: 5; /* Permite mostrar hasta 5 líneas de descripción */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-y: auto; /* Activa el scroll vertical solo en la descripción */
+  padding-right: 5px; /* Espacio para que el texto no pegue con la barra */
+  
+  /* IMPORTANTE: Remueve el recorte previo */
+  display: block; 
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+}
+
+/* 4. Estilo de barra de scroll ultra discreta para la descripción */
+.service-desc::-webkit-scrollbar {
+  width: 4px;
+}
+.service-desc::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.service-desc::-webkit-scrollbar-thumb:hover {
+  background: #0d6efd;
 }
 
 .service-card-footer {
