@@ -30,20 +30,19 @@
       <h4>Contacto Info</h4>
       <div class="contact-item">
         <i class="fa-solid fa-phone"></i>
-        <div>+503 2222-0000</div>
+        <div><%= @config.tel%></div>
       </div>
       <div class="contact-item">
         <i class="fa-solid fa-location-dot"></i>
-        <div>Dirección Taller #7541, San Salvador, El Salvador</div>
+        <div><%= @config.address%></div>
       </div>
     </div>
 
     <div class="footer-col">
       <h4>Sociales</h4>
       <ul>
-        <li><a href="#"><i class="fa-brands fa-instagram"></i> Instagram</a></li>
-        <li><a href="#"><i class="fa-brands fa-facebook"></i> Facebook</a></li>
-        <li><a href="#"><i class="fa-brands fa-tiktok"></i> TikTok</a></li>
+        <li><a href="<%= @config.inst_url%>"><i class="fa-brands fa-instagram"></i> Instagram</a></li>
+        <li><a href="<%= @config.fb_url%>"><i class="fa-brands fa-facebook"></i> Facebook</a></li>
       </ul>
     </div>
   </div>

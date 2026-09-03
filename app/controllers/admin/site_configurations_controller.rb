@@ -15,18 +15,6 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
     end
   end
 
-  def mass_mail
-    if @config.mass_mail_enabled?
-      clients = Client.where(receive_offers: true)
-      clients.each do |client|
-        OfferMailer.mass_offer_email(client).deliver_later
-      end
-      redirect_to admin_site_configuration_path, notice: "Correos enviados a #{clients.count} clientes."
-    else
-      redirect_to admin_site_configuration_path, alert: "El envío masivo está deshabilitado."
-    end
-  end
-
   private
 
   def set_config
@@ -35,16 +23,31 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
 
   def config_params
     params.require(:site_configuration).permit(
-      :session_timeout, 
-      :offer_notifications_enabled, 
-      :mass_mail_enabled,
-      :company_name,
+      :session_timeout,
       :currency_symbol,
       :timezone,
-      :maintenance_mode,
-      :debug_mode,
       :email_sender,
-      :app_password_sender
+      :app_password_sender,
+      :company_name,
+      :company_email,
+      :tel,
+      :phone,
+      :address,
+      :short_address,
+      :wsp_number,
+      :fb_url,
+      :inst_url,
+      :tiktok_url,
+      :etiqueta_superior,
+      :header_title_part1,
+      :header_title_part2,
+      :header_description,
+      :services_title,
+      :services_description,
+      :categories_title,
+      :categories_description,
+      :footer_company_description,
+      :footer_services
     )
   end
 end

@@ -4,9 +4,9 @@
   <div class="carousel-slide active" style="background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80');">
     <div class="carousel-overlay"></div>
     <div class="carousel-content">
-      <span class="carousel-badge">Especialistas BMW & Alta Gama</span>
-      <h1>BIMERS MOTOR CARS - <span>PREMIUM SERVICE</span></h1>
-      <p>Diagnóstico computarizado avanzado, mecánica general y repuestos de alta performance.</p>
+      <span class="carousel-badge"><%= @config.etiqueta_superior%></span>
+      <h1><%= @config.header_title_part1 %> - <span><%= @config.header_title_part2%></span></h1>
+      <p><%= @config.header_description%></p>
     </div>
   </div>
 
@@ -50,8 +50,8 @@
 <!-- SECCIÓN: SERVICIOS DEL TALLER (TARJETAS ANCHAS CENTRADAS) -->
 <section id="servicios-taller" class="services-section">
   <div class="section-title text-center">
-    <h2 style="color: #0f172a;">NUESTROS SERVICIOS ESPECIALIZADOS</h2>
-    <p>Mantenimiento, diagnóstico, etc</p>
+    <h2 style="color: #0f172a;"><%= @config.services_title%></h2>
+    <p><%= @config.services_description%></p>
   </div>
 
   <div class="services-carousel-wrapper">
@@ -113,8 +113,8 @@
 <!-- 5. CARDS DE CATEGORÍAS (DINÁMICAS CON BREADCRUMB) -->
 <section id="servicios" class="text-center">
   <div class="section-title text-center">
-    <h2 style="color: #0f172a;">TODAS LAS CATEGORIAS</h2>
-    <p style="color: #0f172a;">Explora nuestras líneas de productos y servicios especializados</p>
+    <h2 style="color: #0f172a;"><%= @config.categories_title%></h2>
+    <p style="color: #0f172a;"><%= @config.categories_description%></p>
   </div>
 
   <!-- Breadcrumb -->

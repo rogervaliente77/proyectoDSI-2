@@ -35,8 +35,10 @@
               html: { class: "needs-validation", id: "form-configuracion-general" },
               data: { turbo: false } do |f| %>
 
-            <!-- SECCIÓN 1: GENERAL -->
-            <h5 class="text-secondary mb-3 border-bottom pb-2">Información General</h5>
+            <!-- SECCIÓN 1: SISTEMA Y SEGURIDAD -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2">
+              <i class="fas fa-sliders-h me-2"></i>Ajustes Generales y Sesión
+            </h5>
             <div class="row mb-3">
               <div class="col-md-4 mb-3">
                 <%= f.input :company_name,
@@ -44,77 +46,206 @@
                     input_html: { class: "form-control" } %>
               </div>
 
-              <div class="col-md-4 mb-3">
+              <div class="col-md-2 mb-3">
                 <%= f.input :currency_symbol,
-                    label: "Símbolo de moneda",
-                    input_html: { class: "form-control", maxlength: 3 } %>
+                    label: "Símbolo Moneda",
+                    input_html: { class: "form-control", maxlength: 5 } %>
               </div>
 
-              <div class="col-md-4 mb-3">
+              <div class="col-md-3 mb-3">
                 <%= f.input :timezone,
-                    label: "Zona horaria",
+                    label: "Zona Horaria",
                     collection: ActiveSupport::TimeZone.all.map(&:name),
                     prompt: "Seleccione zona horaria",
                     input_html: { class: "form-control" } %>
               </div>
-            </div>
 
-            <!-- SECCIÓN 2: SEGURIDAD Y SERVIDOR -->
-            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">Seguridad y Sesión</h5>
-            <div class="row mb-3">
-              <div class="col-md-4 mb-3">
+              <div class="col-md-3 mb-3">
                 <%= f.input :session_timeout,
-                    label: "Tiempo de inactividad (minutos)",
+                    label: "Inactividad sesión (min)",
                     required: true,
                     input_html: { class: "form-control", min: 1 } %>
               </div>
+            </div>
 
-              <div class="col-md-4 mb-3 d-flex align-items-center">
-                <div class="form-check mt-3">
-                  <%= f.check_box :maintenance_mode, class: "form-check-input", id: "maintenance_mode" %>
-                  <%= f.label :maintenance_mode, "Activar modo mantenimiento", class: "form-check-label fw-bold" %>
-                </div>
+            <!-- SECCIÓN 2: INFORMACIÓN DE CONTACTO -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">
+              <i class="fas fa-address-card me-2"></i>Información de Contacto y Ubicación
+            </h5>
+            <div class="row mb-3">
+              <div class="col-md-3 mb-3">
+                <%= f.input :tel,
+                    label: "Teléfono PBX/Fijo",
+                    input_html: { class: "form-control" } %>
               </div>
 
-              <div class="col-md-4 mb-3 d-flex align-items-center">
-                <div class="form-check mt-3">
-                  <%= f.check_box :debug_mode, class: "form-check-input", id: "debug_mode" %>
-                  <%= f.label :debug_mode, "Activar modo desarrollador", class: "form-check-label fw-bold" %>
-                </div>
+              <div class="col-md-3 mb-3">
+                <%= f.input :phone,
+                    label: "Teléfono Secundario/Móvil",
+                    input_html: { class: "form-control" } %>
+              </div>
+              
+              <div class="col-md-3 mb-3">
+                <%= f.input :company_email,
+                    label: "Correo",
+                    input_html: { class: "form-control" } %>
+              </div>
+              
+              <div class="col-md-3 mb-3">
+                <%= f.input :short_address,
+                    label: "Dirección Corta (Ej: San Salvador, El Salvador)",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-12 mb-3">
+                <%= f.input :address,
+                    label: "Dirección Completa",
+                    as: :string,
+                    input_html: { class: "form-control" } %>
               </div>
             </div>
 
-            <!-- SECCIÓN 3: CONFIGURACIÓN DE CORREO -->
-            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">Configuración de Envío de Correos</h5>
+            <!-- SECCIÓN 3: REDES SOCIALES -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">
+              <i class="fas fa-share-alt me-2"></i>Redes Sociales y WhatsApp
+            </h5>
+            <div class="row mb-3">
+              <div class="col-md-3 mb-3">
+                <%= f.input :wsp_number,
+                    label: "WhatsApp",
+                    placeholder: "50300000000",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-3 mb-3">
+                <%= f.input :fb_url,
+                    label: "Facebook URL",
+                    placeholder: "https://facebook.com/...",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-3 mb-3">
+                <%= f.input :inst_url,
+                    label: "Instagram URL",
+                    placeholder: "https://instagram.com/...",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-3 mb-3">
+                <%= f.input :tiktok_url,
+                    label: "TikTok URL",
+                    placeholder: "https://tiktok.com/@...",
+                    input_html: { class: "form-control" } %>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 4: SECCIONES DE LANDING PAGE -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">
+              <i class="fas fa-desktop me-2"></i>Contenido de Landing Page
+            </h5>
+            <strong>-------------------SECTION HEADER-------------------</strong>
+            <div class="row mb-3 mt-3">
+              <div class="col-md-4 mb-3">
+                <%= f.input :etiqueta_superior,
+                    label: "Etiqueta Superior (Header Badge)",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <%= f.input :header_title_part1,
+                    label: "Título Principal (Parte 1)",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <%= f.input :header_title_part2,
+                    label: "Título Principal (Parte 2 - Destacado)",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-12 mb-3">
+                <%= f.input :header_description,
+                    label: "Descripción Principal del Banner",
+                    as: :text,
+                    input_html: { class: "form-control", rows: 2 } %>
+              </div>
+            </div>
+
+            <strong>-------------------SECTION SERVICIOS-------------------</strong>
+            <div class="row mb-3 mt-3">
+              <div class="col-md-6 mb-3">
+                <%= f.input :services_title,
+                    label: "Título Sección Servicios",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= f.input :services_description,
+                    label: "Descripción Sección Servicios",
+                    as: :text,
+                    input_html: { class: "form-control", rows: 2 } %>
+              </div>
+            </div>
+
+            <strong>-------------------SECTION CATEGORIAS-------------------</strong>
+            <div class="row mb-3 mt-3">
+              <div class="col-md-6 mb-3">
+                <%= f.input :categories_title,
+                    label: "Título Sección Categorías",
+                    input_html: { class: "form-control" } %>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= f.input :categories_description,
+                    label: "Descripción Sección Categorías",
+                    as: :text,
+                    input_html: { class: "form-control", rows: 2 } %>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 5: CONFIGURACIÓN DE PIE DE PÁGINA (FOOTER) -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">
+              <i class="fas fa-shoe-prints me-2"></i>Contenido del Pie de Página (Footer)
+            </h5>
+            <div class="row mb-3">
+              <div class="col-md-6 mb-3">
+                <%= f.input :footer_company_description,
+                    label: "Descripción Empresa en Footer",
+                    as: :text,
+                    input_html: { class: "form-control", rows: 3 } %>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <%= f.input :footer_services,
+                    label: "Texto / Lista de Servicios en Footer",
+                    as: :text,
+                    input_html: { class: "form-control", rows: 3 } %>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 6: SERVIDOR DE CORREO (SMTP) -->
+            <h5 class="text-secondary mb-3 border-bottom pb-2 mt-4">
+              <i class="fas fa-envelope-open-text me-2"></i>Configuración de Envío de Correos
+            </h5>
             <div class="row mb-3">
               <div class="col-md-6 mb-3">
                 <%= f.input :email_sender,
-                    label: "Correo emisor (SMTP / Gmail)",
+                    label: "Correo Emisor (SMTP / Gmail)",
                     placeholder: "ejemplo@gmail.com",
                     input_html: { class: "form-control" } %>
               </div>
 
               <div class="col-md-6 mb-3">
-                <%= f.input :app_password_sender,
-                    label: "Contraseña de aplicación",
-                    as: :password,
-                    placeholder: "•••• •••• •••• ••••",
-                    input_html: { class: "form-control" } %>
-              </div>
-            </div>
-
-            <div class="row mb-3">
-              <div class="col-md-6 mb-3">
-                <div class="form-check">
-                  <%= f.check_box :offer_notifications_enabled, class: "form-check-input", id: "offer_notifications" %>
-                  <%= f.label :offer_notifications_enabled, "Habilitar notificaciones de ofertas", class: "form-check-label" %>
-                </div>
-              </div>
-
-              <div class="col-md-6 mb-3">
-                <div class="form-check">
-                  <%= f.check_box :mass_mail_enabled, class: "form-check-input", id: "mass_mail" %>
-                  <%= f.label :mass_mail_enabled, "Habilitar envíos de correo masivo", class: "form-check-label" %>
+                <label for="site_configuration_app_password_sender" class="form-label">Contraseña de Aplicación</label>
+                <div class="input-group">
+                  <%= f.input_field :app_password_sender,
+                      as: :password,
+                      class: "form-control",
+                      id: "app_password_input",
+                      placeholder: "•••• •••• •••• ••••" %>
+                  <button class="btn btn-outline-secondary" type="button" id="toggleAppPassword">
+                    <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -132,3 +263,24 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleAppPassword');
+    const passwordInput = document.getElementById('app_password_input');
+    const icon = document.getElementById('togglePasswordIcon');
+
+    if (toggleBtn && passwordInput && icon) {
+      toggleBtn.addEventListener('click', function() {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        
+        // Cambia el tipo de input
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        
+        // Cambia el ícono entre el ojo abierto y cerrado
+        icon.classList.toggle('fa-eye', !isPassword);
+        icon.classList.toggle('fa-eye-slash', isPassword);
+      });
+    }
+  });
+</script>

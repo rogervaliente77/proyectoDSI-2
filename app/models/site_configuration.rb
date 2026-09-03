@@ -4,19 +4,47 @@ class SiteConfiguration
   include Mongoid::Timestamps
 
   field :session_timeout, type: Integer, default: 60 # minutos
-  field :offer_notifications_enabled, type: Boolean, default: true
-  field :mass_mail_enabled, type: Boolean, default: false
+  #field :offer_notifications_enabled, type: Boolean, default: true
+  #field :mass_mail_enabled, type: Boolean, default: false
 
   field :currency_symbol, type: String, default: "$"
   field :timezone, type: String, default: "America/El_Salvador"
-  field :maintenance_mode, type: Boolean, default: false
-  field :debug_mode, type: Boolean, default: false
+  #field :maintenance_mode, type: Boolean, default: false
+  #field :debug_mode, type: Boolean, default: false
 
   field :email_sender, type: String
   field :app_password_sender, type: String
+
   field :company_name, type: String
+  field :tel, type: String
   field :phone, type: String
   field :address, type: String
+  field :short_address, type: String
+  field :company_email, type: String
+
+  #Social media
+  field :wsp_number, type: String
+  field :fb_url, type: String
+  field :inst_url, type: String
+  field :tiktok_url, type: String
+
+  #section header
+  field :etiqueta_superior, type: String
+  field :header_title_part1, type: String
+  field :header_title_part2, type: String
+  field :header_description, type: String
+
+  #Section Servicios
+  field :services_title, type: String
+  field :services_description, type: String
+
+  #Section Categories
+  field :categories_title, type: String
+  field :categories_description, type: String
+
+  #footer
+  field :footer_company_description, type: String
+  field :footer_services, type: String
 
   # Mapeos globales cargados para TODAS las plantillas
   # Ej: { "sucursal" => { "model" => "Branch", "find_by" => "first" },

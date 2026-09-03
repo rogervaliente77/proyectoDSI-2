@@ -7,6 +7,7 @@ class LandingController < ApplicationController
     # Carga de productos optimizada con sus asociaciones
     @products = Product.includes(:category, :marca, :car_type).where(kind: "producto")
     @services = Product.where(kind: "servicio")
+    @config = SiteConfiguration.first_or_create
   end
 
   # Acción para aceptar notificaciones
