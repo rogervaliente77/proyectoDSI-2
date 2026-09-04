@@ -1,26 +1,40 @@
 <!-- 3. HERO CARROUSEL WALLPAPER -->
+<!-- 3. HERO CARROUSEL WALLPAPER DINÁMICO -->
 <header class="hero-carousel">
-  <!-- Slide 1 -->
-  <div class="carousel-slide active" style="background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80');">
-    <div class="carousel-overlay"></div>
-    <div class="carousel-content">
-      <span class="carousel-badge"><%= @config.etiqueta_superior%></span>
-      <h1><%= @config.header_title_part1 %> - <span><%= @config.header_title_part2%></span></h1>
-      <p><%= @config.header_description%></p>
-    </div>
-  </div>
+  <% if @config.header_slides.present? && @config.header_slides.any? %>
+    <% @config.header_slides.each_with_index do |slide, index| %>
+      <div class="carousel-slide <%= 'active' if index.zero? %>" style="background-image: url('<%= slide.image_url %>');">
+        <div class="carousel-overlay"></div>
+        <div class="carousel-content">
+          <% if slide.badge_text.present? %>
+            <span class="carousel-badge"><%= slide.badge_text %></span>
+          <% end %>
 
-  <!-- Slide 2 -->
-  <div class="carousel-slide" style="background-image: url('https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1600&q=80');">
-    <div class="carousel-overlay"></div>
-    <div class="carousel-content">
-      <span class="carousel-badge">Garantía & Confianza</span>
-      <h1>Mantenimiento Preventivo & Correctivo</h1>
-      <p>Personal certificado y tecnología de punta para el máximo rendimiento de tu auto.</p>
-    </div>
-  </div>
+          <% if slide.title_part1.present? || slide.title_part2.present? %>
+            <h1><%= slide.title_part1 %> <% if slide.title_part2.present? %> <span><%= slide.title_part2 %></span><% end %></h1>
+          <% end %>
 
-  <!-- Controles -->
+          <% if slide.description.present? %>
+            <p><%= slide.description %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <!-- Fallback de seguridad si no se han subido láminas -->
+    <div class="carousel-slide active" style="background-image: url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80');">
+      <div class="carousel-overlay"></div>
+      <div class="carousel-content">
+        <% if @config.etiqueta_superior.present? %>
+          <span class="carousel-badge"><%= @config.etiqueta_superior %></span>
+        <% end %>
+        <h1><%= @config.header_title_part1 %> - <span><%= @config.header_title_part2 %></span></h1>
+        <p><%= @config.header_description %></p>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Controles del Slider -->
   <button class="carousel-btn prev" onclick="moveSlide(-1)"><i class="fa-solid fa-chevron-left"></i></button>
   <button class="carousel-btn next" onclick="moveSlide(1)"><i class="fa-solid fa-chevron-right"></i></button>
 </header>

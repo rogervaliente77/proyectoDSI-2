@@ -62,9 +62,29 @@
       <% end %>
     </p>
 
+    <!-- PRECIO ADQUISICIÓN / COSTO -->
+    <p class="mb-1 text-secondary small">
+      <strong>Precio Adquisición:</strong> 
+      <% if product.respond_to?(:cost_price) && product.cost_price.present? %>
+        <span class="fw-bold text-dark"><%= number_to_currency(product.cost_price) %></span>
+      <% else %>
+        <span class="text-muted fst-italic">Sin precio de adquisición</span>
+      <% end %>
+    </p>
+
+    <!-- PROVEEDOR -->
+    <p class="mb-1 text-secondary small">
+      <strong>Proveedor:</strong> 
+      <% if product.respond_to?(:supplier) && product.supplier&.name.present? %>
+        <span class="badge bg-info text-dark"><%= product.supplier.name %></span>
+      <% else %>
+        <span class="text-muted fst-italic">Sin proveedor</span>
+      <% end %>
+    </p>
+
     <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
-    <p class="mb-0"><strong>Categoría:</strong> <%= product.category.name.upcase if product.category %></p>
-    <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
+    <p class="mb-0"><strong>Categoría:</strong> <%= product.category&.name&.upcase || "SIN CATEGORÍA" %></p>
+    <p class="mb-0"><strong>Marca:</strong> <%= product.marca&.name&.upcase || "SIN MARCA" %></p>
     <p class="mb-0">
       <strong>Tipo Vehículo:</strong> 
       <% if product.respond_to?(:car_type) && product.car_type.present? %>

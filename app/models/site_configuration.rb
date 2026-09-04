@@ -3,6 +3,9 @@ class SiteConfiguration
   include Mongoid::Document
   include Mongoid::Timestamps
 
+  embeds_many :header_slides, cascade_callbacks: true
+  accepts_nested_attributes_for :header_slides, allow_destroy: true
+
   field :session_timeout, type: Integer, default: 60 # minutos
   #field :offer_notifications_enabled, type: Boolean, default: true
   #field :mass_mail_enabled, type: Boolean, default: false

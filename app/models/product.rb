@@ -7,6 +7,7 @@ class Product
   field :description,      type: String
   field :quantity,         type: Integer
   field :price,            type: Float
+  field :cost_price,       type: Float
   field :code,             type: String
   field :discount,         type: Integer, default: 0
   field :offer_type,       type: String # "descuento", "2x1", "mayoreo"
@@ -18,6 +19,7 @@ class Product
   # -------- RELACIONES --------
   has_many :product_sales, dependent: :destroy
   belongs_to :category
+  belongs_to :supplier, optional: true
   belongs_to :marca, optional: true
   belongs_to :car_type, optional: true
 
@@ -101,7 +103,7 @@ class Product
   end
 
   def low_stock?
-    producto? && quantity.present? && quantity < 25
+    producto? && quantity.present? && quantity < 15
   end
 
   def category_full_name

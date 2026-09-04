@@ -91,6 +91,7 @@
   </div>
 
   <!-- Productos -->
+  <!-- Productos -->
   <div class="row">
     <% @products.each do |product| %>
       <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
@@ -120,8 +121,8 @@
             <% if images.any? %>
               <% images.each_with_index do |img, index| %>
                 <img src="<%= img.image_url %>" 
-                     class="carousel-image <%= 'active' if index.zero? %>" 
-                     alt="<%= product.name %> imagen <%= index+1 %>">
+                    class="carousel-image <%= 'active' if index.zero? %>" 
+                    alt="<%= product.name %> imagen <%= index+1 %>">
               <% end %>
               <button class="prev" onclick="prevSlide(this)">‹</button>
               <button class="next" onclick="nextSlide(this)">›</button>
@@ -158,9 +159,29 @@
               <% end %>
             </p>
 
+            <!-- 🔹 PRECIO ADQUISICIÓN / COSTO -->
+            <p class="mb-1 text-secondary small">
+              <strong>Precio Adquisición:</strong> 
+              <% if product.respond_to?(:cost_price) && product.cost_price.present? %>
+                <span class="fw-bold text-dark"><%= number_to_currency(product.cost_price) %></span>
+              <% else %>
+                <span class="text-muted fst-italic">Sin precio de adquisición</span>
+              <% end %>
+            </p>
+
+            <!-- 🔹 PROVEEDOR -->
+            <p class="mb-1 text-secondary small">
+              <strong>Proveedor:</strong> 
+              <% if product.respond_to?(:supplier) && product.supplier&.name.present? %>
+                <span class="badge bg-info text-dark"><%= product.supplier.name %></span>
+              <% else %>
+                <span class="text-muted fst-italic">Sin proveedor</span>
+              <% end %>
+            </p>
+
             <p class="mb-0"><strong>Disponibilidad:</strong> <%= product.quantity %></p>
-            <p class="mb-0"><strong>Categoría:</strong> <%= product.category.name.upcase if product.category %></p>
-            <p class="mb-0"><strong>Marca:</strong> <%= product.marca.name.upcase if product.marca %></p>
+            <p class="mb-0"><strong>Categoría:</strong> <%= product.category&.name&.upcase || "SIN CATEGORÍA" %></p>
+            <p class="mb-0"><strong>Marca:</strong> <%= product.marca&.name&.upcase || "SIN MARCA" %></p>
             <p class="mb-0">
               <strong>Tipo Vehículo:</strong> 
               <% if product.respond_to?(:car_type) && product.car_type.present? %>
@@ -175,7 +196,7 @@
           </div>
 
           <!-- Botones -->
-          <% if @current_user.role.name.in?(["super_admin","admin"]) %>
+          <% if @current_user&.role&.name.in?(["super_admin","admin"]) %>
             <div class="btn-group w-100 p-2">
               <%= link_to admin_edit_product_path(product_id: product.id), class:"btn btn-primary btn-sm" do %>
                 <i class="fa fa-edit"></i> Editar
@@ -189,6 +210,7 @@
       </div>
     <% end %>
   </div>
+
 </div>
 
 <!-- Estilos -->

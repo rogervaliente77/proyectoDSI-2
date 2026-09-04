@@ -19,10 +19,22 @@
     <div class="footer-col">
       <h4>Servicios</h4>
       <ul>
-        <li><a href="#">Diagnóstico Computarizado</a></li>
-        <li><a href="#">Mantenimiento de Motor</a></li>
-        <li><a href="#">Sistema de Frenos ABS</a></li>
-        <li><a href="#">Alineación y Balanceo 3D</a></li>
+        <% if @config&.footer_services.present? %>
+          <% @config.footer_services.split("\n").each do |service_name| %>
+            <% next if service_name.blank? %>
+            <li>
+              <a href="#servicios-taller" data-turbo="false">
+                <%= service_name.strip %>
+              </a>
+            </li>
+          <% end %>
+        <% else %>
+          <!-- Fallback por si el campo está vacío -->
+          <li><a href="#servicios-taller" data-turbo="false">Diagnóstico Computarizado</a></li>
+          <li><a href="#servicios-taller" data-turbo="false">Mantenimiento de Motor</a></li>
+          <li><a href="#servicios-taller" data-turbo="false">Sistema de Frenos ABS</a></li>
+          <li><a href="#servicios-taller" data-turbo="false">Alineación y Balanceo 3D</a></li>
+        <% end %>
       </ul>
     </div>
 

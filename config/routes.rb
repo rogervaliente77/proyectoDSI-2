@@ -193,8 +193,11 @@ Rails.application.routes.draw do
     # 🔹 Configuraciones del sitio
     resource :site_configuration, only: [:show, :edit, :update] do
       post :mass_mail
+      post :upload_slide
+      delete :destroy_slide
+      patch :reorder_slides
     end
-  
+    
   end
 
   # Health check y landing

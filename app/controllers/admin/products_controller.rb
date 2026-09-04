@@ -130,12 +130,44 @@ module Admin
 
     # INVENTARIO
     def inventory
-      @products = Product.all.includes(:category, :marca).asc(:name)
+      # 1. Base query
+      base_scope = Product.where(kind: "producto")
+
+      # 2. Búsqueda por query
       if params[:query].present?
-        @products = @products.any_of(
-          { name: /#{Regexp.escape(params[:query].strip)}/i },
-          { code: /#{Regexp.escape(params[:query].strip)}/i }
-        )
+        q = params[:query].strip
+        base_scope = base_scope.where(
+          :code => /#{Regexp.escape(q)}/i
+        ).or(Product.where(:name => /#{Regexp.escape(q)}/i))
+      end
+
+      # 3. Filtro por estado
+      @current_status = params[:status].presence || 'stock_bajo'
+      base_scope = base_scope.where(:quantity.lte => 15) if @current_status == 'stock_bajo'
+
+      # 4. Agregación de Totales Globales
+      totals = base_scope.collection.aggregate([
+        { '$match' => base_scope.selector },
+        {
+          '$group' => {
+            '_id' => nil,
+            'total_cost' => { '$sum' => { '$multiply' => [{ '$ifNull': ['$cost_price', 0] }, { '$ifNull': ['$quantity', 0] }] } },
+            'total_sale' => { '$sum' => { '$multiply' => [{ '$ifNull': ['$price', 0] }, { '$ifNull': ['$quantity', 0] }] } }
+          }
+        }
+      ]).first
+
+      @total_cost_all = totals ? totals['total_cost'].to_f : 0.0
+      @total_sale_all = totals ? totals['total_sale'].to_f : 0.0
+
+      respond_to do |format|
+        format.html do
+          @products = base_scope.order(name: :asc).page(params[:page]).per(15)
+        end
+        format.xlsx do
+          @all_products = base_scope.order(name: :asc)
+          render xlsx: 'inventory', filename: "Reporte_Inventario_#{Time.now.strftime('%Y%m%d_%H%M')}.xlsx"
+        end
       end
     end
 
@@ -181,7 +213,7 @@ module Admin
 
     def product_params
       params.require(:product).permit(
-        :kind, :name, :description, :quantity, :price, :category_id, :marca_id, :discount, :code,
+        :kind, :name, :description, :quantity, :price, :cost_price, :category_id, :marca_id, :discount, :code,
         :offer_type, :offer_expires_at, :wholesale_quantity, :car_type_id,
         product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy] # <-- Se agregó :file
       )
