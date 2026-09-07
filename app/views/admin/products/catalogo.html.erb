@@ -34,7 +34,7 @@
 
   <!-- Filtros -->
   <div class="card p-3 mb-4 shadow-sm rounded-3 border-0 bg-white">
-    <%= form_with url: admin_productos_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
+    <%= form_with url: admin_products_catalogo_path, method: :get, local: true, class: "row g-3 align-items-end" do %>
       
       <!-- Buscar -->
       <div class="col-12 col-md-4 col-lg-3">
@@ -82,7 +82,9 @@
       <!-- Botones de Acción -->
       <div class="col-auto d-flex gap-2 ms-auto">
         <%= submit_tag "Aplicar", class: "btn btn-primary btn-md" %>
-        <%= link_to admin_productos_path, class: "btn btn-outline-secondary btn-md" do %>
+        
+        <!-- Cambia el link_to por la misma ruta del catálogo -->
+        <%= link_to admin_products_catalogo_path, class: "btn btn-outline-secondary btn-md" do %>
           <i class="fas fa-sync-alt me-1"></i> Limpiar
         <% end %>
       </div>
@@ -173,7 +175,7 @@
             <p class="mb-1 text-secondary small">
               <strong>Proveedor:</strong> 
               <% if product.respond_to?(:supplier) && product.supplier&.name.present? %>
-                <span class="badge bg-info text-dark"><%= product.supplier.name %></span>
+                <span class="badge bg-info text-white text-uppercase"><%= product.supplier.name %></span>
               <% else %>
                 <span class="text-muted fst-italic">Sin proveedor</span>
               <% end %>

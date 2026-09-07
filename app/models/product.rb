@@ -1,6 +1,7 @@
 class Product
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Auditable
 
   # -------- CAMPOS --------
   field :name,             type: String

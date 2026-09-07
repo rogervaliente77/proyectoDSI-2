@@ -31,7 +31,7 @@
   <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
     <h1 class="h3 text-gray-800 mb-0 fw-bold">
       <% if @current_user&.role&.name.in?(["super_admin","admin","cajero"]) %>
-        <i class="fas fa-boxes text-primary me-2"></i> Catálogo de Productos
+        <i class="fas fa-boxes text-primary me-2"></i> Productos por categoria
       <% else %>
         <i class="fas fa-store text-primary me-2"></i> Portal de Productos
       <% end %>

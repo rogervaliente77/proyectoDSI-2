@@ -99,13 +99,16 @@ module Admin
       stock_before = @product.quantity.to_i
       price_before = @product.price
 
+      # Asignamos el usuario que está realizando la edición para el AuditLog
+      @product.current_modifier = current_user
+
       if @product.update(product_params)
-        # 1. Movimiento de inventario para Producto Físico
+        # 1. Movimiento de inventario para Producto Físico (Tu Kardex existente)
         if @product.producto? && product_params[:quantity].present? && product_params[:quantity].to_i != stock_before
           movement_type = product_params[:quantity].to_i > stock_before ? "Ingreso" : "Salida"
           create_product_history(@product, stock_before, @product.quantity, movement_type)
 
-        # 2. Movimiento por cambio de tarifa para Servicio
+        # 2. Movimiento por cambio de tarifa para Servicio (Tu Kardex existente)
         elsif @product.servicio? && product_params[:price].present? && product_params[:price].to_f != price_before
           create_product_history(@product, nil, nil, "Ajuste de tarifa ($#{price_before} -> $#{@product.price})")
         end
@@ -214,7 +217,7 @@ module Admin
     def product_params
       params.require(:product).permit(
         :kind, :name, :description, :quantity, :price, :cost_price, :category_id, :marca_id, :discount, :code,
-        :offer_type, :offer_expires_at, :wholesale_quantity, :car_type_id,
+        :offer_type, :offer_expires_at, :wholesale_quantity, :car_type_id, :supplier_id,
         product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy] # <-- Se agregó :file
       )
     end
