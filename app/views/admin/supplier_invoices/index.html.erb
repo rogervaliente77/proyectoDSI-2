@@ -88,10 +88,17 @@
         <%= select_tag :supplier_id, options_from_collection_for_select(@suppliers, :id, :name, params[:supplier_id]), include_blank: "Todos los proveedores", class: "form-select filter-select w-100" %>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-2">
-        <label class="form-label small text-dark fw-semibold"><i class="fas fa-filter me-1"></i> Estado</label>
-        <%= select_tag :status, options_for_select([["Al Día", "al_dia"], ["Próxima a Vencer", "proxima_vencer"], ["Vencida", "vencida"], ["Pagada", "pagada"]], params[:status]), include_blank: "Todos", class: "form-select filter-select w-100" %>
+      <div class="col-12 col-sm-6 col-md-3">
+         <label class="form-label small text-dark fw-semibold"><i class="fas fa-circle me-1"></i> Filtrar por estado</label>
+        <%= select_tag :status, options_for_select([
+          ["Al Día", "al_dia"], 
+          ["Pago Parcial", "pago_parcial"], 
+          ["Próxima a Vencer", "proxima_vencer"], 
+          ["Vencida", "vencida"], 
+          ["Pagada", "pagada"]
+        ], params[:status]), include_blank: "Todos", class: "form-select filter-select w-100" %>
       </div>
+      
 
       <div class="col-12 col-md-2">
         <label class="form-label small text-dark fw-semibold"><i class="fas fa-calendar me-1"></i> Desde</label>
@@ -160,22 +167,24 @@
                     <%= number_to_currency(inv.balance) %>
                   </td>
                   <td class="text-center">
+                    <%# 1. Label de Pago %>
                     <% case inv.status %>
                     <% when "pagada" %>
-                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
-                        <i class="fas fa-check-circle me-1"></i> Pagada
-                      </span>
+                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1">Pagada</span>
                     <% when "vencida" %>
-                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Vencida
-                      </span>
+                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Vencida</span>
+                    <% when "pago_parcial" %>
+                      <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">Pago Parcial</span>
                     <% when "proxima_vencer" %>
-                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
-                        <i class="fas fa-clock me-1"></i> Próx. a Vencer
-                      </span>
+                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">Próx. a Vencer</span>
                     <% else %>
-                      <span class="badge bg-info-subtle text-info border border-info px-2 py-1">
-                        <i class="fas fa-calendar-check me-1"></i> Al Día
+                      <span class="badge bg-info-subtle text-info border border-info px-2 py-1">Al Día</span>
+                    <% end %>
+
+                    <%# 2. Badge Adicional opcional (Solo si es pago parcial PERO ya se venció el plazo) %>
+                    <% if inv.status == "pago_parcial" && inv.overdue? %>
+                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 ms-1">
+                        <i class="fas fa-exclamation-circle me-1"></i>Vencida
                       </span>
                     <% end %>
                   </td>

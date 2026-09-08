@@ -5,7 +5,6 @@ module Admin
 
     def index
       @suppliers = Supplier.where(active: true).order_by(name: :asc)
-
       scope = SupplierInvoice.all
 
       if params[:query].present?
@@ -14,7 +13,6 @@ module Admin
       end
 
       scope = scope.where(supplier_id: params[:supplier_id]) if params[:supplier_id].present?
-      scope = scope.where(status: params[:status]) if params[:status].present?
 
       if params[:start_date].present? && params[:end_date].present?
         s_date = Date.parse(params[:start_date]) rescue nil
@@ -22,46 +20,28 @@ module Admin
         scope = scope.where(:issue_date.gte => s_date, :issue_date.lte => e_date) if s_date && e_date
       end
 
+      all_invoices = scope.order_by(due_date: :asc).to_a
+
+      # Filtrar por estado dinámico si viene el parámetro
+      if params[:status].present?
+        all_invoices.select! { |inv| inv.status == params[:status] }
+      end
+
+      # Métricas dinámicas calculadas en vivo
       today = Date.today
-      bom   = today.beginning_of_month.to_time.utc
-      eom   = today.end_of_month.to_time.utc
+      bom   = today.beginning_of_month
+      eom   = today.end_of_month
 
-      # Agregación para métricas agregando el nuevo estado 'pendiente'
-      metrics = SupplierInvoice.collection.aggregate([
-        {
-          '$facet' => {
-            'total_debt' => [
-              { '$match' => { 'status' => { '$in' => %w[al_dia proxima_vencer vencida pendiente] }, 'balance' => { '$exists' => true } } },
-              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
-            ],
-            'overdue_debt' => [
-              { '$match' => { 'status' => 'vencida', 'balance' => { '$exists' => true } } },
-              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
-            ],
-            'due_this_month' => [
-              { '$match' => { 'status' => { '$in' => %w[al_dia proxima_vencer vencida pendiente] }, 'due_date' => { '$gte' => bom, '$lte' => eom }, 'balance' => { '$exists' => true } } },
-              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$balance' } } }
-            ],
-            'total_paid_month' => [
-              { '$match' => { 'payment_date' => { '$gte' => bom, '$lte' => eom }, 'paid_amount' => { '$exists' => true } } },
-              { '$group' => { '_id' => nil, 'total' => { '$sum' => '$paid_amount' } } }
-            ]
-          }
-        }
-      ]).first || {}
+      @stats_total_debt       = all_invoices.select { |i| i.balance > 0 }.sum(&:balance)
+      @stats_overdue_debt     = all_invoices.select { |i| i.status == "vencida" }.sum(&:balance)
+      @stats_due_this_month   = all_invoices.select { |i| i.due_date.present? && i.due_date.between?(bom, eom) && i.balance > 0 }.sum(&:balance)
+      @stats_total_paid_month = all_invoices.sum { |i| i.supplier_payments.select { |p| p.payment_date&.between?(bom, eom) }.sum(&:amount) }
 
-      @stats_total_debt       = metrics.dig('total_debt', 0, 'total') || 0.0
-      @stats_overdue_debt     = metrics.dig('overdue_debt', 0, 'total') || 0.0
-      @stats_due_this_month   = metrics.dig('due_this_month', 0, 'total') || 0.0
-      @stats_total_paid_month = metrics.dig('total_paid_month', 0, 'total') || 0.0
-
-      @invoices = scope.includes(:supplier)
-                       .order_by(due_date: :asc)
-                       .page(params[:page])
-                       .per(10)
-
-      @total_invoices = @invoices.total_count
+      # Paginación manual con Kaminari sobre Array
+      @invoices = Kaminari.paginate_array(all_invoices).page(params[:page]).per(10)
+      @total_invoices = all_invoices.size
     end
+
 
     def show
       @invoice = SupplierInvoice.includes(:supplier).find(params[:id])
