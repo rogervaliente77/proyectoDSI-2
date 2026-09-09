@@ -174,6 +174,38 @@
         </div>
       </div>
     </li>
+
+    <!-- Cajeros -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajas"
+         aria-expanded="true" aria-controls="collapseCajas">
+        <i class="fas fa-store"></i>
+        <span>Cajas</span>
+      </a>
+      <div id="collapseCajas" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Cajas:</h6>
+          <a class="collapse-item" href="<%= admin_cajas_path %>" data-turbo="false">Cajas</a>
+          <a class="collapse-item" href="<%= admin_cajas_new_path %>" data-turbo="false">Crear nueva caja</a>
+        </div>
+      </div>
+    </li>
+
+    <!-- Cajeros -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCajeros"
+         aria-expanded="true" aria-controls="collapseCajeros">
+        <i class="fas fa-user-tie"></i>
+        <span>Cajeros</span>
+      </a>
+      <div id="collapseCajeros" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <h6 class="collapse-header">Cajeros:</h6>
+          <a class="collapse-item" href="<%= admin_cajeros_path %>" data-turbo="false">Cajeros</a>
+          <a class="collapse-item" href="<%= admin_cajeros_new_path %>" data-turbo="false">Crear nuevo cajero</a>
+        </div>
+      </div>
+    </li>
   <% end %>
 
   <!-- Usuarios -->
@@ -194,6 +226,8 @@
       </div>
     </li>
   <% end %>
+
+
 
   <hr class="sidebar-divider d-none d-md-block">
   <div class="text-center d-none d-md-inline">

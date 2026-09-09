@@ -183,6 +183,20 @@ Rails.application.routes.draw do
       end
     end
 
+    #Cajas
+    get "/cajas", to: "cajas#index"
+    get "/cajas/new", to: "cajas#new"
+    post "/cajas/create", to: "cajas#create"
+    get "/cajas/edit", to: "cajas#edit"
+    patch "/cajas/update", to: "cajas#update"
+
+    # Cajeros
+    get "/cajeros", to: "cajeros#index"
+    get "/cajeros/new", to: "cajeros#new"
+    post "/cajeros/create", to: "cajeros#create"
+    get "/cajeros/edit", to: "cajeros#edit"
+    patch "/cajeros/update", to: "cajeros#update"
+
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports
     get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
