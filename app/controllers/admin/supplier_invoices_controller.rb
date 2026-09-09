@@ -22,26 +22,39 @@ module Admin
 
       all_invoices = scope.order_by(due_date: :asc).to_a
 
-      # Filtrar por estado dinámico si viene el parámetro
+      # Filtrar por estado dinámico si viene el parámetro en URL
       if params[:status].present?
-        all_invoices.select! { |inv| inv.status == params[:status] }
+        all_invoices.select! do |inv|
+          inv.payment_status == params[:status] || inv.date_status == params[:status]
+        end
       end
 
-      # Métricas dinámicas calculadas en vivo
       today = Date.today
       bom   = today.beginning_of_month
       eom   = today.end_of_month
 
-      @stats_total_debt       = all_invoices.select { |i| i.balance > 0 }.sum(&:balance)
-      @stats_overdue_debt     = all_invoices.select { |i| i.status == "vencida" }.sum(&:balance)
-      @stats_due_this_month   = all_invoices.select { |i| i.due_date.present? && i.due_date.between?(bom, eom) && i.balance > 0 }.sum(&:balance)
-      @stats_total_paid_month = all_invoices.sum { |i| i.supplier_payments.select { |p| p.payment_date&.between?(bom, eom) }.sum(&:amount) }
+      # 1. Deuda Total Pendiente de todas las facturas
+      @stats_total_debt = all_invoices.sum(&:balance)
+
+      # 2. Deuda Vencida Real (Suma del saldo pendiente ÚNICAMENTE de las cuotas cuya fecha ya venció)
+      @stats_overdue_debt = all_invoices.sum do |inv|
+        inv.payment_installments.select { |inst| inst.due_date.present? && inst.due_date < today && inst.balance > 0 }.sum(&:balance)
+      end
+
+      # 3. A pagar este mes (Suma del saldo pendiente de las cuotas que vencen en el mes actual)
+      @stats_due_this_month = all_invoices.sum do |inv|
+        inv.payment_installments.select { |inst| inst.due_date.present? && inst.due_date.between?(bom, eom) && inst.balance > 0 }.sum(&:balance)
+      end
+
+      # 4. Total pagado este mes
+      @stats_total_paid_month = all_invoices.sum do |inv|
+        inv.supplier_payments.select { |p| p.payment_date&.between?(bom, eom) }.sum(&:amount)
+      end
 
       # Paginación manual con Kaminari sobre Array
       @invoices = Kaminari.paginate_array(all_invoices).page(params[:page]).per(10)
       @total_invoices = all_invoices.size
     end
-
 
     def show
       @invoice = SupplierInvoice.includes(:supplier).find(params[:id])

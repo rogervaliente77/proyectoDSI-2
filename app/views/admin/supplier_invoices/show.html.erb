@@ -73,7 +73,49 @@
       <div class="card border-left-info shadow h-100 py-2">
         <div class="card-body">
           <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Estado General</div>
-          <span class="badge bg-secondary text-uppercase"><%= @invoice.status %></span>
+          <div class="d-flex align-items-center gap-1 mt-1">
+            <%# Label 1: Estado del Pago %>
+            <% if @invoice.paid? %>
+              <%# 1. Caso Factura Pagada al 100% (Badge Único) %>
+              <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                <i class="fas fa-check-circle me-1"></i> Pagada
+              </span>
+
+            <% elsif @invoice.date_status == "al_dia" %>
+              <%# 2. Caso Factura con Cuota Pagada / Sin Alerta (Badge Único "Al Día") %>
+              <span class="badge bg-info-subtle text-info border border-info px-2 py-1">
+                <i class="fas fa-calendar-check me-1"></i> Al Día
+              </span>
+
+            <% else %>
+              <%# 3. Caso con Alerta de Vencimiento (2 Badges: Pago + Fecha) %>
+
+              <%# Badge 1: Estado del Pago %>
+              <% case @invoice.payment_status %>
+              <% when "pago_parcial" %>
+                <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                  <i class="fas fa-adjust me-1"></i> Pago Parcial
+                </span>
+              <% else %>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">
+                  <i class="fas fa-minus-circle me-1"></i> Sin Pago
+                </span>
+              <% end %>
+
+              <%# Badge 2: Alerta de Fecha %>
+              <% case @invoice.date_status %>
+              <% when "vencida" %>
+                <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
+                  <i class="fas fa-exclamation-triangle me-1"></i> Vencida
+                </span>
+              <% when "proxima_vencer" %>
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                  <i class="fas fa-clock me-1"></i> Próx. a Vencer
+                </span>
+              <% end %>
+
+            <% end %>
+          </div>
         </div>
       </div>
     </div>
@@ -99,6 +141,9 @@
               </tr>
             </thead>
             <tbody>
+              <%# Identificamos la primera cuota que tiene saldo pendiente %>
+              <% first_pending_installment = @installments.select { |i| i.balance > 0 }.min_by(&:number) %>
+
               <% @installments.each do |inst| %>
                 <tr>
                   <td class="text-center fw-bold"><%= inst.number %></td>
@@ -107,22 +152,47 @@
                   <td class="text-end text-success">$<%= sprintf('%.2f', inst.paid_amount) %></td>
                   <td class="text-end font-weight-bold">$<%= sprintf('%.2f', inst.balance) %></td>
                   <td class="text-center">
-                    <% case inst.status %>
-                    <% when "pagada" %>
-                      <span class="badge bg-success">Pagada</span>
-                    <% when "vencida" %>
-                      <span class="badge bg-danger">Vencida</span>
-                    <% when "proxima_vencer" %>
-                      <span class="badge bg-warning text-dark">Próx. Vencer</span>
-                    <% when "parcial" %>
-                      <span class="badge bg-info">Pago parcial</span>
-                    <% else %>
-                      <span class="badge bg-secondary">Pendiente</span>
-                    <% end %>
+                    <div class="d-flex justify-content-center align-items-center gap-1">
+                      
+                      <%# 1. Estado de Pago / Monto de la Cuota %>
+                      <% case inst.payment_status %>
+                      <% when "pagada" %>
+                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                          <i class="fas fa-check-circle me-1"></i> Pagada
+                        </span>
+                      <% when "parcial" %>
+                        <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                          <i class="fas fa-adjust me-1"></i> Parcial
+                        </span>
+                      <% else %>
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">
+                          <i class="fas fa-minus-circle me-1"></i> Pendiente
+                        </span>
+                      <% end %>
+
+                      <%# 2. Estado de la Fecha / Vencimiento %>
+                      <%# Solo se evalúa si la cuota no está pagada Y es la cuota actual del periodo (primera pendiente) %>
+                      <% if inst.balance > 0 && inst == first_pending_installment %>
+                        <% case inst.date_status %>
+                        <% when "vencida" %>
+                          <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Vencida
+                          </span>
+                        <% when "proxima_vencer" %>
+                          <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                            <i class="fas fa-clock me-1"></i> Próx. Vencer
+                          </span>
+                        <% when "al_dia" %>
+
+                        <% end %>
+                      <% end %>
+
+                    </div>
                   </td>
                 </tr>
               <% end %>
             </tbody>
+
           </table>
         </div>
       </div>

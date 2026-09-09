@@ -40,43 +40,43 @@ class SupplierInvoice
   before_save :recalculate_and_sync_credit
   after_create :generate_installments_plan!
 
-  # 1. TU MÉTODO ORIGINAL INTROSPECTIVO INTACCO
-  def status
+  def date_status
+    return "pagada" if balance <= 0
+
     today = Date.today
 
+    if payment_installments.any? { |i| i.date_status == "vencida" } || (due_date.present? && due_date < today)
+      "vencida"
+    elsif payment_installments.any? { |i| i.date_status == "proxima_vencer" } || (due_date.present? && due_date <= (today + 10.days))
+      "proxima_vencer"
+    else
+      "al_dia"
+    end
+  end
+
+  # 2. ESTADO DE PAGO / MONTO
+  def payment_status
     if balance <= 0
       "pagada"
-    elsif payment_installments.any? { |i| i.status == "vencida" } || (due_date.present? && due_date < today)
-      "vencida"
-    elsif payment_installments.any? { |i| i.status == "parcial" }
-      "pago_parcial"
-    elsif payment_installments.any? { |i| i.status == "proxima_vencer" }
-      "proxima_vencer"
     elsif paid_amount > 0
-      "al_dia"
+      "pago_parcial"
     else
-      "pendiente"
+      "sin_pago"
     end
   end
 
-  # 2. NUEVO MÉTODO: Evalúa EXCLUSIVAMENTE el tiempo/vencimiento
-  def time_status
-    return "al_dia" if balance <= 0
-
-    today = Date.today
-
-    if payment_installments.any? { |i| i.status == "vencida" } || (due_date.present? && due_date < today)
-      "vencida"
-    elsif payment_installments.any? { |i| i.status == "proxima_vencer" } || (due_date.present? && due_date <= (today + 5.days))
-      "proxima_vencer"
-    else
-      "al_dia"
-    end
+  # Conservamos tu método 'status' como alias del estado de pago o combinador si lo usas en otros lados
+  def status
+    payment_status
   end
 
-  # Helpers booleanos adicionales por conveniencia sin tocar status
+  # Helpers booleanos para facilitar las vistas
   def overdue?
-    time_status == "vencida"
+    date_status == "vencida"
+  end
+
+  def paid?
+    balance <= 0
   end
 
   def partially_paid?

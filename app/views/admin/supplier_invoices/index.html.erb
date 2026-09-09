@@ -166,26 +166,39 @@
                   <td class="text-end fw-bold <%= (inv.balance || 0) > 0 ? 'text-danger' : 'text-muted' %>">
                     <%= number_to_currency(inv.balance) %>
                   </td>
-                  <td class="text-center">
-                    <%# 1. Label de Pago %>
-                    <% case inv.status %>
+                  <td class="align-top text-center">
+                    <%# Label 1: Estado del Pago %>
+                    <% case inv.payment_status %>
                     <% when "pagada" %>
-                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1">Pagada</span>
-                    <% when "vencida" %>
-                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">Vencida</span>
+                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                        <i class="fas fa-check-circle me-1"></i> Pagada
+                      </span>
                     <% when "pago_parcial" %>
-                      <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">Pago Parcial</span>
-                    <% when "proxima_vencer" %>
-                      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">Próx. a Vencer</span>
-                    <% else %>
-                      <span class="badge bg-info-subtle text-info border border-info px-2 py-1">Al Día</span>
+                      <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                        <i class="fas fa-adjust me-1"></i> Pago Parcial
+                      </span>
+                    <% when "sin_pago" %>
+                      <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">
+                        <i class="fas fa-minus-circle me-1"></i> Sin Pago
+                      </span>
                     <% end %>
 
-                    <%# 2. Badge Adicional opcional (Solo si es pago parcial PERO ya se venció el plazo) %>
-                    <% if inv.status == "pago_parcial" && inv.overdue? %>
-                      <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 ms-1">
-                        <i class="fas fa-exclamation-circle me-1"></i>Vencida
-                      </span>
+                    <%# Label 2: Estado de la Fecha (Solo si no está pagada completamente) %>
+                    <% unless inv.paid? %>
+                      <% case inv.date_status %>
+                      <% when "vencida" %>
+                        <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 ms-1">
+                          <i class="fas fa-exclamation-triangle me-1"></i> Vencida
+                        </span>
+                      <% when "proxima_vencer" %>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1 ms-1">
+                          <i class="fas fa-clock me-1"></i> Próx. a Vencer
+                        </span>
+                      <% when "al_dia" %>
+                        <span class="badge bg-info-subtle text-info border border-info px-2 py-1 ms-1">
+                          <i class="fas fa-calendar-check me-1"></i> Al Día
+                        </span>
+                      <% end %>
                     <% end %>
                   </td>
                   <td class="text-center pe-3">
