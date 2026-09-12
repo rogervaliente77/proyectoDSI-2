@@ -212,6 +212,14 @@ Rails.application.routes.draw do
       patch :reorder_slides
     end
     
+    # Ventas
+    get "/sales", to: "sales#index"
+    get "/sales/new", to: "sales#new"
+    post "/sales/create", to: "sales#create"
+    get "/sales/detalle_venta", to: "sales#detalle_venta"
+    get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
+    get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
+    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
   end
 
   # Health check y landing

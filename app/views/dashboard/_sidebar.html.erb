@@ -206,6 +206,22 @@
         </div>
       </div>
     </li>
+
+    <!-- Ventas -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" 
+        data-target="#collapseVentas"
+         aria-expanded="true" aria-controls="collapseVentas">
+        <i class="fas fa-store"></i>
+        <span>Ventas</span>
+      </a>
+      <div id="collapseVentas" class="collapse" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <a class="collapse-item" href="<%= admin_sales_path %>" data-turbo="false">Ventas</a>
+          <a class="collapse-item" href="<%= admin_sales_new_path %>" data-turbo="false">Crear nueva venta</a>
+        </div>
+      </div>
+    </li>
   <% end %>
 
   <!-- Usuarios -->
