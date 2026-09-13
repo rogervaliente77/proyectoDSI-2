@@ -90,6 +90,15 @@ module Admin
       end
     end
 
+    def search_clients
+      clients = Client.where(is_active: true)
+      if params[:q].present?
+        query = /#{Regexp.escape(params[:q])}/i
+        clients = clients.where(nombre: query)
+      end
+      render json: clients.limit(10).as_json(only: [:id, :nombre])
+    end
+
     private
 
     def sale_params
