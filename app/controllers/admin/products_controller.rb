@@ -67,6 +67,7 @@ module Admin
       @categories = Category.all
       @marcas = Marca.all
       @product.product_images.build
+      @offers = Offer.active
     end
 
     # CREAR PRODUCTO
@@ -92,6 +93,7 @@ module Admin
       @categories = Category.all
       @marcas = Marca.all
       @product.product_images.build if @product.product_images.empty?
+      @offers = Offer.active
     end
 
     # ACTUALIZAR PRODUCTO
@@ -217,7 +219,7 @@ module Admin
     def product_params
       params.require(:product).permit(
         :kind, :name, :description, :quantity, :price, :cost_price, :category_id, :marca_id, :discount, :code,
-        :offer_type, :offer_expires_at, :wholesale_quantity, :car_type_id, :supplier_id,
+        :offer_type, :offer_id, :offer_expires_at, :wholesale_quantity, :car_type_id, :supplier_id,
         product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy] # <-- Se agregó :file
       )
     end

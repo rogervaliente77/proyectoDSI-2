@@ -23,6 +23,7 @@ class Product
   belongs_to :supplier, optional: true
   belongs_to :marca, optional: true
   belongs_to :car_type, optional: true
+  belongs_to :offer, optional: true
 
   embeds_many :product_images
   accepts_nested_attributes_for :product_images, allow_destroy: true
@@ -40,25 +41,33 @@ class Product
   # -------- MÉTODOS DE OFERTA --------
 
   # Devuelve true si el producto está actualmente en oferta
+  # Devuelve true si el producto está en oferta activa
   def on_offer?
-    (discount.to_i > 0 || offer_type.present?) && (offer_expires_at.nil? || offer_expires_at.future?)
+    offer.present? && (offer_expires_at.nil? || offer_expires_at.future?)
   end
+
+  # Helpers para delegar atributos de la oferta
+  def discount_percentage
+    on_offer? && offer.descuento? ? offer.discount_percentage.to_i : 0
+  end
+
+  def offer_type
+    on_offer? ? offer.offer_type : nil
+  end
+
+  # def wholesale_quantity
+  #   on_offer? && offer.mayoreo? ? self.wholesale_quantity : nil
+  # end
 
   # Precio descontado
   def discounted_price
-    return price if discount.to_i.zero?
-    price - (price * discount / 100.0)
+    return price unless on_offer? && offer.descuento? && discount_percentage > 0
+    price - (price * (discount_percentage / 100.0))
   end
 
-  # Precio actual considerando descuento
+  # Precio actual considerando oferta
   def current_price
-    return price unless on_offer?
-
-    if offer_type == "descuento" && discount.to_i > 0
-      discounted_price
-    else
-      price
-    end
+    discounted_price
   end
 
   # Monto del descuento
