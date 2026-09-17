@@ -249,13 +249,11 @@
   <!-- Products Cards Grid Dinámico con Paginación -->
   <main>
     <div class="products-grid" id="products-grid">
+      
       <% if @products.present? && @products.any? %>
         <% @products.each do |product| %>
           <% 
-            cat_slug = product.category ? product.category.name.parameterize : "sin-categoria"
-            marca_slug = product.respond_to?(:marca) && product.marca ? product.marca.name.parameterize : ""
-            type_slug = product.respond_to?(:car_type) && product.car_type ? product.car_type.name.parameterize : ""
-            
+            # 1. Normalización de variables de imagen
             first_img_obj = product.try(:product_images)&.first
             img_url_from_db = if first_img_obj.is_a?(Hash)
                                 first_img_obj['image_url'] || first_img_obj[:image_url]
@@ -264,32 +262,80 @@
                               end
 
             img_product = img_url_from_db.presence || 'https://images.unsplash.com/photo-1600706432522-e78112d8a9f2?auto=format&fit=crop&w=500&q=80'
+
+            # 2. Evaluación de Oferta (Conversión a Booleano estricto)
+            raw_is_offer = product.try(:is_offer)
+            has_offer_flag = [true, 1, "1", "true", "t"].include?(raw_is_offer)
+
+            # 3. Comprobación de Fecha de Vencimiento
+            expiration = product.try(:offer_expiration_date)
+            not_expired = expiration.blank? || (expiration.respond_to?(:to_date) && expiration.to_date >= Date.today)
+
+            # 4. Estado final de oferta
+            offer_active = has_offer_flag && not_expired
+
+            base_price = product.try(:price).to_f
+            offer_price = product.try(:offer_price).to_f
+            effective_price = (offer_active && offer_price > 0) ? offer_price : base_price
           %>
+
           <div class="product-card" 
-            data-category="<%= cat_slug %>" 
-            data-brand="<%= marca_slug %>"
-            data-type="<%= type_slug %>"
+            data-category="<%= product.category ? product.category.name.parameterize : 'sin-categoria' %>" 
+            data-brand="<%= product.respond_to?(:marca) && product.marca ? product.marca.name.parameterize : '' %>"
+            data-type="<%= product.respond_to?(:car_type) && product.car_type ? product.car_type.name.parameterize : '' %>"
             data-name="<%= product.name.downcase %>"
-            data-price="<%= product.try(:price) || 0 %>">
+            data-price="<%= effective_price %>">
+            
             <div class="product-img-box">
+              <!-- INSIGNIA/BADGE DE OFERTA -->
+              <% if offer_active %>
+                <span class="badge-offer">
+                  <i class="fa-solid fa-tag"></i> ¡OFERTA!
+                </span>
+              <% end %>
+
               <img src="<%= img_product %>" alt="<%= product.name %>">
             </div>
+
             <div class="product-body">
               <h3 class="product-title"><%= product.name %></h3>
               <p class="product-desc"><%= product.try(:description) || "Producto de alta gama." %></p>
+
+              <!-- DETALLES DE EXPIRACIÓN Y MAYOREO -->
+              <div class="product-offer-details">
+                <% if offer_active && expiration.present? %>
+                  <div class="offer-expiration">
+                    <i class="fa-regular fa-clock"></i> Oferta válida hasta: <%= expiration.strftime("%d/%m/%Y") %>
+                  </div>
+                <% end %>
+
+                <% if product.try(:wholesale_min_qty).to_i > 0 && product.try(:wholesale_price).to_f > 0 %>
+                  <div class="wholesale-info">
+                    <i class="fa-solid fa-boxes-stacked"></i> Mayoreo: $<%= '%.2f' % product.wholesale_price %> (Min. <%= product.wholesale_min_qty %> u.)
+                  </div>
+                <% end %>
+              </div>
+
               <div class="product-footer">
-                <span class="product-price">$<%= '%.2f' % (product.try(:price) || 0) %></span>
-                <button class="btn-buy" type="button"><i class="fa-solid fa-cart-shopping"></i></button>
+                <!-- DESPLIEGUE DE PRECIOS -->
+                <div class="product-price-container">
+                  <% if offer_active && offer_price > 0 && offer_price < base_price %>
+                    <span class="original-price">$<%= '%.2f' % base_price %></span>
+                    <span class="product-price offer-price">$<%= '%.2f' % offer_price %></span>
+                  <% else %>
+                    <span class="product-price">$<%= '%.2f' % base_price %></span>
+                  <% end %>
+                </div>
+
+                <button class="btn-buy" type="button" aria-label="Agregar al carrito">
+                  <i class="fa-solid fa-cart-shopping"></i>
+                </button>
               </div>
             </div>
           </div>
         <% end %>
-      <% else %>
-        <div class="no-products-msg">
-          <i class="fa-solid fa-box-open"></i>
-          <p>No hay productos disponibles actualmente.</p>
-        </div>
       <% end %>
+
     </div>
 
     <!-- Contenedor para Controles de Paginación -->
@@ -815,6 +861,54 @@
   .services-cards-slider {
     justify-content: flex-start;
   }
+}
+
+/* Posicionamiento de la imagen para el Badge */
+.product-img-box {
+  position: relative;
+  width: 100%;
+  height: 190px;
+}
+
+/* Badge visible sobre la imagen */
+.badge-offer {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #dc3545;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  text-transform: uppercase;
+}
+
+/* Formato de Precios */
+.product-price-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.original-price {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.product-price.offer-price {
+  color: #dc3545;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.offer-expiration {
+  color: #d97706;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
 }
 </style>
 

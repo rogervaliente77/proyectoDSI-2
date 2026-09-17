@@ -1,3 +1,10 @@
+<% 
+  # Verificación de vigencia de la oferta
+  exp_date = product.offer_expires_at
+  offer_active = product.offer.present? && (exp_date.blank? || exp_date.to_date >= Date.current)
+  offer = offer_active ? product.offer : nil
+%>
+
 <div class="card h-100 shadow-sm product-card position-relative border-0 rounded-3 overflow-hidden">
 
   <!-- Badges -->
@@ -11,10 +18,10 @@
     </span>
   <% end %>
 
-  <% if product.discount.to_i > 0 || product.offer_type.present? %>
+  <!-- Badge de Oferta Asociada (solo si está activa y vigente) -->
+  <% if offer.present? %>
     <span class="badge badge-top-left bg-warning text-dark">
-      <i class="fas fa-gift me-1"></i> Oferta 
-      <%= " #{product.offer_type.capitalize}" if product.offer_type.present? %>
+      <i class="fas fa-gift me-1"></i> <%= offer.display_name %>
     </span>
   <% end %>
 
@@ -44,23 +51,50 @@
     <h5 class="card-title text-primary fw-bold mb-1"><%= product.name %></h5>
     <p class="card-text text-muted small mb-2"><%= truncate(product.description, length: 80) %></p>
 
-    <% if product&.offer_type == "mayoreo" && product.discount.to_f > 0 %>
-      <p class="small mb-1">
-        <strong>Precio mayoreo a partir de <%= product.wholesale_quantity %></strong>
-      </p>
+    <!-- Detalle de Mayoreo -->
+    <% if offer&.offer_type&.upcase == "MAYOREO" && product.wholesale_quantity.to_i > 0 %>
+      <div class="p-2 mb-2 bg-light border rounded text-info small">
+        <i class="fas fa-boxes me-1"></i>
+        <strong>Mayoreo:</strong> A partir de <strong><%= product.wholesale_quantity %></strong> unidades
+        <% if product.discount.to_f > 0 %>
+          <span class="badge bg-info text-dark ms-1">-<%= product.discount.to_i %>% OFF</span>
+        <% end %>
+      </div>
     <% end %>
 
+    <!-- Precios y Descuentos -->
     <p class="mb-2">
-      <% if product.discount.to_i > 0 %>
-        <% if product.offer_type == "descuento"%>
-          <span class="text-muted text-decoration-line-through"><%= number_to_currency(product.price) %></span>
-          <span class="badge bg-success ms-2"><%= product.discount %>% OFF</span><br>
-        <% end %>
+      <% offer_type_upcase = offer&.offer_type&.upcase %>
+      
+      <% if offer_type_upcase == "DESCUENTO" && product.discount.to_f > 0 %>
+        <span class="text-muted text-decoration-line-through me-1"><%= number_to_currency(product.price) %></span>
+        <span class="badge bg-danger ms-1 me-2">-<%= product.discount.to_i %>% OFF</span><br>
         <span class="fw-bold text-success fs-5"><%= number_to_currency(product.discounted_price.round(2)) %></span>
+
+      <% elsif offer_type_upcase == "MAYOREO" && product.discount.to_f > 0 %>
+        <span class="fw-bold text-success fs-5"><%= number_to_currency(product.price) %></span>
+        <span class="badge bg-info text-dark ms-2">-<%= product.discount.to_i %>% OFF en mayoreo</span>
+
+      <% elsif offer.present? %>
+        <span class="fw-bold text-success fs-5"><%= number_to_currency(product.price) %></span>
+
       <% else %>
         <span class="fw-bold fs-5"><%= number_to_currency(product.price) %></span>
       <% end %>
     </p>
+
+    <!-- FECHA DE EXPIRACIÓN DE OFERTA -->
+    <% if offer.present? %> 
+      <p class="mb-2 text-danger small">
+        <i class="fas fa-clock me-1"></i>
+        <strong>Oferta Expira:</strong> 
+        <% if exp_date.present? %>
+          <%= exp_date.respond_to?(:strftime) ? exp_date.strftime("%d/%m/%Y") : exp_date %>
+        <% else %>
+          <span>Por tiempo limitado</span>
+        <% end %>
+      </p>
+    <% end %>
 
     <!-- PRECIO ADQUISICIÓN / COSTO -->
     <p class="mb-1 text-secondary small">
@@ -76,7 +110,7 @@
     <p class="mb-1 text-secondary small">
       <strong>Proveedor:</strong> 
       <% if product.respond_to?(:supplier) && product.supplier&.name.present? %>
-        <span class="badge bg-info text-dark"><%= product.supplier.name %></span>
+        <span class="badge bg-info text-white text-uppercase"><%= product.supplier.name %></span>
       <% else %>
         <span class="text-muted fst-italic">Sin proveedor</span>
       <% end %>
