@@ -263,19 +263,28 @@
 
             img_product = img_url_from_db.presence || 'https://images.unsplash.com/photo-1600706432522-e78112d8a9f2?auto=format&fit=crop&w=500&q=80'
 
-            # 2. Evaluación de Oferta (Conversión a Booleano estricto)
-            raw_is_offer = product.try(:is_offer)
-            has_offer_flag = [true, 1, "1", "true", "t"].include?(raw_is_offer)
+            # 2. Evaluación de Oferta (misma lógica que admin/products/catalogo.html.erb)
+            exp_date = product.offer_expires_at
+            offer_active = product.offer.present? && (exp_date.blank? || exp_date.to_date >= Date.current)
+            offer = offer_active ? product.offer : nil
+            expiration = exp_date
 
-            # 3. Comprobación de Fecha de Vencimiento
-            expiration = product.try(:offer_expiration_date)
-            not_expired = expiration.blank? || (expiration.respond_to?(:to_date) && expiration.to_date >= Date.today)
+            base_price = product.price.to_f
+            discount = product.discount.to_f
+            offer_type_upcase = offer&.offer_type&.upcase
 
-            # 4. Estado final de oferta
-            offer_active = has_offer_flag && not_expired
+            # Precio "de oferta" a mostrar en la card (según el tipo de oferta)
+            # Nota: se calcula directo desde product.discount (no con product.discounted_price,
+            # que actualmente siempre devuelve el precio normal por un bug de mayúsculas
+            # en Offer#descuento? / Offer#mayoreo?)
+            offer_price = if offer_active && offer_type_upcase == "DESCUENTO" && discount > 0
+                            (base_price - (base_price * discount / 100.0)).round(2)
+                          elsif offer_active
+                            base_price
+                          else
+                            0
+                          end
 
-            base_price = product.try(:price).to_f
-            offer_price = product.try(:offer_price).to_f
             effective_price = (offer_active && offer_price > 0) ? offer_price : base_price
           %>
 
@@ -290,7 +299,7 @@
               <!-- INSIGNIA/BADGE DE OFERTA -->
               <% if offer_active %>
                 <span class="badge-offer">
-                  <i class="fa-solid fa-tag"></i> ¡OFERTA!
+                  <i class="fa-solid fa-tag"></i> <%= offer.display_name.presence || "¡OFERTA!" %>
                 </span>
               <% end %>
 
@@ -303,15 +312,24 @@
 
               <!-- DETALLES DE EXPIRACIÓN Y MAYOREO -->
               <div class="product-offer-details">
-                <% if offer_active && expiration.present? %>
+                <% if offer_active %>
                   <div class="offer-expiration">
-                    <i class="fa-regular fa-clock"></i> Oferta válida hasta: <%= expiration.strftime("%d/%m/%Y") %>
+                    <i class="fa-regular fa-clock"></i> Oferta válida hasta:
+                    <%= expiration.present? ? expiration.strftime("%d/%m/%Y") : "Por tiempo limitado" %>
                   </div>
                 <% end %>
 
-                <% if product.try(:wholesale_min_qty).to_i > 0 && product.try(:wholesale_price).to_f > 0 %>
+                <% if offer_type_upcase == "MAYOREO" && product.wholesale_quantity.to_i > 0 %>
                   <div class="wholesale-info">
-                    <i class="fa-solid fa-boxes-stacked"></i> Mayoreo: $<%= '%.2f' % product.wholesale_price %> (Min. <%= product.wholesale_min_qty %> u.)
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    Mayoreo: a partir de <%= product.wholesale_quantity %> u.
+                    <% if discount > 0 %> (-<%= discount.to_i %>% OFF) <% end %>
+                  </div>
+                <% end %>
+
+                <% if offer_type_upcase == "DESCUENTO" && discount > 0 %>
+                  <div class="wholesale-info">
+                    <strong><%= discount.to_i %>% OFF</strong>
                   </div>
                 <% end %>
               </div>
@@ -319,9 +337,12 @@
               <div class="product-footer">
                 <!-- DESPLIEGUE DE PRECIOS -->
                 <div class="product-price-container">
-                  <% if offer_active && offer_price > 0 && offer_price < base_price %>
+                  <% if offer_active && offer_type_upcase == "DESCUENTO" && discount > 0 %>
                     <span class="original-price">$<%= '%.2f' % base_price %></span>
                     <span class="product-price offer-price">$<%= '%.2f' % offer_price %></span>
+                  <% elsif offer_active %>
+                    <!-- Mayoreo, 2x1, 3x1, etc: se mantiene el precio base pero destacado -->
+                    <span class="product-price offer-price">$<%= '%.2f' % base_price %></span>
                   <% else %>
                     <span class="product-price">$<%= '%.2f' % base_price %></span>
                   <% end %>
@@ -875,8 +896,8 @@
   position: absolute;
   top: 10px;
   left: 10px;
-  background-color: #dc3545;
-  color: #ffffff;
+  background-color: #ffc532;
+  color: #000000;
   font-size: 0.75rem;
   font-weight: 800;
   padding: 4px 10px;
@@ -953,6 +974,26 @@
       currentSlide += step;
       window.showSlide(currentSlide);
     };
+
+    // Auto-play: pasa las imágenes automáticamente cada 3 segundos
+    function startHeroAutoplay() {
+      if (window.heroCarouselInterval) {
+        clearInterval(window.heroCarouselInterval);
+      }
+      if (slides.length > 1) {
+        window.heroCarouselInterval = setInterval(function () {
+          window.moveSlide(1);
+        }, 5000);
+      }
+    }
+
+    startHeroAutoplay();
+
+    // Si el usuario usa las flechas manualmente, reinicia el temporizador
+    // para que no cambie de imagen justo después de un clic manual
+    document.querySelectorAll('.hero-carousel .carousel-btn').forEach(function (btn) {
+      btn.addEventListener('click', startHeroAutoplay);
+    });
 
     // 3. Sistema Dinámico de Navegación de Categorías & Breadcrumb
     const categoriesGrid = document.getElementById("categories-grid");

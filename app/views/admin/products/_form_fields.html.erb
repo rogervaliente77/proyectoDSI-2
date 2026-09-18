@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const offerType = selectedOption ? selectedOption.getAttribute("data-offer-type") : null;
     const defaultDiscount = selectedOption ? selectedOption.getAttribute("data-discount-percentage") : null;
 
+    console.log(offerType);
 
     // Caso 1: Sin Oferta asignada
     if (!offerSelect.value) {

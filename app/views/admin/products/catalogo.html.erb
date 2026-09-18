@@ -26,7 +26,7 @@
     </h1>
 
     <% if @current_user.role.name.in?(["super_admin","admin"]) %>
-      <%= link_to admin_productos_new_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <%= link_to admin_productos_new_path, class: "btn btn-sm btn-primary shadow-sm", data: { turbo: false } do %>
         <i class="fas fa-plus-circle me-1"></i> Crear Producto
       <% end %>
     <% end %>
@@ -84,7 +84,7 @@
         <%= submit_tag "Aplicar", class: "btn btn-primary btn-md" %>
         
         <!-- Cambia el link_to por la misma ruta del catálogo -->
-        <%= link_to admin_products_catalogo_path, class: "btn btn-outline-secondary btn-md" do %>
+        <%= link_to admin_products_catalogo_path, class: "btn btn-outline-secondary btn-md", data: { turbo: false } do %>
           <i class="fas fa-sync-alt me-1"></i> Limpiar
         <% end %>
       </div>
@@ -235,7 +235,8 @@
         <!-- Botones -->
         <% if @current_user&.role&.name.in?(["super_admin","admin"]) %>
           <div class="btn-group w-100 p-2">
-            <%= link_to admin_edit_product_path(product_id: product.id), class:"btn btn-primary btn-sm" do %>
+            <%= link_to admin_edit_product_path(product_id: product.id), 
+              class:"btn btn-primary btn-sm", data: { turbo: false } do %>
               <i class="fa fa-edit"></i> Editar
             <% end %>
             <%= link_to admin_destroy_product_path(product_id: product.id), class:"btn btn-danger btn-sm", data:{ turbo_method: :delete }, onclick:"return confirm('¿Eliminar producto?');" do %>

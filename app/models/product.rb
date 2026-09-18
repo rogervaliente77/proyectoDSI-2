@@ -149,7 +149,7 @@ class Product
 
   # Verifica si la oferta ha expirado y la limpia
   def check_offer_expiration
-    return unless offer_expires_at.present? && offer_expires_at.past?
+    return unless offer_expires_at.present? && offer_expires_at.to_date < Date.current
 
     self.discount = 0
     self.offer_type = nil
