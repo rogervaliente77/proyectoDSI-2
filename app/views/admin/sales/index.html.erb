@@ -13,58 +13,32 @@
   <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
       <h6 class="m-0 font-weight-bold text-primary">Gestión de ventas</h6>
-      <div class="dropdown no-arrow">
-        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-           data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-        </a>
-        <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-          <div class="dropdown-header">Opciones:</div>
-          <a class="dropdown-item" href="#">Acción 1</a>
-          <a class="dropdown-item" href="#">Acción 2</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">Otra acción</a>
-        </div>
-      </div>
     </div>
 
     <!-- Card Body -->
     <div class="card-body">
 
-      <%# TOAST DE DEVOLUCIONES PENDIENTES %>
+      <%# Toast Devoluciones %>
       <% if @pending_devoluciones_count.to_i > 0 %>
         <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-          <div id="pendingDevolucionesToast"
-              class="toast align-items-center text-bg-warning border-0 shadow"
-              role="alert" aria-live="assertive" aria-atomic="true">
+          <div id="pendingDevolucionesToast" class="toast align-items-center text-bg-warning border-0 shadow" role="alert">
             <div class="d-flex">
               <div class="toast-body">
                 🔔 Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
               </div>
-              <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                      data-bs-dismiss="toast" aria-label="Close"></button>
+              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
           </div>
         </div>
-
-        <%= javascript_tag do %>
-          document.addEventListener("DOMContentLoaded", function() {
-            var toastEl = document.getElementById("pendingDevolucionesToast");
-            if (toastEl) {
-              var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-              toast.show();
-            }
-          });
-        <% end %>
       <% end %>
 
-      <!-- Filtros estilo card flotante línea completa -->
+      <!-- Filtros -->
       <div class="row g-2 mb-3">
         <%= form_with url: admin_sales_path, method: :get, local: true, class: "col-12 d-flex flex-wrap gap-2 align-items-end" do |f| %>
 
           <div class="filter-card flex-fill">
-            <%= f.label :code, "Código", class: "form-label small" %>
-            <%= f.text_field :code, value: params[:code], class: "form-control form-control-sm" %>
+            <%= f.label :code, "Código / N° Control", class: "form-label small" %>
+            <%= f.text_field :code, value: params[:code], class: "form-control form-control-sm", placeholder: "Ej: V-2026... o DTE-01..." %>
           </div>
 
           <div class="filter-card flex-fill">
@@ -85,19 +59,20 @@
         <% end %>
       </div>
 
-      <!-- Tabla autoajustable sin scroll -->
+      <!-- Tabla de Ventas -->
       <div class="table-responsive">
         <table class="table table-bordered table-hover table-striped table-sm responsive-table">
           <thead class="table-light">
             <tr>
               <th>#</th>
-              <th>F. venta</th>
-              <th>Comp. venta</th>
+              <th>F. Venta</th>
+              <th>Documento</th>
+              <th>N° Control / Correlativo</th>
+              <th>Sucursal</th>
               <th>Cliente</th>
               <th>Caja</th>
-              <th>Cajero</th>
               <th>Monto</th>
-              <th>Devoluciones</th>
+              <th>Devolución</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -105,17 +80,29 @@
             <% @sales.each_with_index do |sale, index| %>
               <tr>
                 <td><%= index + 1 %></td>
-                <td><%= sale.sold_at.strftime('%d/%m/%Y %H:%M') %></td>
-                <td><strong><%= sale&.code %></strong></td>
+                <td><%= sale.sold_at&.strftime('%d/%m/%Y %H:%M') %></td>
+                <td>
+                  <% if sale.tipo_documento_dte.present? %>
+                    <span class="badge bg-info text-dark"><%= sale.tipo_documento_dte.name %></span>
+                  <% else %>
+                    <span class="badge bg-secondary">Sin DTE</span>
+                  <% end %>
+                </td>
+                <td>
+                  <strong><%= sale.numero_control.presence || sale.code %></strong>
+                  <% if sale.correlativo_documento.present? %>
+                    <br><small class="text-muted">Corr: #<%= sale.correlativo_documento %></small>
+                  <% end %>
+                </td>
+                <td><%= sale.sucursal&.name || sale.caja&.sucursal&.name || "Matriz" %></td>
                 <td><%= sale.client_name || "Sin cliente" %></td>
                 <td><%= sale.caja&.nombre || "Sin caja" %></td>
-                <td><%= sale.cajero&.nombre || "Sin cajero" %></td>
-                <td>$<%= sale.total_amount || "0.00" %></td>
+                <td>$<%= number_with_precision(sale.total_amount, precision: 2) %></td>
                 <td class="text-center">
-                  <% if sale&.devoluciones.any? %>
-                    <span class="badge bg-success">SI</span>
+                  <% if sale.devoluciones.any? %>
+                    <span class="badge bg-success">SÍ</span>
                   <% else %>
-                    <span class="badge bg-primary">NO</span>
+                    <span class="badge bg-secondary">NO</span>
                   <% end %>
                 </td>
                 <td>
@@ -123,7 +110,7 @@
                     Ver detalle
                   <% end %>
                   <%= link_to admin_generar_comprobante_venta_path(id: sale.id), target: "_blank", class: "btn btn-sm btn-danger mb-1" do %>
-                    <i class="fa fa-download"></i> Comprobante
+                    <i class="fa fa-download"></i> DTE
                   <% end %>
                 </td>
               </tr>
@@ -136,61 +123,3 @@
   </div>
 
 </div>
-<!-- Estilos CSS -->
-<style>
-  body { font-size: 0.9rem; }
-  h1.h3 { font-size: 1.2rem; }
-
-  /* Filtros estilo card */
-  .filter-card {
-    background-color: #f8f9fa;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.35rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    transition: all 0.2s;
-  }
-
-  .filter-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transform: translateY(-2px);
-  }
-
-  .form-label.small { font-size: 0.85rem; margin-bottom: 0.25rem; }
-  .form-control-sm { font-size: 0.85rem; padding: 0.4rem 0.5rem; }
-  .btn-sm { font-size: 0.8rem; padding: 0.35rem 0.6rem; }
-
-  /* Tabla autoajustable */
-  .responsive-table {
-    width: 100%;
-    table-layout: auto;
-    font-size: 1rem;
-  }
-
-  .responsive-table th,
-  .responsive-table td {
-    padding: 0.5rem 0.6rem;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  /* Ajuste responsive: columnas se envuelven y tabla se adapta */
-  @media (max-width: 768px) {
-    body { font-size: 0.8rem; }
-    h1.h3 { font-size: 1.1rem; }
-    .form-control-sm, .btn-sm { font-size: 0.75rem; padding: 0.3rem 0.5rem; }
-
-    .responsive-table {
-      font-size: 0.9rem;
-      table-layout: auto;
-      width: 100%;
-    }
-
-    .responsive-table th,
-    .responsive-table td {
-      white-space: normal; /* permite que el texto se ajuste */
-      word-wrap: break-word;
-    }
-  }
-</style>

@@ -11,14 +11,11 @@
 
     <!-- Content Row -->
     <div class="row">
-        <!-- Area Chart -->
         <div class="col-12">
             <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Venta nueva</h6>
                 </div>
-                <!-- Card Body -->
                 <div class="card-body">
 
                     <% if flash[:notice] %>
@@ -29,48 +26,50 @@
 
                     <%= simple_form_for :sale, url: admin_sales_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false }, data: { turbo: false } do |form| %> 
                         <div class="row">
-                          <!-- Campo de Cliente con Botón de Búsqueda -->
-                          <div class="col-sm-6 mb-3">
+                          <!-- Campo Cliente -->
+                          <div class="col-sm-4 mb-3">
                             <%= form.label :client_name, "Nombre del cliente", class: "form-label" %>
                             <div class="input-group">
                               <%= form.text_field :client_name, 
                                                   class: "form-control", 
                                                   id: "client-name-input", 
-                                                  placeholder: "Escriba un nombre o busque un cliente registrado",
-                                                  autocomplete: "off" %>
+                                                  placeholder: "Escriba un nombre o busque...",
+                                                  autocomplete: "off",
+                                                  required: true %>
                               <div class="input-group-append">
                                 <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#clientModal">
-                                  <i class="fas fa-search"></i> Buscar Cliente
+                                  <i class="fas fa-search"></i>
                                 </button>
                               </div>
                             </div>
                           </div>
 
+                          <!-- Selección de Tipo Documento DTE -->
+                          <div class="col-sm-4 mb-3">
+                            <%= form.input :tipo_documento_dte_id,
+                                           label: "Tipo de Comprobante",
+                                           collection: TipoDocumentoDte.where(activo: true).map { |d| [d.name, d.id.to_s] },
+                                           include_blank: "-- Seleccione Comprobante --",
+                                           required: true,
+                                           input_html: { class: "form-control" } %>
+                          </div>
+
                           <% if current_user.puede_vender? %>
                             <% cajero = Cajero.find_by(user_id: @current_user.id) %>
                             <% if cajero.present? && cajero.caja.present? %>
-                              <div class="col-sm-3 mb-3">
-                                <%= form.input :cajero_id,
-                                      label: "Cajero",
-                                      as: :string,
-                                      input_html: {
-                                        value: cajero.nombre,
-                                        readonly: true,
-                                        class: "form-control"
-                                      } %>
-                                <%= form.hidden_field :cajero_id, value: cajero.id %>
-                              </div>
+                              <%= form.hidden_field :cajero_id, value: cajero.id %>
+                              <%= form.hidden_field :caja_id, value: cajero.caja.id %>
+                              <%= form.hidden_field :sucursal_id, value: cajero.caja.sucursal_id %>
 
-                              <div class="col-sm-3 mb-3">
-                                <%= form.input :caja_id,
-                                      label: "Caja",
+                              <div class="col-sm-4 mb-3">
+                                <%= form.input :caja_info,
+                                      label: "Sucursal / Caja",
                                       as: :string,
                                       input_html: {
-                                        value: cajero.caja.nombre,
+                                        value: "#{cajero.caja.sucursal&.name || 'Matriz'} - #{cajero.caja.nombre}",
                                         readonly: true,
-                                        class: "form-control"
+                                        class: "form-control bg-light"
                                       } %>
-                                <%= form.hidden_field :caja_id, value: cajero.caja.id %>
                               </div>
                             <% end %>
                           <% end %>
@@ -98,7 +97,7 @@
                                 </tr>
                             </thead>
                             <tbody id="product-sales-container">
-                                <!-- Aquí se insertan dinámicamente los productos -->
+                                <!-- Filas dinámicas -->
                             </tbody>
                           </table>
                         </div>
@@ -116,7 +115,7 @@
                         <% end %>
                     <% end %>
 
-                    <!-- Modal de Búsqueda de Clientes -->
+                    <!-- Modales de búsqueda (se mantienen exactamente iguales) -->
                     <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="clientModalLabel" aria-hidden="true">
                       <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
@@ -128,7 +127,6 @@
                           </div>
                           <div class="modal-body">
                             <input type="text" id="search-client-modal-input" class="form-control mb-3" placeholder="Escriba el nombre del cliente para buscar..." autocomplete="off">
-                            
                             <table class="table table-bordered table-striped">
                               <thead>
                                 <tr>
@@ -147,7 +145,6 @@
                       </div>
                     </div>
 
-                    <!-- Modal de productos -->
                     <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel" aria-hidden="true">
                       <div class="modal-dialog modal-xl" role="document">
                         <div class="modal-content">
@@ -161,7 +158,6 @@
                             <div class="mb-3">
                               <input type="text" id="search-product-input" class="form-control" placeholder="Buscar por nombre...">
                             </div>
-
                             <div class="table-responsive">
                               <table class="table table-striped">
                                 <thead>
@@ -174,7 +170,6 @@
                                   </tr>
                                 </thead>
                                 <tbody id="product-search-results">
-                                  <!-- Aquí se renderizan los resultados -->
                                 </tbody>
                               </table>
                             </div>
@@ -188,11 +183,9 @@
         </div>                     
     </div>
 </div>
-<!-- /.container-fluid -->
-
 
 <script>
-// Evitar acumulación de ejecuciones múltiples con Turbo/DOMContentLoaded
+// Mantén el mismo JavaScript que ya tenías funcional
 document.addEventListener("turbo:load", initSalesScript);
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initSalesScript);
@@ -214,16 +207,13 @@ function closeBootstrapModal(modalId) {
 }
 
 function initSalesScript() {
-  // Asegurar que las inicializaciones solo se apliquen una vez por elemento
   let productIndex = document.querySelectorAll("#product-sales-container tr").length;
   let clientSearchTimeout = null;
   let productSearchTimeout = null;
 
-  // 1. BÚSQUEDA AUTOCOMPLETABLE DE CLIENTES (Con Debounce)
   const searchClientModalInput = document.getElementById("search-client-modal-input");
   if (searchClientModalInput && !searchClientModalInput.dataset.bound) {
     searchClientModalInput.dataset.bound = "true";
-
     searchClientModalInput.addEventListener("input", function () {
       clearTimeout(clientSearchTimeout);
       const query = this.value.trim();
@@ -234,53 +224,37 @@ function initSalesScript() {
         return;
       }
 
-      // Esperar 350ms a que el usuario termine de escribir antes de consultar
       clientSearchTimeout = setTimeout(async () => {
-        resultsContainer.innerHTML = `
-          <tr>
-            <td colspan="2" class="text-center text-info">
-              <i class="fas fa-spinner fa-spin"></i> Buscando clientes...
-            </td>
-          </tr>`;
-
+        resultsContainer.innerHTML = `<tr><td colspan="2" class="text-center text-info"><i class="fas fa-spinner fa-spin"></i> Buscando clientes...</td></tr>`;
         try {
           const response = await fetch(`/admin/sales/search_clients.json?q=${encodeURIComponent(query)}`);
           if (!response.ok) return;
           const clients = await response.json();
-
           resultsContainer.innerHTML = "";
-
           if (clients.length === 0) {
             resultsContainer.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No se encontraron clientes coincidentes</td></tr>`;
             return;
           }
-
           clients.forEach(client => {
             const clientName = typeof client === 'string' ? client : client.nombre;
             resultsContainer.innerHTML += `
               <tr>
                 <td>${clientName}</td>
                 <td class="text-center">
-                  <button type="button" class="btn btn-sm btn-success select-client-btn" data-name="${clientName}">
-                    Seleccionar
-                  </button>
+                  <button type="button" class="btn btn-sm btn-success select-client-btn" data-name="${clientName}">Seleccionar</button>
                 </td>
-              </tr>
-            `;
+              </tr>`;
           });
         } catch (error) {
-          console.error("Error al buscar clientes:", error);
           resultsContainer.innerHTML = `<tr><td colspan="2" class="text-center text-danger">Error en la búsqueda</td></tr>`;
         }
       }, 350);
     });
   }
 
-  // 2. BUSCAR PRODUCTOS EN EL MODAL (Con Debounce)
   const searchProductInput = document.getElementById("search-product-input");
   if (searchProductInput && !searchProductInput.dataset.bound) {
     searchProductInput.dataset.bound = "true";
-
     searchProductInput.addEventListener("input", function () {
       clearTimeout(productSearchTimeout);
       const query = this.value.trim();
@@ -291,27 +265,17 @@ function initSalesScript() {
         return;
       }
 
-      // Esperar 350ms a que el usuario termine de escribir
       productSearchTimeout = setTimeout(async () => {
-        resultsContainer.innerHTML = `
-          <tr>
-            <td colspan="5" class="text-center text-info">
-              <i class="fas fa-spinner fa-spin"></i> Buscando productos...
-            </td>
-          </tr>`;
-
+        resultsContainer.innerHTML = `<tr><td colspan="5" class="text-center text-info"><i class="fas fa-spinner fa-spin"></i> Buscando productos...</td></tr>`;
         try {
           const response = await fetch(`/admin/products/search.json?q=${encodeURIComponent(query)}`);
           if (!response.ok) return;
           const products = await response.json();
-
           resultsContainer.innerHTML = "";
-
           if (products.length === 0) {
             resultsContainer.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron productos coincidentes</td></tr>`;
             return;
           }
-
           products.forEach(product => {
             resultsContainer.innerHTML += `
               <tr>
@@ -319,15 +283,7 @@ function initSalesScript() {
                 <td>${product.description}</td>
                 <td>$${product.price}</td>
                 <td>
-                  ${
-                    product.offer_type
-                      ? `<span class="badge badge-info">${product.offer_type}</span>${
-                          product.offer_type.toLowerCase() === 'mayoreo'
-                            ? `<br><small>A partir de ${product.wholesale_quantity} unidades</small>`
-                            : ''
-                        }`
-                      : `<span class="badge badge-danger">N/A</span>`
-                  }
+                  ${product.offer_type ? `<span class="badge badge-info">${product.offer_type}</span>` : `<span class="badge badge-danger">N/A</span>`}
                 </td>
                 <td>
                   <button type="button" class="btn btn-sm btn-success select-product-btn"
@@ -340,23 +296,18 @@ function initSalesScript() {
                     Seleccionar
                   </button>
                 </td>
-              </tr>
-            `;
+              </tr>`;
           });
         } catch (error) {
-          console.error("Error al buscar productos:", error);
           resultsContainer.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error en la búsqueda</td></tr>`;
         }
       }, 350);
     });
   }
 
-  // 3. SELECCIONAR / ELIMINAR MEDIANTE DELEGACIÓN DE EVENTOS (Un solo listener global)
   if (!document.body.dataset.salesDelegationBound) {
     document.body.dataset.salesDelegationBound = "true";
-
     document.addEventListener("click", function (e) {
-      // Seleccionar cliente
       const clientBtn = e.target.closest(".select-client-btn");
       if (clientBtn) {
         const clientName = clientBtn.dataset.name;
@@ -365,7 +316,6 @@ function initSalesScript() {
         closeBootstrapModal('clientModal');
       }
 
-      // Seleccionar producto
       const productBtn = e.target.closest(".select-product-btn");
       if (productBtn) {
         const id = productBtn.dataset.id;
@@ -374,54 +324,39 @@ function initSalesScript() {
         const discount = productBtn.dataset.discount || 0;
         const offerType = productBtn.dataset.offerType || '';
         const wholesaleQuantity = productBtn.dataset.wholesaleQuantity || 0;
-
         const container = document.getElementById("product-sales-container");
 
         if (container) {
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${name}</td>
-            <td>
-              <input type="number" name="sale[product_sales_attributes][${productIndex}][quantity]" value="1" class="form-control" min="1">
-            </td>
-            <td>
-              <input type="number" name="sale[product_sales_attributes][${productIndex}][unit_price]" value="${price}" class="form-control" readonly>
-            </td>
-            <td>
-              <input type="number" name="sale[product_sales_attributes][${productIndex}][discount]" value="${discount}" class="form-control" readonly data-original-discount="${discount}">
-            </td>
-
+            <td><input type="number" name="sale[product_sales_attributes][${productIndex}][quantity]" value="1" class="form-control" min="1"></td>
+            <td><input type="number" name="sale[product_sales_attributes][${productIndex}][unit_price]" value="${price}" class="form-control" readonly></td>
+            <td><input type="number" name="sale[product_sales_attributes][${productIndex}][discount]" value="${discount}" class="form-control" readonly data-original-discount="${discount}"></td>
             <td class="offer_type-value">
               ${offerType ? `<span class="badge badge-info">${offerType}</span>` : '<span class="badge badge-secondary">N/A</span>'}
               <input type="hidden" name="sale[product_sales_attributes][${productIndex}][offer_type]" value="${offerType}">
               <input type="hidden" class="wholesale-quantity" value="${wholesaleQuantity}">
             </td>
-
             <td class="discount-value">0.00</td>
             <td class="subtotal">0.00</td>
             <input type="hidden" name="sale[product_sales_attributes][${productIndex}][subtotal]" value="0.00" class="subtotal-input">
-
-            <td>
-              <button type="button" class="btn btn-danger btn-sm remove-product">Eliminar</button>
-            </td>
+            <td><button type="button" class="btn btn-danger btn-sm remove-product">Eliminar</button></td>
             <input type="hidden" name="sale[product_sales_attributes][${productIndex}][product_id]" value="${id}">
           `;
           container.appendChild(row);
           updateSaleTotal();
           productIndex++;
         }
-
         closeBootstrapModal('productModal');
       }
 
-      // Eliminar producto
       if (e.target.classList.contains("remove-product")) {
         e.target.closest("tr").remove();
         updateSaleTotal();
       }
     });
 
-    // 4. CAMBIOS EN INPUTS DE CANTIDAD
     document.addEventListener("input", function (e) {
       if (e.target.name?.includes("quantity")) {
         updateSaleTotal();
@@ -429,7 +364,6 @@ function initSalesScript() {
     });
   }
 
-  // 5. CÁLCULO DE TOTALES
   function updateSaleTotal() {
     let total = 0;
     const rows = document.querySelectorAll("#product-sales-container tr");
@@ -453,39 +387,27 @@ function initSalesScript() {
 
       switch (offerType) {
         case "MAYOREO":
-          if (quantity >= wholesaleQuantity && wholesaleQuantity > 0) {
-            discountValue = value * (originalDiscount / 100);
-          } else {
-            discountValue = 0;
-          }
+          discountValue = (quantity >= wholesaleQuantity && wholesaleQuantity > 0) ? value * (originalDiscount / 100) : 0;
           break;
-
         case "2X1":
           discountValue = Math.floor(quantity / 2) * price;
           break;
-
         case "3X1":
           discountValue = Math.floor(quantity / 3) * price;
           break;
-
         case "DESCUENTO":
           discountValue = value * (originalDiscount / 100);
           break;
-
         default:
           discountValue = 0;
       }
 
       subtotal = value - discountValue;
-
       if (discountInput) discountInput.value = discountValue.toFixed(2);
-
       const discountValueCell = row.querySelector(".discount-value");
       if (discountValueCell) discountValueCell.textContent = discountValue.toFixed(2);
-      
       const subtotalCell = row.querySelector(".subtotal");
       if (subtotalCell) subtotalCell.textContent = subtotal.toFixed(2);
-      
       if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
 
       total += subtotal;
@@ -493,7 +415,6 @@ function initSalesScript() {
 
     const totalDisplay = document.getElementById("sale-total");
     if (totalDisplay) totalDisplay.textContent = total.toFixed(2);
-    
     const totalAmountInput = document.getElementById("sale_total_amount");
     if (totalAmountInput) totalAmountInput.value = total.toFixed(2);
   }
