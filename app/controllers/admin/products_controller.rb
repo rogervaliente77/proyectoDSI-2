@@ -184,26 +184,57 @@ module Admin
     # BÚSQUEDA AJAX
     def search
       query = params[:q].to_s.strip
-    
+
       products = if query.present?
-                    Product.where(name: /#{Regexp.escape(query)}/i).limit(10)
-                  else
-                    Product.none
-                  end
-    
-        render json: products.map { |p|
-        vigente = p.offer_expires_at.present? && p.offer_expires_at > Time.current
-      
+                  # Carga anticipada de la relación para evitar N+1 queries
+                  Product.includes(:offer).where(name: /#{Regexp.escape(query)}/i).limit(10)
+                else
+                  Product.none
+                end
+
+      render json: products.map { |p|
+        # 1. Obtener la oferta probando p.offer o buscando directamente por offer_id
+        offer_obj = begin
+                      if p.respond_to?(:offer) && p.offer.present?
+                        p.offer
+                      elsif p.respond_to?(:offer_id) && p.offer_id.present?
+                        Offer.where(id: p.offer_id).first
+                      end
+                    rescue StandardError => e
+                      Rails.logger.error "Error obteniendo oferta para producto #{p.id}: #{e.message}"
+                      nil
+                    end
+
+        # 2. Evaluación flexible de la fecha de vencimiento
+        expires_at = p.try(:offer_expires_at)
+        
+        not_expired = if expires_at.blank?
+                        # Si no definieron fecha de expiración pero asignaron oferta, se asume vigente
+                        offer_obj.present?
+                      elsif expires_at.respond_to?(:to_date)
+                        expires_at.to_date >= Date.current
+                      else
+                        expires_at > Time.current
+                      end
+
+        # 3. Determinar vigencia final
+        vigente = offer_obj.present? && not_expired
+
+        # Extraer tipo y nombre de la oferta
+        offer_name = vigente ? (offer_obj.try(:name) || offer_obj.try(:nombre) || '') : ''
+        type = vigente ? (offer_obj.try(:offer_type) || offer_obj.try(:tipo) || '') : ''
+
         {
           id: p.id.to_s,
           name: p.name,
           description: p.description,
-          price: p.price,
-          discount: p.discount,
-          offer_type: vigente ? p.offer_type : '',
-          wholesale_quantity: (vigente && p.offer_type == 'mayoreo') ? p.wholesale_quantity : ''
+          price: p.price.to_f,
+          discount: vigente ? (p.try(:discount).to_f) : 0,
+          offer_name: offer_name,
+          offer_type: type,
+          wholesale_quantity: (vigente && type.downcase == 'mayoreo') ? p.try(:wholesale_quantity).to_i : 0
         }
-      }         
+      }
     end
 
     private

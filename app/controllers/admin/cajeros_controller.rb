@@ -81,7 +81,7 @@ module Admin
     # end
 
     def cajero_params
-      params.require(:cajero).permit(:nombre, :user_id, :caja_id)
+      params.require(:cajero).permit(:nombre, :user_id, :caja_id, :sucursal_id)
     end
   end
 end

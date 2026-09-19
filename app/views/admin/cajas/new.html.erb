@@ -47,19 +47,30 @@
                         data: { turbo: false } } do |form| %>
                         <div class="row">
                             <div class="col-sm-5">
-                                <div class="mb-4">
-                                    <%= form.input :nombre, label: "Nombre", required: true, input_html: { class: "form-control", id: "title" } %>
-                                </div>
+                            <div class="mb-4">
+                                <%= form.input :nombre, label: "Nombre", required: true, input_html: { class: "form-control", id: "title" } %>
+                            </div>
+                            </div>
+
+                            <div class="col-sm-4">
+                            <div class="mb-4">
+                                <%= form.input :sucursal_id,
+                                            label: "Sucursal",
+                                            collection: Sucursal.order_by(codigo: :asc).map { |s| [s.display_name, s.id.to_s] },
+                                            include_blank: "Selecciona una sucursal",
+                                            required: true,
+                                            input_html: { class: "form-select" } %>
+                            </div>
                             </div>
 
                             <div class="col-sm-3">
-                                <div class="mb-3">
-                                    <%= form.input :caja_number, 
-                                        label: "Número", 
-                                        required: true, 
-                                        as: :integer, 
-                                        input_html: { class: "form-control", id: "caja_number", min: 0 } %>
-                                </div>
+                            <div class="mb-3">
+                                <%= form.input :caja_number, 
+                                            label: "Número", 
+                                            required: true, 
+                                            as: :integer, 
+                                            input_html: { class: "form-control", id: "caja_number", min: 0 } %>
+                            </div>
                             </div>
                         </div>
 
@@ -67,10 +78,9 @@
 
                         <div class="row">
                             <div class="form-group mb-4">
-                                <%= form.submit 'Save', class: 'btn btn-success btn-block' %>
+                            <%= form.submit 'Save', class: 'btn btn-success btn-block' %>
                             </div>
                         </div>
-            
                     <% end %>
 
 

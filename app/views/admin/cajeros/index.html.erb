@@ -37,6 +37,7 @@
                 <th>No</th>
                 <th>Nombre</th>
                 <th>Cajero</th>
+                <th>Sucursal</th>
                 <th>Caja</th>
                 <th>F. creacion</th>
                 <th>Actions</th>
@@ -48,6 +49,7 @@
                   <td><%= index + 1 %></td>
                   <td><%= cajero.user.full_name %></td>
                   <td><%= cajero.nombre %></td>
+                  <td><%= cajero&.sucursal&.name %></td>
                   <td><%= cajero.caja.nombre %></td>
                   <td><%= cajero.created_at %></td>
                   <td>

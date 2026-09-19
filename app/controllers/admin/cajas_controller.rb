@@ -86,7 +86,7 @@ module Admin
     # end
 
     def caja_params
-      params.require(:caja).permit(:nombre, :caja_number)
+      params.require(:caja).permit(:nombre, :caja_number, :sucursal_id)
     end
   end
 end

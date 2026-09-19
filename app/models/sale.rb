@@ -28,7 +28,7 @@ class Sale
   before_create :generate_code
 
   def generate_code
-    prefix = 'v'
+    prefix = 'V'
     date_str = Date.today.strftime("%Y-%m-%d")
     count_today = Sale.where(
       :created_at.gte => Date.today.beginning_of_day,

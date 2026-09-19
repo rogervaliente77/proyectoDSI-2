@@ -26,6 +26,14 @@ class User
   # Relacionamientos (ajústalos a tus modelos Mongoid)
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
   belongs_to :role
+
+  def cliente?
+    role.present? && role.name.downcase == 'cliente'
+  end
+
+  def puede_vender?
+    role.present? && !cliente?
+  end
   
   #has_many :addresses, inverse_of: :user, dependent: :destroy, autosave: true
 

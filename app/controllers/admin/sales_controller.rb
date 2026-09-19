@@ -24,7 +24,8 @@ module Admin
     end
 
     def create
-      if @current_user.role.name.in?(["super_admin", "admin"])
+      binding.pry
+      if !@current_user.puede_vender?
         redirect_to admin_sales_new_path, alert: "Esta acción solo la puede hacer un cajero"
         return
       end
