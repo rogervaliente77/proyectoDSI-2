@@ -1,0 +1,146 @@
+<div class="container-fluid px-4 py-3">
+  <%# Encabezado y buscador %>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0 text-gray-800">Proveedores</h1>
+      <p class="text-muted small mb-0">Listado general de proveedores registrados en el sistema.</p>
+    </div>
+    <div>
+      <%= link_to new_admin_supplier_path, class: "btn btn-primary shadow-sm", data: { turbo: false } do %>
+        <i class="fas fa-plus me-1"></i> Nuevo Proveedor
+      <% end %>
+    </div>
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <%= flash[:notice] %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <%# Barra de Búsqueda y Estadísticas %>
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <%= form_with url: admin_suppliers_path, method: :get, local: true, data: { turbo: false }, class: "d-flex gap-2" do |f| %>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="fas fa-search text-muted"></i>
+              </span>
+              <%= f.text_field :query, 
+                              value: params[:query], 
+                              placeholder: "Buscar por nombre, NIT/NRC o teléfono...", 
+                              class: "form-control border-start-0 bg-light" %>
+            </div>
+            <%= f.submit "Buscar", class: "btn btn-secondary px-4" %>
+            <% if params[:query].present? %>
+              <%= link_to "Limpiar", admin_suppliers_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+            <% end %>
+          <% end %>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <span class="text-muted small">
+            Total de registros: <strong><%= @total_suppliers %></strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%# Tabla de Proveedores %>
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col" class="ps-3 text-center" style="width: 60px;">#</th>
+              <th scope="col">Proveedor / Razón Social</th>
+              <th scope="col">Contacto / Teléfono</th>
+              <th scope="col" class="text-center">Días de Crédito</th>
+              <th scope="col" class="text-center">Deuda Pendiente</th>
+              <th scope="col" class="text-center">Estado</th>
+              <th scope="col" class="text-center pe-3" style="width: 120px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @suppliers.present? %>
+              <% offset = @suppliers.offset_value %>
+              <% @suppliers.each_with_index do |sup, index| %>
+                <% debt = sup.total_debt %>
+                <tr>
+                  <td class="ps-3 text-center fw-bold text-muted small">
+                    <%= offset + index + 1 %>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-dark d-block"><%= sup.name %></span>
+                    <small class="text-muted">
+                      <%= sup.business_name.presence || "NIT/NRC: #{sup.nit_nrc}" %>
+                    </small>
+                  </td>
+                  <td>
+                    <span class="d-block text-dark"><%= sup.contact_person.presence || "Sin contacto" %></span>
+                    <small class="text-muted">
+                      <i class="fas fa-phone me-1"></i><%= sup.phone.presence || "N/A" %>
+                    </small>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-light text-dark border px-2 py-1">
+                      <i class="fas fa-clock me-1 text-muted"></i><%= sup.credit_days || 0 %> Días
+                    </span>
+                  </td>
+                  <td class="text-center fw-bold <%= debt > 0 ? 'text-danger' : 'text-success' %>">
+                    <%= number_to_currency(debt) %>
+                  </td>
+                  <td class="text-center">
+                    <% if sup.active %>
+                      <span class="badge bg-success-subtle text-success border border-success px-2 py-1">Activo</span>
+                    <% else %>
+                      <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">Inactivo</span>
+                    <% end %>
+                  </td>
+                  <td class="text-center pe-3">
+                    <div class="btn-group btn-group-sm">
+                      <%= link_to admin_supplier_path(sup), class: "btn btn-outline-secondary", title: "Ver detalles", data: { turbo: false } do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+                      <%= link_to edit_admin_supplier_path(sup), class: "btn btn-outline-primary", title: "Editar", data: { turbo: false } do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  <i class="fas fa-inbox fa-3x mb-3 text-secondary opacity-50 d-block"></i>
+                  No se encontraron proveedores registrados.
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <%# Paginador %>
+    <% if @suppliers.present? %>
+      <div class="card-footer bg-white border-top-0 py-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+          <div class="text-muted small">
+            Mostrando <strong><%= @suppliers.offset_value + 1 %></strong> - 
+            <strong><%= [@suppliers.offset_value + @suppliers.length, @total_suppliers].min %></strong> 
+            de <strong><%= @total_suppliers %></strong> resultados
+          </div>
+          
+          <div data-turbo="false">
+            <%= paginate @suppliers %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

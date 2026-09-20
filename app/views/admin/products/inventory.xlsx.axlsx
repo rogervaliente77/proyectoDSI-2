@@ -1,0 +1,71 @@
+wb = xlsx_package.workbook
+
+# Estilos visuales
+wb.styles do |style|
+  # Colores y fuentes
+  title_style    = style.add_style(fg_color: "000000", b: true, sz: 16, alignment: { horizontal: :center, vertical: :center })
+  meta_style     = style.add_style(fg_color: "555555", i: true, sz: 10, alignment: { horizontal: :center })
+  
+  header_style   = style.add_style(
+    bg_color: "1F4E78", fg_color: "FFFFFF", b: true, sz: 11,
+    alignment: { horizontal: :center, vertical: :center, wrap_text: true },
+    border: { style: :thin, color: "000000" }
+  )
+  
+  cell_center    = style.add_style(alignment: { horizontal: :center }, border: { style: :thin, color: "D9D9D9" })
+  cell_left      = style.add_style(alignment: { horizontal: :left }, border: { style: :thin, color: "D9D9D9" })
+  cell_currency  = style.add_style(num_fmt: 8, alignment: { horizontal: :right }, border: { style: :thin, color: "D9D9D9" })
+  
+  # Estilos para totales
+  total_label    = style.add_style(bg_color: "D9E1F2", b: true, alignment: { horizontal: :right }, border: { style: :thin, color: "000000" })
+  total_cost_fmt = style.add_style(bg_color: "D9E1F2", b: true, fg_color: "1F4E78", num_fmt: 8, alignment: { horizontal: :right }, border: { style: :thin, color: "000000" })
+  total_sale_fmt = style.add_style(bg_color: "D9E1F2", b: true, fg_color: "385723", num_fmt: 8, alignment: { horizontal: :right }, border: { style: :thin, color: "000000" })
+
+  wb.add_worksheet(name: "Inventario") do |sheet|
+    # 1. Título General
+    sheet.add_row ["REPORTE DE INVENTARIO DE PRODUCTOS"], style: title_style
+    sheet.merge_cells("A1:H1")
+
+    # 2. Fecha y Hora de Descarga
+    sheet.add_row ["Generado el: #{Time.now.strftime('%d/%m/%Y a las %I:%M %p')}"], style: meta_style
+    sheet.merge_cells("A2:H2")
+    sheet.add_row [] # Espacio en blanco
+
+    # 3. Encabezados de la Tabla
+    sheet.add_row [
+      "No", "Código", "Nombre", "Categoría", "Marca", "Precio Compra", "Precio Venta", "Stock"
+    ], style: header_style
+
+    # 4. Filas de Productos (Todos los productos filtrados)
+    @all_products.each_with_index do |product, idx|
+      sheet.add_row [
+        idx + 1,
+        product.code,
+        product.name,
+        product.category&.name || "—",
+        product.marca&.name || "—",
+        product&.cost_price.to_f,
+        product.price.to_f,
+        product.quantity.to_i
+      ], style: [cell_center, cell_center, cell_left, cell_left, cell_left, cell_currency, cell_currency, cell_center]
+    end
+
+    sheet.add_row [] # Espacio antes de totales
+
+    # 5. Sección de Totales Estilizados
+    row_cost = sheet.add_row [
+      "", "", "", "", "Total Valor Adquisición:", @total_cost_all, "", ""
+    ], style: [nil, nil, nil, nil, total_label, total_cost_fmt, nil, nil]
+    # Combina las celdas F, G y H de esta fila directamente sin calcular índices a mano
+    sheet.merge_cells(row_cost.cells[5..7])
+
+    row_sale = sheet.add_row [
+      "", "", "", "", "Total Valor Venta:", @total_sale_all, "", ""
+    ], style: [nil, nil, nil, nil, total_label, total_sale_fmt, nil, nil]
+    # Combina las celdas F, G y H de esta fila
+    sheet.merge_cells(row_sale.cells[5..7])
+
+    # Ajuste de ancho de columnas
+    sheet.column_widths 6, 15, 35, 20, 20, 16, 16, 12
+  end
+end

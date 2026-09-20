@@ -5,4 +5,5 @@
 //= link_tree ../builds
 //= link dashboard.css
 //= link login.css
- //= link sb-admin-2.css
+//= link sb-admin-2.css
+//= link bimers_catalog.css

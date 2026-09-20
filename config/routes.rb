@@ -102,7 +102,7 @@ Rails.application.routes.draw do
     resources :roles, except: [:show]
 
     #CONFIGURACION PLANILLA
-    resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuraciones_planilla'
+    resource :configuracion_planilla, only: [:show, :edit, :update], controller: 'configuracion_planillas'
 
     #COTIZACIONES
     resources :cotizaciones do
@@ -131,6 +131,20 @@ Rails.application.routes.draw do
       end
     end
 
+    #PROVEEDORES
+    resources :suppliers do
+      member do
+        get :invoices # Para ver rápido las facturas de este proveedor
+      end
+    end
+
+    resources :supplier_invoices do
+      member do
+        get :history
+      end
+      resources :supplier_payments, only: [:create, :destroy] # Para agregar/eliminar abonos
+    end
+
     #TIPOS DE CARRO
     resources :car_types
 
@@ -144,6 +158,7 @@ Rails.application.routes.draw do
     delete "/productos/destroy", to: "products#destroy", as: :destroy_product
     patch "/productos/mark_as_delivered", to: "products#mark_as_delivered"
     get 'products/search', to: 'products#search'
+    get 'products/catalogo', to: 'products#catalogo'
 
     # INVENTARIO
     get "/productos/inventario", to: "products#inventory", as: :inventory_admin_products
@@ -158,6 +173,30 @@ Rails.application.routes.draw do
     #PRODUCT HISTORIES
     resources :product_histories, only: [:index, :show, :destroy], path: "productos/historial"
  
+    resources :customer_lists
+
+    resources :email_themes
+    resources :email_templates do
+      member do
+        post :send_to_active_clients
+        post :send_broadcast
+      end
+    end
+
+    #Cajas
+    get "/cajas", to: "cajas#index"
+    get "/cajas/new", to: "cajas#new"
+    post "/cajas/create", to: "cajas#create"
+    get "/cajas/edit", to: "cajas#edit"
+    patch "/cajas/update", to: "cajas#update"
+
+    # Cajeros
+    get "/cajeros", to: "cajeros#index"
+    get "/cajeros/new", to: "cajeros#new"
+    post "/cajeros/create", to: "cajeros#create"
+    get "/cajeros/edit", to: "cajeros#edit"
+    patch "/cajeros/update", to: "cajeros#update"
+
     # 🔹 Reportes
     get 'reports', to: 'reports#index', as: :admin_reports
     get 'reports/top_products', to: 'reports#top_products', as: :top_products_admin_reports
@@ -165,12 +204,23 @@ Rails.application.routes.draw do
     get 'reports/best_seller', to: 'reports#best_seller', as: :best_seller_admin_reports
     get 'reports/seller_details', to: 'reports#seller_details', as: :seller_details_admin_reports
 
-   # 🔹 Configuraciones del sitio
-  get "configuraciones", to: "site_configurations#show", as: :site_configuration
-  patch "configuraciones/update", to: "site_configurations#update", as: :update_site_configuration
-  post "configuraciones/mass_mail", to: "site_configurations#mass_mail", as: :mass_mail
-  #get "configuraciones/not", to: "site_configurations#not", as: :site_notifications_alerts  
-  
+    # 🔹 Configuraciones del sitio
+    resource :site_configuration, only: [:show, :edit, :update] do
+      post :mass_mail
+      post :upload_slide
+      delete :destroy_slide
+      patch :reorder_slides
+    end
+    
+    # Ventas
+    get "/sales", to: "sales#index"
+    get "/sales/new", to: "sales#new"
+    post "/sales/create", to: "sales#create"
+    get "/sales/detalle_venta", to: "sales#detalle_venta"
+    get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
+    get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
+    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
+    get "/sales/search_clients", to: "sales#search_clients", as: :search_clients
   end
 
   # Health check y landing
@@ -178,5 +228,5 @@ Rails.application.routes.draw do
   get 'landing/index', to: 'landing#index', as: 'landing_index'
   
   # Cambiamos la ruta raíz para que haga un redirect permanente/temporal al login de admin
-  root to: redirect('/admin/login')
+  root to: redirect('/landing/index')
 end

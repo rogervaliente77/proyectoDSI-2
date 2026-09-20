@@ -1,0 +1,125 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    <%= link_to admin_sales_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm", data: { turbo: false } do %>
+      <i class="fas fa-plus fa-sm text-white-50"></i> Crear venta
+    <% end %>
+  </div>
+
+  <!-- Card: Gestión de Ventas -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+      <h6 class="m-0 font-weight-bold text-primary">Gestión de ventas</h6>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body">
+
+      <%# Toast Devoluciones %>
+      <% if @pending_devoluciones_count.to_i > 0 %>
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+          <div id="pendingDevolucionesToast" class="toast align-items-center text-bg-warning border-0 shadow" role="alert">
+            <div class="d-flex">
+              <div class="toast-body">
+                🔔 Hay <%= @pending_devoluciones_count %> devoluciones pendientes de autorizar.
+              </div>
+              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Filtros -->
+      <div class="row g-2 mb-3">
+        <%= form_with url: admin_sales_path, method: :get, local: true, class: "col-12 d-flex flex-wrap gap-2 align-items-end" do |f| %>
+
+          <div class="filter-card flex-fill">
+            <%= f.label :code, "Código / N° Control", class: "form-label small" %>
+            <%= f.text_field :code, value: params[:code], class: "form-control form-control-sm", placeholder: "Ej: V-2026... o DTE-01..." %>
+          </div>
+
+          <div class="filter-card flex-fill">
+            <%= f.label :start_date, "Desde", class: "form-label small" %>
+            <%= f.date_field :start_date, value: params[:start_date], class: "form-control form-control-sm" %>
+          </div>
+
+          <div class="filter-card flex-fill">
+            <%= f.label :end_date, "Hasta", class: "form-label small" %>
+            <%= f.date_field :end_date, value: params[:end_date], class: "form-control form-control-sm" %>
+          </div>
+
+          <div class="d-flex gap-2 mt-2">
+            <%= f.submit "Buscar", class: "btn btn-primary btn-sm" %>
+            <%= link_to "Limpiar", admin_sales_path, class: "btn btn-secondary btn-sm" %>
+          </div>
+
+        <% end %>
+      </div>
+
+      <!-- Tabla de Ventas -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped table-sm responsive-table">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>F. Venta</th>
+              <th>Documento</th>
+              <th>N° Control / Correlativo</th>
+              <th>Sucursal</th>
+              <th>Cliente</th>
+              <th>Caja</th>
+              <th>Monto</th>
+              <th>Devolución</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @sales.each_with_index do |sale, index| %>
+              <tr>
+                <td><%= index + 1 %></td>
+                <td><%= sale.sold_at&.strftime('%d/%m/%Y %H:%M') %></td>
+                <td>
+                  <% if sale.tipo_documento_dte.present? %>
+                    <span class="badge bg-info text-dark"><%= sale.tipo_documento_dte.name %></span>
+                  <% else %>
+                    <span class="badge bg-secondary">Sin DTE</span>
+                  <% end %>
+                </td>
+                <td>
+                  <strong><%= sale.numero_control.presence || sale.code %></strong>
+                  <% if sale.correlativo_documento.present? %>
+                    <br><small class="text-muted">Corr: #<%= sale.correlativo_documento %></small>
+                  <% end %>
+                </td>
+                <td><%= sale.sucursal&.name || sale.caja&.sucursal&.name || "Matriz" %></td>
+                <td><%= sale.client_name || "Sin cliente" %></td>
+                <td><%= sale.caja&.nombre || "Sin caja" %></td>
+                <td>$<%= number_with_precision(sale.total_amount, precision: 2) %></td>
+                <td class="text-center">
+                  <% if sale.devoluciones.any? %>
+                    <span class="badge bg-success">SÍ</span>
+                  <% else %>
+                    <span class="badge bg-secondary">NO</span>
+                  <% end %>
+                </td>
+                <td>
+                  <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-sm btn-primary mb-1" do %>
+                    Ver detalle
+                  <% end %>
+                  <%= link_to admin_generar_comprobante_venta_path(id: sale.id), target: "_blank", class: "btn btn-sm btn-danger mb-1" do %>
+                    <i class="fa fa-download"></i> DTE
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -1,30 +1,37 @@
 class Product
   include Mongoid::Document
   include Mongoid::Timestamps
+  include Auditable
 
   # -------- CAMPOS --------
   field :name,             type: String
   field :description,      type: String
   field :quantity,         type: Integer
   field :price,            type: Float
+  field :cost_price,       type: Float
   field :code,             type: String
   field :discount,         type: Integer, default: 0
   field :offer_type,       type: String # "descuento", "2x1", "mayoreo"
   field :offer_expires_at, type: DateTime
   field :wholesale_quantity, type: Integer
   field :wholesale_price, type: Float
+  field :kind, type: String, default: "producto"
 
   # -------- RELACIONES --------
   has_many :product_sales, dependent: :destroy
   belongs_to :category
-  belongs_to :marca
+  belongs_to :supplier, optional: true
+  belongs_to :marca, optional: true
   belongs_to :car_type, optional: true
+  belongs_to :offer, optional: true
 
   embeds_many :product_images
   accepts_nested_attributes_for :product_images, allow_destroy: true
 
   # -------- VALIDACIONES --------
-  validates :name, :price, :quantity, presence: true
+  validates :kind, presence: true, inclusion: { in: %w[producto servicio] }
+  validates :quantity, presence: true, numericality: { greater_than_or_equal_to: 0 }, if: :producto?
+  validates :marca, presence: true, if: :producto?
   validate :unique_image_indexes
 
   # -------- CALLBACKS --------
@@ -34,25 +41,33 @@ class Product
   # -------- MÉTODOS DE OFERTA --------
 
   # Devuelve true si el producto está actualmente en oferta
+  # Devuelve true si el producto está en oferta activa
   def on_offer?
-    (discount.to_i > 0 || offer_type.present?) && (offer_expires_at.nil? || offer_expires_at.future?)
+    offer.present? && (offer_expires_at.nil? || offer_expires_at.future?)
   end
+
+  # Helpers para delegar atributos de la oferta
+  def discount_percentage
+    on_offer? && offer.descuento? ? offer.discount_percentage.to_i : 0
+  end
+
+  def offer_type
+    on_offer? ? offer.offer_type : nil
+  end
+
+  # def wholesale_quantity
+  #   on_offer? && offer.mayoreo? ? self.wholesale_quantity : nil
+  # end
 
   # Precio descontado
   def discounted_price
-    return price if discount.to_i.zero?
-    price - (price * discount / 100.0)
+    return price unless on_offer? && offer.descuento? && discount_percentage > 0
+    price - (price * (discount_percentage / 100.0))
   end
 
-  # Precio actual considerando descuento
+  # Precio actual considerando oferta
   def current_price
-    return price unless on_offer?
-
-    if offer_type == "descuento" && discount.to_i > 0
-      discounted_price
-    else
-      price
-    end
+    discounted_price
   end
 
   # Monto del descuento
@@ -78,6 +93,27 @@ class Product
     else
       "En stock (#{quantity})"
     end
+  end
+
+  # -------- SCOPES / HELPER METHODS --------
+  def servicio?
+    kind == "servicio"
+  end
+
+  def producto?
+    kind == "producto"
+  end
+
+  def stock_status
+    return "Servicio Activo" if servicio?
+    return "Agotado" if quantity.to_i == 0
+    return "Stock bajo (#{quantity})" if low_stock?
+
+    "En stock (#{quantity})"
+  end
+
+  def low_stock?
+    producto? && quantity.present? && quantity < 15
   end
 
   def category_full_name
@@ -113,7 +149,7 @@ class Product
 
   # Verifica si la oferta ha expirado y la limpia
   def check_offer_expiration
-    return unless offer_expires_at.present? && offer_expires_at.past?
+    return unless offer_expires_at.present? && offer_expires_at.to_date < Date.current
 
     self.discount = 0
     self.offer_type = nil

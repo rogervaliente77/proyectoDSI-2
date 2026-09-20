@@ -1,0 +1,42 @@
+<!-- TOP BAR SUPERIOR -->
+<div class="top-bar">
+  <div class="top-bar-info">
+    <span><i class="fa-solid fa-envelope"></i> <%= @config.company_email rescue '' %></span>
+    <span><i class="fa-solid fa-phone"></i> <%= @config.tel rescue ''%></span>
+    <a href="<%= @config.wsp_number rescue ''%>" target="_blank" rel="noopener noreferrer">
+      <i class="fa-brands fa-whatsapp"></i> WhatsApp
+    </a>
+    <span><i class="fa-solid fa-location-dot"></i> <%= @config.short_address%></span>
+  </div>
+  <div class="top-bar-social">
+    <a href="<%= @config.fb_url rescue '#'%>" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+    <a href="<%= @config.inst_url rescue '#'%>" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN PRINCIPAL -->
+<nav class="main-nav">
+  <div class="logo-container">
+    <div class="bimers-stripes">
+      <div class="stripe cyan"></div>
+      <div class="stripe navy"></div>
+      <div class="stripe red"></div>
+    </div>
+    <div class="logo-text">
+      <span class="logo-main">BIMERS</span>
+      <span class="logo-sub">MOTOR CARS</span>
+    </div>
+  </div>
+
+  <button class="mobile-toggle" id="menu-toggle">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+
+  <ul class="nav-links" id="nav-menu">
+    <li><a href="#">Inicio</a></li>
+    <!-- Desactiva la interceptación de Turbo/Turbolinks -->
+    <li><a href="#servicios-taller" data-turbo="false" data-turbolinks="false">Servicios de Taller</a></li>
+    <li><a href="#tienda" data-turbo="false" data-turbolinks="false">Tienda Online</a></li>
+    <li><a href="#contacto" data-turbo="false" data-turbolinks="false">Ubicación & Contacto</a></li>
+  </ul>
+</nav>

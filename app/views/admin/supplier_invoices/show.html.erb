@@ -1,0 +1,324 @@
+<div class="container-fluid py-4">
+  <!-- Mensajes Flash de Notificación y Alerta -->
+  <% flash.each do |type, message| %>
+    <% alert_class = case type.to_sym
+       when :notice, :success then "alert-success"
+       when :alert, :error, :danger then "alert-danger"
+       when :warning then "alert-warning"
+       else "alert-info"
+       end %>
+    
+    <div class="alert <%= alert_class %> alert-dismissible fade show shadow-sm mb-4" role="alert">
+      <% if %i[notice success].include?(type.to_sym) %>
+        <i class="fas fa-check-circle me-2"></i>
+      <% else %>
+        <i class="fas fa-exclamation-triangle me-2"></i>
+      <% end %>
+      <%= message %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+
+  <!-- Encabezado y Acciones -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 text-gray-800">Factura #<%= @invoice.invoice_number %></h1>
+      <p class="text-muted mb-0">Proveedor: <strong><%= @invoice.supplier&.name %></strong></p>
+    </div>
+    <div>
+      <%= link_to "Volver al listado", admin_supplier_invoices_path, class: "btn btn-outline-secondary me-2", data: { turbo: false } %>
+      
+      <!-- Botón para Abrir Modal de Historial de Estados -->
+      <button type="button" class="btn btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#statusHistoryModal">
+        <i class="fas fa-history me-1"></i> Historial de Estados
+      </button>
+
+      <% if @invoice.balance > 0 %>
+        <div data-turbo="false" class="d-inline-block">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
+            <i class="fas fa-plus-circle me-1"></i> Registrar Pago
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Cards de Resumen de Saldo -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Monto Total</div>
+          <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= sprintf('%.2f', @invoice.total_amount || 0) %></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Monto Pagado</div>
+          <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= sprintf('%.2f', @invoice.paid_amount || 0) %></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Saldo Pendiente</div>
+          <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= sprintf('%.2f', @invoice.balance || 0) %></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Estado General</div>
+          <div class="d-flex align-items-center gap-1 mt-1">
+            <%# Label 1: Estado del Pago %>
+            <% if @invoice.paid? %>
+              <%# 1. Caso Factura Pagada al 100% (Badge Único) %>
+              <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                <i class="fas fa-check-circle me-1"></i> Pagada
+              </span>
+
+            <% elsif @invoice.date_status == "al_dia" %>
+              <%# 2. Caso Factura con Cuota Pagada / Sin Alerta (Badge Único "Al Día") %>
+              <span class="badge bg-info-subtle text-info border border-info px-2 py-1">
+                <i class="fas fa-calendar-check me-1"></i> Al Día
+              </span>
+
+            <% else %>
+              <%# 3. Caso con Alerta de Vencimiento (2 Badges: Pago + Fecha) %>
+
+              <%# Badge 1: Estado del Pago %>
+              <% case @invoice.payment_status %>
+              <% when "pago_parcial" %>
+                <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                  <i class="fas fa-adjust me-1"></i> Pago Parcial
+                </span>
+              <% else %>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">
+                  <i class="fas fa-minus-circle me-1"></i> Sin Pago
+                </span>
+              <% end %>
+
+              <%# Badge 2: Alerta de Fecha %>
+              <% case @invoice.date_status %>
+              <% when "vencida" %>
+                <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
+                  <i class="fas fa-exclamation-triangle me-1"></i> Vencida
+                </span>
+              <% when "proxima_vencer" %>
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                  <i class="fas fa-clock me-1"></i> Próx. a Vencer
+                </span>
+              <% end %>
+
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla del Plan de Pagos / Cuotas (Plan de Amortización) -->
+  <% if @installments.any? %>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-calendar-alt me-2"></i>Plan de Pagos / Tabla de Cuotas</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th class="text-center">Cuota #</th>
+                <th>Fecha Vencimiento</th>
+                <th class="text-end">Monto Cuota</th>
+                <th class="text-end">Monto Abonado</th>
+                <th class="text-end">Saldo Cuota</th>
+                <th class="text-center">Estado Cuota</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%# Identificamos la primera cuota que tiene saldo pendiente %>
+              <% first_pending_installment = @installments.select { |i| i.balance > 0 }.min_by(&:number) %>
+
+              <% @installments.each do |inst| %>
+                <tr>
+                  <td class="text-center fw-bold"><%= inst.number %></td>
+                  <td><%= inst.due_date&.strftime("%d/%m/%Y") %></td>
+                  <td class="text-end">$<%= sprintf('%.2f', inst.amount) %></td>
+                  <td class="text-end text-success">$<%= sprintf('%.2f', inst.paid_amount) %></td>
+                  <td class="text-end font-weight-bold">$<%= sprintf('%.2f', inst.balance) %></td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center align-items-center gap-1">
+                      
+                      <%# 1. Estado de Pago / Monto de la Cuota %>
+                      <% case inst.payment_status %>
+                      <% when "pagada" %>
+                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                          <i class="fas fa-check-circle me-1"></i> Pagada
+                        </span>
+                      <% when "parcial" %>
+                        <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                          <i class="fas fa-adjust me-1"></i> Parcial
+                        </span>
+                      <% else %>
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary px-2 py-1">
+                          <i class="fas fa-minus-circle me-1"></i> Pendiente
+                        </span>
+                      <% end %>
+
+                      <%# 2. Estado de la Fecha / Vencimiento %>
+                      <%# Solo se evalúa si la cuota no está pagada Y es la cuota actual del periodo (primera pendiente) %>
+                      <% if inst.balance > 0 && inst == first_pending_installment %>
+                        <% case inst.date_status %>
+                        <% when "vencida" %>
+                          <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Vencida
+                          </span>
+                        <% when "proxima_vencer" %>
+                          <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                            <i class="fas fa-clock me-1"></i> Próx. Vencer
+                          </span>
+                        <% when "al_dia" %>
+
+                        <% end %>
+                      <% end %>
+
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Historial de Abonos / Pagos -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-history me-2"></i>Historial de Pagos y Abonos Registrados</h6>
+    </div>
+    <div class="card-body">
+      <% if @payments.any? %>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>Fecha de Pago</th>
+                <th>Método</th>
+                <th>Referencia / Comprobante</th>
+                <th>Notas</th>
+                <th class="text-end">Monto Abonado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @payments.each do |payment| %>
+                <tr>
+                  <td><%= payment.payment_date&.strftime("%d/%m/%Y") %></td>
+                  <td><span class="badge bg-secondary"><%= payment.payment_method&.capitalize %></span></td>
+                  <td><%= payment.reference_number.presence || 'N/A' %></td>
+                  <td><%= payment.notes %></td>
+                  <td class="text-end font-weight-bold text-success">$<%= sprintf('%.2f', payment.amount) %></td>
+                  <td class="text-center">
+                    <%= button_to admin_supplier_invoice_supplier_payment_path(@invoice, payment.id),
+                                  method: :delete,
+                                  data: { turbo: false, confirm: "¿Estás seguro de anular este pago?" },
+                                  class: "btn btn-sm btn-outline-danger" do %>
+                      <i class="fas fa-trash me-1"></i> Anular
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="text-center py-4 text-muted">
+          <i class="fas fa-receipt fa-2x mb-2"></i>
+          <p class="mb-0">No se han registrado pagos para esta factura aún.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Historial de Cambios de Estado (Carga Dinámica con Turbo Frame) -->
+<div class="modal fade" id="statusHistoryModal" tabindex="-1" aria-labelledby="statusHistoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="statusHistoryModalLabel">
+          <i class="fas fa-history me-2 text-info"></i>Historial de Cambios de Estado
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <%= turbo_frame_tag "invoice_status_history", src: history_admin_supplier_invoice_path(@invoice), loading: :lazy do %>
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando historial...</span>
+            </div>
+            <p class="text-muted mt-2 mb-0">Cargando historial de cambios...</p>
+          </div>
+        <% end %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Registrar Nuevo Pago -->
+<div class="modal fade" id="newPaymentModal" tabindex="-1" aria-labelledby="newPaymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newPaymentModalLabel">Registrar Abono / Pago</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <%= form_with(model: [@invoice, @payment], url: admin_supplier_invoice_supplier_payments_path(@invoice), local: true) do |f| %>
+        <div class="modal-body">
+          <div class="mb-3">
+            <%= f.label :amount, "Monto a Pagar ($)", class: "form-label" %>
+            <%= f.number_field :amount, value: @invoice.balance, step: '0.01', max: @invoice.balance, min: '0.01', class: "form-control", required: true %>
+            <small class="text-muted">Saldo pendiente actual: $<%= sprintf('%.2f', @invoice.balance) %></small>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :payment_date, "Fecha de Pago", class: "form-label" %>
+            <%= f.date_field :payment_date, value: Date.today, class: "form-control", required: true %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :payment_method, "Método de Pago", class: "form-label" %>
+            <%= f.select :payment_method, 
+                         options_for_select([['Transferencia Bancaria', 'transferencia'], ['Cheque', 'cheque'], ['Efectivo', 'efectivo']], 'transferencia'), 
+                         {}, class: "form-select" %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :reference_number, "Número de Referencia / Transacción", class: "form-label" %>
+            <%= f.text_field :reference_number, class: "form-control", placeholder: "Ej. TR-998122 o Cheque #4521" %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :notes, "Notas adicionales", class: "form-label" %>
+            <%= f.text_area :notes, rows: 2, class: "form-control", placeholder: "Detalles del pago..." %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <%= f.submit "Guardar Pago", class: "btn btn-success" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

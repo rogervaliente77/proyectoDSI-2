@@ -8,7 +8,12 @@ module Admin
 
     def index
       @sales = Sale.all
-      @sales = @sales.where(code: /#{Regexp.escape(params[:code])}/i) if params[:code].present?
+      
+      # Búsqueda por código interno o por número de control DTE
+      if params[:code].present?
+        query = /#{Regexp.escape(params[:code])}/i
+        @sales = @sales.any_of({ code: query }, { numero_control: query })
+      end
 
       if params[:start_date].present? && params[:end_date].present?
         start_date = DateTime.parse(params[:start_date]).beginning_of_day
@@ -24,7 +29,7 @@ module Admin
     end
 
     def create
-      if @current_user.role.name.in?(["super_admin", "admin"])
+      if !@current_user.puede_vender?
         redirect_to admin_sales_new_path, alert: "Esta acción solo la puede hacer un cajero"
         return
       end
@@ -36,9 +41,9 @@ module Admin
 
       if @sale.save
         create_product_histories(@sale)
-        redirect_to admin_sales_path, notice: "Venta registrada correctamente"
+        redirect_to admin_sales_path, notice: "Venta registrada con éxito. N° Control: #{@sale.numero_control || @sale.code}"
       else
-        flash.now[:alert] = "Error al registrar la venta"
+        flash.now[:alert] = "Error al registrar la venta: #{@sale.errors.full_messages.to_sentence}"
         render :new
       end
     end
@@ -52,7 +57,7 @@ module Admin
       @sale = Sale.find(params[:id])
       pdf = SalePdf.new(@sale).generate
       send_data pdf,
-                filename: "venta_#{@sale.code}.pdf",
+                filename: "venta_#{@sale.numero_control.presence || @sale.code}.pdf",
                 type: 'application/pdf',
                 disposition: 'inline'
     end
@@ -71,7 +76,7 @@ module Admin
     end
 
     def search_by_code
-      sale = Sale.where(code: params[:code]).first
+      sale = Sale.where(code: params[:code]).first || Sale.where(numero_control: params[:code]).first
       if sale && sale.has_products_available_for_return?
         render json: {
           id: sale.id.to_s,
@@ -90,6 +95,15 @@ module Admin
       end
     end
 
+    def search_clients
+      clients = Client.where(is_active: true)
+      if params[:q].present?
+        query = /#{Regexp.escape(params[:q])}/i
+        clients = clients.where(nombre: query)
+      end
+      render json: clients.limit(10).as_json(only: [:id, :nombre])
+    end
+
     private
 
     def sale_params
@@ -97,6 +111,8 @@ module Admin
         :client_name,
         :cajero_id,
         :caja_id,
+        :sucursal_id,
+        :tipo_documento_dte_id,
         :total_amount,
         product_sales_attributes: [:product_id, :quantity, :unit_price, :discount, :offer_type, :subtotal]
       )
@@ -114,7 +130,6 @@ module Admin
       end
     end
 
-    # Crear historial en ProductHistory para cada producto vendido
     def create_product_histories(sale)
       sale.product_sales.each do |ps|
         ProductHistory.create!(

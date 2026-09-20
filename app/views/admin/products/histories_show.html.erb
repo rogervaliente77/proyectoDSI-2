@@ -15,27 +15,27 @@
         <div class="col-md-6">
           <p><strong>Producto:</strong> <span class="fw-semibold"><%= @product_history.name %></span></p>
           <p><strong>Código:</strong> <span class="text-monospace text-muted"><%= @product_history.code.presence || "-" %></span></p>
-          <p><strong>Precio:</strong> <span class="text-primary fw-medium"><%= number_to_currency(@product_history.price) %></span></p>
-          <p><strong>% Descuento:</strong> <span class="text-muted"><%= @product_history.discount %> %</span></p>
+          <% if @product_history.product.kind == 'producto' %>
+            <p><strong>Precio:</strong> <span class="text-primary fw-medium"><%= number_to_currency(@product_history.price) %></span></p>
+            <p><strong>% Descuento:</strong> <span class="text-muted"><%= @product_history.discount %> %</span></p>
+          <% end %>
         </div>
         <div class="col-md-6">
-          <p><strong>Cantidad:</strong> 
-            <% if @product_history.movement_type.in?(["Ingreso", "Ingreso inicial"]) %>
-              <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= @product_history.quantity %></span>
-            <% else %>
-              <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= @product_history.quantity %></span>
-            <% end %>
-          </p>
-          <p><strong>Stock antes:</strong> <span class="text-secondary"><%= @product_history.stock_before %></span></p>
-          <p><strong>Stock actual:</strong> <span class="fw-bold text-success"><%= @product_history.current_stock %></span></p>
+          <% if @product_history.product.kind == 'producto' %>
+            <p><strong>Cantidad:</strong> 
+              <% if @product_history.movement_type.in?(["Ingreso", "Ingreso inicial"]) %>
+                <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= @product_history.quantity %></span>
+              <% else %>
+                <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= @product_history.quantity %></span>
+              <% end %>
+            </p>
+          
+            <p><strong>Stock antes:</strong> <span class="text-secondary"><%= @product_history.stock_before %></span></p>
+            <p><strong>Stock actual:</strong> <span class="fw-bold text-success"><%= @product_history.current_stock %></span></p>
+          <% end %>
+
           <p><strong>Tipo de movimiento:</strong> 
-            <% if @product_history.sale_id.present? %>
-              <span class="badge bg-success"><i class="fas fa-shopping-cart me-1"></i>Venta</span>
-            <% elsif @product_history.devolucion_id.present? %>
-              <span class="badge bg-warning text-dark"><i class="fas fa-undo me-1"></i>Devolución</span>
-            <% else %>
-              <span class="badge bg-secondary"><i class="fas fa-exchange-alt me-1"></i>Ajuste</span>
-            <% end %>
+            <%= @product_history&.movement_type rescue 'Movimiento sin tipo'%>
           </p>
         </div>
       </div>
@@ -47,7 +47,7 @@
           <% user = @product_history.user %>
           <p><strong>Usuario que realizó el movimiento:</strong> 
             <span class="fw-semibold">
-              <%= user&.first_name || user&.username || "Sistema" %>
+              <%= user&.full_name || user&.username || "Sistema" %>
             </span>
           </p>
         </div>

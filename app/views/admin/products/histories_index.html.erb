@@ -71,19 +71,28 @@
                     <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= history.quantity %></span>
                   <% end %>
                 </td>
-                <td><span class="fw-medium text-primary"><%= number_to_currency(history.price) %></span></td>
+                
+                <% if history.product.kind == 'producto' %>
+                  <td><span class="fw-bold text-secondary"><%= number_to_currency(history.price) %></span></td>
+                <% else %>
+                  <td><span class="fw-bold text-dark">N/A</span></td>
+                <% end %>
+                
                 <td><span class="text-muted"><%= history.discount %> %</span></td>
-                <td><span class="text-secondary"><%= history.stock_before %></span></td>
-                <td><span class="fw-bold text-success"><%= history.current_stock %></span></td>
-                <td>
-                  <% if history.sale_id.present? %>
-                    <span class="badge bg-success"><i class="fas fa-shopping-cart me-1"></i>Venta</span>
-                  <% elsif history.devolucion_id.present? %>
-                    <span class="badge bg-warning text-dark"><i class="fas fa-undo me-1"></i>Devolución</span>
-                  <% else %>
-                    <span class="badge bg-secondary"><i class="fas fa-exchange-alt me-1"></i>Ajuste</span>
-                  <% end %>
-                </td>
+
+                <% if history.product.kind == 'producto' %>
+                  <td><span class="fw-bold text-secondary"><%= history.stock_before %></span></td>
+                <% else %>
+                  <td><span class="fw-bold text-dark">N/A</span></td>
+                <% end %>
+                
+                <% if history.product.kind == 'producto' %>
+                  <td><span class="fw-bold text-success"><%= history.current_stock %></span></td>
+                <% else %>
+                  <td><span class="fw-bold text-dark">N/A</span></td>
+                <% end %>
+                
+                <td><span class="badge bg-primary text-white"><%= history&.movement_type rescue 'Movimiento sin tipo'%></span></td>
                 <td><%= history.user.present? ? "#{history.user.first_name} #{history.user.last_name}" : "Sistema" %></td>
                 <td><span class="text-muted"><%= history.created_at.strftime("%d/%m/%Y %H:%M") %></span></td>
                 <td class="text-center no-print">

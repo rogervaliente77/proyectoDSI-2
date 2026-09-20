@@ -15,9 +15,20 @@ class ProductHistory
   field :devolucion_id, type: BSON::ObjectId
   field :stock_before,  type: Integer
   field :current_stock, type: Integer
-  field :movement_type, type: String  # Ingreso, Salida, Ajuste
-  field :user_id,       type: BSON::ObjectId  # Usuario que realizó el movimiento
+  field :movement_type, type: String  # "Creación de servicio", "Ingreso de stock", "Ajuste de tarifa", etc.
+  field :user_id,       type: BSON::ObjectId
 
   belongs_to :product, validate: false
   belongs_to :user, optional: true
+
+  # Métodos auxiliares para la vista de historial
+  def service_history?
+    stock_before.nil? && current_stock.nil?
+  end
+
+  def formatted_movement
+    return "#{movement_type}" if service_history?
+
+    "#{movement_type} (Stock: #{stock_before || 0} → #{current_stock || 0})"
+  end
 end

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style>
+      body {
+        background-color: <%= @theme&.background_color || '#f4f6f9' %>;
+        color: <%= @theme&.text_color || '#333333' %>;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      .email-container {
+        background-color: <%= @theme&.card_bg_color || '#ffffff' %>;
+        max-width: 600px;
+        margin: 0 auto;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <!-- HEADER PARSEADO -->
+      <% if @header_content.present? %>
+        <div class="email-header">
+          <%= @header_content.html_safe %>
+        </div>
+      <% end %>
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="email-body">
+        <%= @content.html_safe %>
+      </div>
+
+      <!-- FOOTER PARSEADO -->
+      <% if @footer_content.present? %>
+        <div class="email-footer">
+          <%= @footer_content.html_safe %>
+        </div>
+      <% end %>
+    </div>
+  </body>
+</html>

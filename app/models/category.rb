@@ -66,6 +66,14 @@ class Category
     end
   end
 
+  def self_and_descendant_ids
+    ids = [self.id]
+    subcategories.each do |subcat|
+      ids.concat(subcat.self_and_descendant_ids)
+    end
+    ids
+  end
+
   private
 
   def cannot_be_own_parent

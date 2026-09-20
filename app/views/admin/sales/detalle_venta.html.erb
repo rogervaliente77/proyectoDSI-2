@@ -1,0 +1,101 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Detalle de Venta</h1>
+    <%= link_to admin_sales_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a ventas
+    <% end %>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Información General del DTE / Venta</h6>
+        </div>
+        <div class="card-body">
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <div class="row">
+            <div class="col-sm-4 mb-3">
+              <label><strong>Cliente</strong></label>
+              <input type="text" class="form-control" value="<%= @sale.client_name %>" readonly>
+            </div>
+
+            <div class="col-sm-4 mb-3">
+              <label><strong>Tipo de Comprobante</strong></label>
+              <input type="text" class="form-control" value="<%= @sale.tipo_documento_dte&.name || 'Venta Interna' %>" readonly>
+            </div>
+
+            <div class="col-sm-4 mb-3">
+              <label><strong>Número de Control DTE</strong></label>
+              <input type="text" class="form-control font-weight-bold" value="<%= @sale.numero_control || @sale.code %>" readonly>
+            </div>
+
+            <div class="col-sm-4 mb-3">
+              <label><strong>Sucursal</strong></label>
+              <input type="text" class="form-control" value="<%= @sale.sucursal&.name || @sale.caja&.sucursal&.name || 'Matriz' %>" readonly>
+            </div>
+
+            <div class="col-sm-4 mb-3">
+              <label><strong>Cajero / Caja</strong></label>
+              <input type="text" class="form-control" value="<%= "#{@sale.cajero&.nombre} (#{@sale.caja&.nombre})" %>" readonly>
+            </div>
+
+            <div class="col-sm-4 mb-3">
+              <label><strong>Código de Generación (UUID)</strong></label>
+              <input type="text" class="form-control small text-muted" value="<%= @sale.codigo_generacion || 'N/A' %>" readonly>
+            </div>
+          </div>
+
+          <!-- Tabla de productos -->
+          <h5 class="mb-3 mt-4">Productos Vendidos</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Precio Unitario</th>
+                  <th>Oferta</th>
+                  <th>Descuento</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @product_sales.each do |ps| %>
+                  <% 
+                    discount_decimal = (ps.unit_price * ps.quantity) * ((ps.discount || 0) / 100.0)
+                    subtotal = (ps.unit_price * ps.quantity) - discount_decimal 
+                  %>
+                  <tr>
+                    <td><%= ps.product.name %></td>
+                    <td><%= ps.quantity %></td>
+                    <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
+                    <td>
+                      <% if ps.offer_type.present? %>
+                        <span class="badge badge-info"><%= ps.offer_type %></span>
+                      <% else %>
+                        <span class="badge badge-danger">N/A</span>
+                      <% end %>
+                    </td>
+                    <td>$<%= number_with_precision(ps.discount || 0, precision: 2) %></td>
+                    <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="text-right mt-3">
+            <h4>Total de la venta: $<%= number_with_precision(@sale.total_amount, precision: 2) %></h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
