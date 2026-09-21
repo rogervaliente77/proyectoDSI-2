@@ -2,16 +2,22 @@
 <div class="container-fluid">
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Detalle de Venta</h1>
-    <%= link_to admin_sales_path, class: "btn btn-sm btn-primary shadow-sm" do %>
+    <%= link_to admin_sales_path, class: "btn btn-sm btn-primary shadow-sm" do,  data: { turbo: false } %>
       <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a ventas
     <% end %>
   </div>
 
+  <% 
+    # Obtenemos el movimiento de caja asociado a esta venta si existe
+    movimiento = @sale.head_movimiento_caja || HeadMovimientoCaja.where(origen_id: @sale.id).first
+  %>
+
   <div class="row">
     <div class="col-12">
       <div class="card shadow mb-4">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Información General del DTE / Venta</h6>
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Información General de la Venta</h6>
+          <span class="badge badge-success"><%= @sale.code %></span>
         </div>
         <div class="card-body">
           <% if flash[:notice] %>
@@ -21,34 +27,40 @@
           <% end %>
 
           <div class="row">
+            <!-- Cliente -->
             <div class="col-sm-4 mb-3">
               <label><strong>Cliente</strong></label>
-              <input type="text" class="form-control" value="<%= @sale.client_name %>" readonly>
+              <input type="text" class="form-control" value="<%= movimiento&.client_name || @sale.client_name %>" readonly>
             </div>
 
+            <!-- Tipo de Comprobante -->
             <div class="col-sm-4 mb-3">
               <label><strong>Tipo de Comprobante</strong></label>
-              <input type="text" class="form-control" value="<%= @sale.tipo_documento_dte&.name || 'Venta Interna' %>" readonly>
+              <input type="text" class="form-control" value="<%= movimiento&.tipo_documento_dte&.name || @sale.tipo_documento_dte&.name || 'Venta Interna' %>" readonly>
             </div>
 
+            <!-- Número de Control DTE / Recibo -->
             <div class="col-sm-4 mb-3">
-              <label><strong>Número de Control DTE</strong></label>
-              <input type="text" class="form-control font-weight-bold" value="<%= @sale.numero_control || @sale.code %>" readonly>
+              <label><strong>Número de Control DTE / Documento</strong></label>
+              <input type="text" class="form-control font-weight-bold" value="<%= movimiento&.numero_control || movimiento&.comprobante_codigo || @sale.code %>" readonly>
             </div>
 
+            <!-- Sucursal -->
             <div class="col-sm-4 mb-3">
               <label><strong>Sucursal</strong></label>
-              <input type="text" class="form-control" value="<%= @sale.sucursal&.name || @sale.caja&.sucursal&.name || 'Matriz' %>" readonly>
+              <input type="text" class="form-control" value="<%= movimiento&.sucursal&.name || @sale.sucursal&.name || 'Matriz' %>" readonly>
             </div>
 
+            <!-- Cajero / Caja -->
             <div class="col-sm-4 mb-3">
               <label><strong>Cajero / Caja</strong></label>
-              <input type="text" class="form-control" value="<%= "#{@sale.cajero&.nombre} (#{@sale.caja&.nombre})" %>" readonly>
+              <input type="text" class="form-control" value="<%= "#{movimiento&.cajero&.nombre || @sale.cajero&.nombre} (#{movimiento&.caja&.nombre || @sale.caja&.nombre})" %>" readonly>
             </div>
 
+            <!-- Código de Generación (UUID del DTE) -->
             <div class="col-sm-4 mb-3">
-              <label><strong>Código de Generación (UUID)</strong></label>
-              <input type="text" class="form-control small text-muted" value="<%= @sale.codigo_generacion || 'N/A' %>" readonly>
+              <label><strong>Código de Generación DTE (UUID)</strong></label>
+              <input type="text" class="form-control small text-muted" value="<%= movimiento&.codigo_generacion || 'N/A' %>" readonly>
             </div>
           </div>
 
@@ -56,7 +68,7 @@
           <h5 class="mb-3 mt-4">Productos Vendidos</h5>
           <div class="table-responsive">
             <table class="table table-bordered">
-              <thead>
+              <thead class="thead-light">
                 <tr>
                   <th>Producto</th>
                   <th>Cantidad</th>
@@ -73,14 +85,14 @@
                     subtotal = (ps.unit_price * ps.quantity) - discount_decimal 
                   %>
                   <tr>
-                    <td><%= ps.product.name %></td>
+                    <td><%= ps.product&.name || ps.product_name %></td>
                     <td><%= ps.quantity %></td>
                     <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
                     <td>
                       <% if ps.offer_type.present? %>
                         <span class="badge badge-info"><%= ps.offer_type %></span>
                       <% else %>
-                        <span class="badge badge-danger">N/A</span>
+                        <span class="badge badge-secondary">N/A</span>
                       <% end %>
                     </td>
                     <td>$<%= number_with_precision(ps.discount || 0, precision: 2) %></td>

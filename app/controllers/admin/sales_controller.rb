@@ -1,18 +1,18 @@
 # app/controllers/admin/sales_controller.rb
 module Admin
   class SalesController < Admin::ApplicationController
-    layout 'dashboard'
-
     before_action :set_current_user
     before_action :check_pending_devoluciones
+    before_action :set_filters_data, only: [:movimientos_caja]
+    layout 'dashboard'
 
     def index
       @sales = Sale.all
       
-      # Búsqueda por código interno o por número de control DTE
+      # Búsqueda por código interno de venta
       if params[:code].present?
         query = /#{Regexp.escape(params[:code])}/i
-        @sales = @sales.any_of({ code: query }, { numero_control: query })
+        @sales = @sales.where(code: query)
       end
 
       if params[:start_date].present? && params[:end_date].present?
@@ -41,7 +41,9 @@ module Admin
 
       if @sale.save
         create_product_histories(@sale)
-        redirect_to admin_sales_path, notice: "Venta registrada con éxito. N° Control: #{@sale.numero_control || @sale.code}"
+        registrar_movimiento_caja(@sale) # Registra el movimiento centralizado de caja
+        
+        redirect_to admin_sales_path, notice: "Venta registrada con éxito. Código: #{@sale.code}"
       else
         flash.now[:alert] = "Error al registrar la venta: #{@sale.errors.full_messages.to_sentence}"
         render :new
@@ -57,7 +59,7 @@ module Admin
       @sale = Sale.find(params[:id])
       pdf = SalePdf.new(@sale).generate
       send_data pdf,
-                filename: "venta_#{@sale.numero_control.presence || @sale.code}.pdf",
+                filename: "comprobante_#{@sale.code}.pdf",
                 type: 'application/pdf',
                 disposition: 'inline'
     end
@@ -76,7 +78,7 @@ module Admin
     end
 
     def search_by_code
-      sale = Sale.where(code: params[:code]).first || Sale.where(numero_control: params[:code]).first
+      sale = Sale.where(code: params[:code]).first
       if sale && sale.has_products_available_for_return?
         render json: {
           id: sale.id.to_s,
@@ -101,21 +103,183 @@ module Admin
         query = /#{Regexp.escape(params[:q])}/i
         clients = clients.where(nombre: query)
       end
-      render json: clients.limit(10).as_json(only: [:id, :nombre])
+      render json: clients.limit(10).as_json(only: [:_id, :nombre, :tipo_documento_id, :num_documento, :nrc, :email, :telefono, :direccion])
+    end
+
+    def movimientos_caja
+      # Consulta base
+      @movimientos = HeadMovimientoCaja.all
+
+      # Si es Admin / Super Admin, filtramos opcionalmente por Sucursal y Caja
+      if current_user.role.name = "admin" ||  current_user.role.name = "super_admin"
+        if params[:sucursal_id].present?
+          @movimientos = @movimientos.where(sucursal_id: params[:sucursal_id])
+        end
+
+        if params[:caja_id].present?
+          @movimientos = @movimientos.where(caja_id: params[:caja_id])
+        end
+      else
+        # Si es cajero o rol restrictivo, solo ve su sucursal/caja asignada
+        cajero = Cajero.find_by(user_id: current_user.id)
+        if cajero.present?
+          @movimientos = @movimientos.where(caja_id: cajero.caja_id)
+        end
+      end
+
+      # Otros filtros habituales (fechas, etc.)
+      if params[:start_date].present? && params[:end_date].present?
+        @movimientos = @movimientos.where(created_at: params[:start_date].to_date.beginning_of_day..params[:end_date].to_date.end_of_day)
+      end
+
+      @movimientos = @movimientos.order(created_at: :desc)
+    end
+
+    def consultar_movimientos
+      @movimientos = HeadMovimientoCaja.all.order_by(created_at: :desc)
+
+      # 1. Control de Permisos por Rol
+      if current_user.role&.name&.downcase == 'cajero'
+        @movimientos = @movimientos.where(cajero_id: current_user.id)
+      else
+        # Filtros opcionales para Admin / Super Admin
+        if params[:caja_id].present?
+          @movimientos = @movimientos.where(caja_id: params[:caja_id])
+        end
+        if params[:sucursal_id].present?
+          @movimientos = @movimientos.where(sucursal_id: params[:sucursal_id])
+        end
+        if params[:cajero_id].present?
+          @movimientos = @movimientos.where(cajero_id: params[:cajero_id])
+        end
+      end
+
+      # 2. Filtro por Rango de Fechas
+      if params[:fecha_desde].present?
+        desde = Time.zone.parse(params[:fecha_desde]).beginning_of_day
+        @movimientos = @movimientos.where(:created_at.gte => desde)
+      end
+
+      if params[:fecha_hasta].present?
+        hasta = Time.zone.parse(params[:fecha_hasta]).end_of_day
+        @movimientos = @movimientos.where(:created_at.lte => hasta)
+      end
+
+      # 3. Buscador General (Código, Cliente, Comprobante)
+      if params[:q].present?
+        query = /#{Regexp.escape(params[:q])}/i
+        @movimientos = @movimientos.any_of(
+          { numero_control: query },
+          { comprobante_codigo: query },
+          { client_name: query },
+          { codigo_generacion: query }
+        )
+      end
+
+      render layout: false
+    end
+
+    # Carga de HTML parcial para el Modal de Detalle
+    def detalle_movimiento
+      @movimiento = HeadMovimientoCaja.find(params[:id])
+      @sale = Sale.find(@movimiento.origen_id) if @movimiento.origen_id.present?
+      @product_sales = @sale ? @sale.product_sales : []
+
+      render layout: false
+    end
+
+    # Descarga o visualización del comprobante
+    def descargar_comprobante
+      @movimiento = HeadMovimientoCaja.find(params[:id])
+      # Aquí adaptas a tu lógica de generación de PDF o descarga de DTE en JSON/PDF
+      respond_to do |format|
+        format.html { redirect_to admin_sales_path, notice: "Descargando comprobante..." }
+        format.pdf do
+          # Lógica para renderizar tu PDF de comprobante
+        end
+      end
     end
 
     private
 
     def sale_params
-      params.require(:sale).permit(
+      permitted = params.require(:sale).permit(
+        :client_id,
         :client_name,
         :cajero_id,
         :caja_id,
         :sucursal_id,
         :tipo_documento_dte_id,
+        :condicion_tributaria,
         :total_amount,
         product_sales_attributes: [:product_id, :quantity, :unit_price, :discount, :offer_type, :subtotal]
       )
+
+      # Si en el modelo Sale el campo se llama :tipo_impuesto
+      if permitted[:condicion_tributaria].present?
+        permitted[:tipo_impuesto] = permitted.delete(:condicion_tributaria)
+      end
+
+      permitted
+    end
+
+    def registrar_movimiento_caja(sale)
+      monto = sale.total_amount || 0.0
+      
+      # Si hay relación directa con el modelo Client registrado, traemos sus datos
+      cliente_db = sale.client if sale.respond_to?(:client) && sale.client_id.present?
+
+      head = HeadMovimientoCaja.new(
+        comprobante_codigo: sale.code,
+        origen_tipo: "VentaProducto",
+        origen_id: sale.id,
+        fecha: sale.sold_at,
+        sucursal_id: sale.sucursal_id,
+        caja_id: sale.caja_id,
+        cajero_id: sale.cajero_id,
+        tipo_documento_dte_id: sale.tipo_documento_dte_id,
+        user_id: sale.user_id,
+        monto_total: monto,
+        
+        # Guardado de la información del cliente (registrado o manual)
+        client_id: sale.respond_to?(:client_id) ? sale.client_id : nil,
+        client_name: sale.client_name,
+        tipo_documento_cliente: cliente_db&.tipo_documento_id,
+        num_documento_cliente: cliente_db&.num_documento,
+        nrc_cliente: cliente_db&.nrc,
+        email_cliente: cliente_db&.email,
+        telefono_cliente: cliente_db&.telefono,
+        direccion_cliente: cliente_db&.direccion
+      )
+
+      # Clasificación tributaria del total del comprobante
+      case sale.condicion_tributaria
+      when 'exento'
+        head.total_exento = monto
+      when 'no_sujeta'
+        head.total_no_sujeta = monto
+      else
+        head.total_gravado = monto
+      end
+
+      head.save!
+
+      # Registro del detalle en DetMovimientoCaja
+      sale.product_sales.each do |ps|
+        tipo_item = ps.product.respond_to?(:tipo_producto) && ps.product.tipo_producto == 'servicio' ? 'servicio' : 'producto'
+        
+        DetMovimientoCaja.create!(
+          head_movimiento_caja_id: head.id,
+          product_id: ps.product_id,
+          item_nombre: ps.product&.name,
+          tipo_item: tipo_item,
+          cantidad: ps.quantity,
+          precio_unitario: ps.unit_price,
+          descuento: ps.discount || 0.0,
+          condicion_tributaria: sale.condicion_tributaria || "gravado",
+          subtotal: ps.subtotal || (ps.quantity * ps.unit_price)
+        )
+      end
     end
 
     def set_current_user
@@ -128,6 +292,12 @@ module Admin
       else
         @pending_devoluciones_count = 0
       end
+    end
+
+    def set_filters_data
+      @sucursales = Sucursal.where(is_active: true)
+      @cajas = Caja.where(is_active: true)
+      @cajeros = User.all # O la consulta para obtener cajeros
     end
 
     def create_product_histories(sale)

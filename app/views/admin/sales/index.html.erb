@@ -4,7 +4,8 @@
   <!-- Page Heading -->
   <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <%= link_to admin_sales_new_path, class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm", data: { turbo: false } do %>
+    <%= link_to new_admin_sale_path, 
+      class: "d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm", data: { turbo: false } do %>
       <i class="fas fa-plus fa-sm text-white-50"></i> Crear venta
     <% end %>
   </div>
@@ -37,8 +38,8 @@
         <%= form_with url: admin_sales_path, method: :get, local: true, class: "col-12 d-flex flex-wrap gap-2 align-items-end" do |f| %>
 
           <div class="filter-card flex-fill">
-            <%= f.label :code, "Código / N° Control", class: "form-label small" %>
-            <%= f.text_field :code, value: params[:code], class: "form-control form-control-sm", placeholder: "Ej: V-2026... o DTE-01..." %>
+            <%= f.label :code, "Código de Venta", class: "form-label small" %>
+            <%= f.text_field :code, value: params[:code], class: "form-control form-control-sm", placeholder: "Ej: V-2026..." %>
           </div>
 
           <div class="filter-card flex-fill">
@@ -59,58 +60,59 @@
         <% end %>
       </div>
 
-      <!-- Tabla de Ventas -->
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped table-sm responsive-table">
-          <thead class="table-light">
+      <!-- Tabla de Ventas con Scroll Horizontal -->
+      <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-bordered table-hover table-striped table-sm compact-sales-table mb-0">
+          <thead class="table-dark">
             <tr>
-              <th>#</th>
+              <th class="text-center">#</th>
               <th>F. Venta</th>
+              <th>Código Venta</th>
               <th>Documento</th>
-              <th>N° Control / Correlativo</th>
+              <th>Condición</th>
               <th>Sucursal</th>
               <th>Cliente</th>
               <th>Caja</th>
               <th>Monto</th>
-              <th>Devolución</th>
-              <th>Acciones</th>
+              <th class="text-center">Devolución</th>
+              <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <% @sales.each_with_index do |sale, index| %>
               <tr>
-                <td><%= index + 1 %></td>
+                <td class="text-center fw-bold"><%= index + 1 %></td>
                 <td><%= sale.sold_at&.strftime('%d/%m/%Y %H:%M') %></td>
+                <td><span class="badge bg-dark font-xs"><%= sale.code %></span></td>
                 <td>
                   <% if sale.tipo_documento_dte.present? %>
-                    <span class="badge bg-info text-dark"><%= sale.tipo_documento_dte.name %></span>
+                    <span class="badge bg-info text-dark font-xs"><%= sale.tipo_documento_dte.name %></span>
                   <% else %>
-                    <span class="badge bg-secondary">Sin DTE</span>
+                    <span class="badge bg-secondary font-xs">Sin DTE</span>
                   <% end %>
                 </td>
                 <td>
-                  <strong><%= sale.numero_control.presence || sale.code %></strong>
-                  <% if sale.correlativo_documento.present? %>
-                    <br><small class="text-muted">Corr: #<%= sale.correlativo_documento %></small>
-                  <% end %>
+                  <span class="badge bg-light text-dark font-xs border">
+                    <%= (sale.condicion_tributaria || "gravado").capitalize %>
+                  </span>
                 </td>
                 <td><%= sale.sucursal&.name || sale.caja&.sucursal&.name || "Matriz" %></td>
                 <td><%= sale.client_name || "Sin cliente" %></td>
                 <td><%= sale.caja&.nombre || "Sin caja" %></td>
-                <td>$<%= number_with_precision(sale.total_amount, precision: 2) %></td>
+                <td class="fw-bold">$<%= number_with_precision(sale.total_amount, precision: 2) %></td>
                 <td class="text-center">
                   <% if sale.devoluciones.any? %>
-                    <span class="badge bg-success">SÍ</span>
+                    <span class="badge bg-success font-xs">SÍ</span>
                   <% else %>
-                    <span class="badge bg-secondary">NO</span>
+                    <span class="badge bg-secondary font-xs">NO</span>
                   <% end %>
                 </td>
-                <td>
-                  <%= link_to admin_sales_detalle_venta_path(id: sale.id), class: "btn btn-sm btn-primary mb-1" do %>
+                <td class="text-center">
+                  <%= link_to detalle_venta_admin_sales_path(id: sale.id), class: "btn btn-xs btn-outline-primary" do %>
                     Ver detalle
                   <% end %>
-                  <%= link_to admin_generar_comprobante_venta_path(id: sale.id), target: "_blank", class: "btn btn-sm btn-danger mb-1" do %>
-                    <i class="fa fa-download"></i> DTE
+                  <%= link_to generar_comprobante_admin_sales_path(id: sale.id), target: "_blank", class: "btn btn-xs btn-outline-secondary" do %>
+                    <i class="fa fa-print"></i> Comprob
                   <% end %>
                 </td>
               </tr>
@@ -123,3 +125,35 @@
   </div>
 
 </div>
+
+<!-- Estilos para compactar la tabla y habilitar scroll horizontal si se desborda -->
+<style>
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .compact-sales-table {
+    font-size: 0.78rem;
+    min-width: 1100px;
+  }
+
+  .compact-sales-table th, 
+  .compact-sales-table td {
+    padding: 0.25rem 0.4rem !important;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .btn-xs {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.72rem;
+    border-radius: 0.2rem;
+    line-height: 1.2;
+  }
+
+  .font-xs {
+    font-size: 0.68rem;
+    padding: 0.2em 0.4em;
+  }
+</style>

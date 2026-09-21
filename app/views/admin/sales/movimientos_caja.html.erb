@@ -1,0 +1,190 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Movimientos de Caja</h1>
+    <%= link_to admin_sales_path, class: "btn btn-sm btn-secondary shadow-sm", data: { turbo: false } do %>
+      <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a Ventas
+    <% end %>
+  </div>
+
+  <!-- Tarjeta de Filtros -->
+  <!-- Tarjeta de Filtros -->
+    <div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter mr-1"></i> Filtros de Búsqueda</h6>
+    </div>
+    <div class="card-body">
+        <form id="filter-movimientos-form">
+        <div class="row">
+            <!-- Fecha Desde -->
+            <div class="col-md-3 mb-3">
+            <label><strong>Fecha Desde:</strong></label>
+            <input type="date" id="fecha_desde" name="fecha_desde" class="form-control" value="<%= Date.current.strftime('%Y-%m-%d') %>">
+            </div>
+
+            <!-- Fecha Hasta -->
+            <div class="col-md-3 mb-3">
+            <label><strong>Fecha Hasta:</strong></label>
+            <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control" value="<%= Date.current.strftime('%Y-%m-%d') %>">
+            </div>
+
+            <% if current_user.role.name.in?(["admin", "super_admin"]) %>
+            <!-- Filtro de Sucursal -->
+            <div class="col-md-3 mb-3">
+                <label><strong>Sucursal</strong></label>
+                <%= select_tag :sucursal_id, 
+                            options_from_collection_for_select(
+                                Sucursal.all, 
+                                :id, 
+                                :name, 
+                                params[:sucursal_id]
+                            ), 
+                            prompt: "-- Todas las Sucursales --", 
+                            class: "form-control form-control-sm" %>
+            </div>
+
+            <!-- Filtro de Caja -->
+            <div class="col-md-3 mb-3">
+                <label><strong>Caja</strong></label>
+                <%= select_tag :caja_id, 
+                            options_from_collection_for_select(
+                                Caja.all, 
+                                :id, 
+                                :nombre, 
+                                params[:caja_id]
+                            ), 
+                            prompt: "-- Todas las Cajas --", 
+                            class: "form-control form-control-sm" %>
+            </div>
+            <% end %>
+
+            <!-- Cajero -->
+            <div class="col-md-4 mb-3">
+            <label><strong>Cajero:</strong></label>
+            <select name="cajero_id" class="form-control" <%= 'disabled' if current_user.role.name == "cajero"  %>>
+                <option value="">Todos los cajeros</option>
+                <% @cajeros.each do |c| %>
+                <option value="<%= c.id %>" <%= 'selected' if current_user.role.name == "cajero" && current_user.id == c.id %>><%= c.full_name %></option>
+                <% end %>
+            </select>
+            </div>
+
+            <!-- Buscador General -->
+            <div class="col-md-5 mb-3">
+            <label><strong>Buscador:</strong></label>
+            <input type="text" name="q" class="form-control" placeholder="Buscar por cliente, N° control o documento...">
+            </div>
+
+            <!-- Botón Consultar -->
+            <div class="col-md-3 mb-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary btn-block shadow-sm">
+                <i class="fas fa-search fa-sm text-white-50"></i> Consultar
+            </button>
+            </div>
+        </div>
+        </form>
+    </div>
+    </div>
+
+  <!-- Contenedor de la Tabla AJAX -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Resultados de Movimientos</h6>
+    </div>
+    <div class="card-body">
+      <div id="movimientos-table-container" class="table-responsive">
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-info-circle fa-2x mb-2"></i>
+          <p class="mb-0">Ajuste los filtros y haga clic en <strong>Consultar</strong> para desplegar los movimientos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Detalle de Movimiento -->
+<div class="modal fade" id="movimientoDetailModal" tabindex="-1" role="dialog" aria-labelledby="movimientoDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content" id="movimiento-detail-modal-body">
+      <!-- Se llena dinámicamente mediante AJAX -->
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("turbo:load", initMovimientosScript);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initMovimientosScript);
+} else {
+  initMovimientosScript();
+}
+
+function initMovimientosScript() {
+  const filterForm = document.getElementById("filter-movimientos-form");
+  const tableContainer = document.getElementById("movimientos-table-container");
+
+  if (filterForm && !filterForm.dataset.bound) {
+    filterForm.dataset.bound = "true";
+
+    filterForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      tableContainer.innerHTML = `
+        <div class="text-center text-info py-5">
+          <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+          <p class="mb-0">Cargando movimientos de caja...</p>
+        </div>`;
+
+      const formData = new FormData(filterForm);
+      const params = new URLSearchParams(formData).toString();
+
+      try {
+        const response = await fetch(`/admin/sales/consultar_movimientos?${params}`);
+        if (!response.ok) throw new Error("Error en la solicitud");
+        const html = await response.text();
+        tableContainer.innerHTML = html;
+      } catch (error) {
+        tableContainer.innerHTML = `
+          <div class="alert alert-danger text-center">
+            Ocurrió un error al cargar los datos. Intente nuevamente.
+          </div>`;
+      }
+    });
+  }
+
+  // Delegación de eventos para abrir el Modal de Detalle
+  if (!document.body.dataset.movimientoModalBound) {
+    document.body.dataset.movimientoModalBound = "true";
+
+    document.addEventListener("click", async function (e) {
+      const btn = e.target.closest(".btn-ver-detalle-movimiento");
+      if (btn) {
+        const movimientoId = btn.dataset.id;
+        const modalContent = document.getElementById("movimiento-detail-modal-body");
+
+        modalContent.innerHTML = `
+          <div class="modal-body text-center py-5">
+            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+            <p class="mb-0">Cargando detalle...</p>
+          </div>`;
+
+        $('#movimientoDetailModal').modal('show');
+
+        try {
+          const response = await fetch(`/admin/sales/${movimientoId}/detalle_movimiento`);
+          if (!response.ok) throw new Error("Error en la respuesta");
+          const html = await response.text();
+          modalContent.innerHTML = html;
+        } catch (error) {
+          modalContent.innerHTML = `
+            <div class="modal-header">
+              <h5 class="modal-title text-danger">Error</h5>
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">No se pudo cargar el detalle del movimiento.</div>`;
+        }
+      }
+    });
+  }
+}
+</script>

@@ -1,0 +1,77 @@
+<div class="modal-header bg-primary text-white">
+  <h5 class="modal-title" id="movimientoDetailModalLabel">
+    Detalle de Movimiento #<%= @movimiento.numero_control || @movimiento.comprobante_codigo || @movimiento.id %>
+  </h5>
+  <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body">
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <p class="mb-1"><strong>Cliente:</strong> <%= @movimiento.client_name %></p>
+      <p class="mb-1"><strong>Tipo Documento:</strong> <%= @movimiento.tipo_documento_dte&.name || 'Venta Interna' %></p>
+      <p class="mb-1"><strong>Código de Generación (DTE):</strong> <%= @movimiento.codigo_generacion || 'N/A' %></p>
+    </div>
+    <div class="col-md-6">
+      <p class="mb-1"><strong>Fecha:</strong> <%= @movimiento.created_at.strftime("%d/%m/%Y %I:%M %p") %></p>
+      <p class="mb-1"><strong>Caja / Sucursal:</strong> <%= "#{@movimiento.caja&.nombre} / #{@movimiento.sucursal&.name}" %></p>
+      <p class="mb-1"><strong>Cajero:</strong> <%= @movimiento.cajero&.nombre %></p>
+    </div>
+  </div>
+
+  <h6 class="font-weight-bold text-primary border-bottom pb-2">Ítems Registrados</h6>
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered text-center">
+      <thead class="thead-light">
+        <tr>
+          <th>Ítem</th>
+          <th>Tipo</th>
+          <th>Cantidad</th>
+          <th>Precio Unit.</th>
+          <th>Descuento</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @product_sales.present? %>
+          <% @product_sales.each do |ps| %>
+            <% 
+              discount_decimal = (ps.unit_price * ps.quantity) * ((ps.discount || 0) / 100.0)
+              subtotal = (ps.unit_price * ps.quantity) - discount_decimal 
+              tipo_prod = ps.product&.kind&.capitalize || 'Producto'
+            %>
+            <tr>
+              <td class="text-left"><%= ps.product&.name || ps.product_name %></td>
+              <td>
+                <span class="badge <%= tipo_prod == 'Servicio' ? 'badge-info' : 'badge-primary' %>">
+                  <%= tipo_prod %>
+                </span>
+              </td>
+              <td><%= ps.quantity %></td>
+              <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
+              <td>$<%= number_with_precision(discount_decimal, precision: 2) %></td>
+              <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="6" class="text-center text-muted">Sin productos detallados</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="text-right mt-3">
+    <h4>Total: <span class="text-success">$<%= number_with_precision(@movimiento.monto_total || @sale&.total_amount || 0, precision: 2) %></span></h4>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <%= link_to descargar_comprobante_admin_sale_path(@movimiento.id, format: :pdf), class: "btn btn-success", data: { turbo: false } do %>
+    <i class="fas fa-download"></i> Descargar Comprobante
+  <% end %>
+  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+</div>
