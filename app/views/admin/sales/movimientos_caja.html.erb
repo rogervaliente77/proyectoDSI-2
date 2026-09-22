@@ -60,13 +60,17 @@
 
             <!-- Cajero -->
             <div class="col-md-4 mb-3">
-            <label><strong>Cajero:</strong></label>
-            <select name="cajero_id" class="form-control" <%= 'disabled' if current_user.role.name == "cajero"  %>>
+              <label><strong>Cajero:</strong></label>
+              <select name="cajero_id" class="form-control" <%= 'disabled' if current_user.role.name == "cajero" %>>
                 <option value="">Todos los cajeros</option>
                 <% @cajeros.each do |c| %>
-                <option value="<%= c.id %>" <%= 'selected' if current_user.role.name == "cajero" && current_user.id == c.id %>><%= c.full_name %></option>
+                  <% # IMPORTANTE: Usar c.user_id si c es una instancia de Cajero, para coincidir con cajero_id de la venta %>
+                  <% cajero_user_id = c.id %>
+                  <option value="<%= cajero_user_id %>" <%= 'selected' if (params[:cajero_id].to_s == cajero_user_id.to_s) || (current_user.role.name == "cajero" && current_user.id == cajero_user_id) %>>
+                    <%= c.respond_to?(:full_name) ? c.full_name : c.nombre %>
+                  </option>
                 <% end %>
-            </select>
+              </select>
             </div>
 
             <!-- Buscador General -->

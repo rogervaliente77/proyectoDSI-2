@@ -136,45 +136,66 @@ module Admin
     end
 
     def consultar_movimientos
-      @movimientos = HeadMovimientoCaja.all.order_by(created_at: :desc)
+      #binding.pry
+      movimientos = HeadMovimientoCaja.all
 
-      # 1. Control de Permisos por Rol
+      # 1. Control de Permisos y Filtro de Cajero
       if current_user.role&.name&.downcase == 'cajero'
-        @movimientos = @movimientos.where(cajero_id: current_user.id)
+        # current_user.id ya es de tipo BSON::ObjectId (o lo casteamos si viene de un params)
+        cajero_obj_id = current_user.id.is_a?(BSON::ObjectId) ? current_user.id : BSON::ObjectId.from_string(current_user.id.to_s)
+        movimientos = movimientos.where(cajero_id: cajero_obj_id)
       else
         # Filtros opcionales para Admin / Super Admin
+
+        # Filtro por Caja
         if params[:caja_id].present?
-          @movimientos = @movimientos.where(caja_id: params[:caja_id])
+          caja_id = BSON::ObjectId.from_string(params[:caja_id]) rescue params[:caja_id]
+          movimientos = movimientos.where(caja_id: caja_id)
         end
+
+        # Filtro por Sucursal
         if params[:sucursal_id].present?
-          @movimientos = @movimientos.where(sucursal_id: params[:sucursal_id])
+          sucursal_id = BSON::ObjectId.from_string(params[:sucursal_id]) rescue params[:sucursal_id]
+          movimientos = movimientos.where(sucursal_id: sucursal_id)
         end
+        
+        # Filtro por Cajero (Conversión a BSON::ObjectId)
         if params[:cajero_id].present?
-          @movimientos = @movimientos.where(cajero_id: params[:cajero_id])
+          begin
+            cajero_obj_id = BSON::ObjectId.from_string(params[:cajero_id])
+            movimientos = movimientos.where(cajero_id: cajero_obj_id)
+          rescue BSON::Error::InvalidObjectId
+            # Si el string no es un ObjectId válido, intenta la búsqueda directa
+            movimientos = movimientos.where(cajero_id: params[:cajero_id])
+          end
         end
       end
 
       # 2. Filtro por Rango de Fechas
       if params[:fecha_desde].present?
         desde = Time.zone.parse(params[:fecha_desde]).beginning_of_day
-        @movimientos = @movimientos.where(:created_at.gte => desde)
+        movimientos = movimientos.where(:created_at.gte => desde)
       end
 
       if params[:fecha_hasta].present?
         hasta = Time.zone.parse(params[:fecha_hasta]).end_of_day
-        @movimientos = @movimientos.where(:created_at.lte => hasta)
+        movimientos = movimientos.where(:created_at.lte => hasta)
       end
 
-      # 3. Buscador General (Código, Cliente, Comprobante)
+      # 3. Buscador General
       if params[:q].present?
         query = /#{Regexp.escape(params[:q])}/i
-        @movimientos = @movimientos.any_of(
+        movimientos = movimientos.any_of(
           { numero_control: query },
           { comprobante_codigo: query },
           { client_name: query },
           { codigo_generacion: query }
         )
       end
+
+      # 4. Ordenamiento final
+      @movimientos = movimientos.order_by(created_at: :desc)
+      e = 2
 
       render layout: false
     end
@@ -297,7 +318,7 @@ module Admin
     def set_filters_data
       @sucursales = Sucursal.where(is_active: true)
       @cajas = Caja.where(is_active: true)
-      @cajeros = User.all # O la consulta para obtener cajeros
+      @cajeros = Cajero.all # O la consulta para obtener cajeros
     end
 
     def create_product_histories(sale)
