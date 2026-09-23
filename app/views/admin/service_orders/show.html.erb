@@ -36,16 +36,25 @@
   <div class="card shadow border-0" id="hoja-factura">
     <div class="card-body p-4 p-md-5">
       
-      <!-- ENCABEZADO INSTITUCIONAL -->
+      <!-- ENCABEZADO INSTITUCIONAL CON DTE -->
       <div class="row align-items-center pb-3 mb-4 border-bottom border-2 border-primary">
-        <div class="col-8">
+        <div class="col-7">
           <h2 class="h4 font-weight-bold text-primary mb-1">BIMERS Motor Cars</h2>
           <p class="text-muted small mb-0 fw-bold">TALLER AUTOMOTRIZ ESPECIALIZADO</p>
           <p class="text-muted small mb-0">(Mecánica, electrónica, enderezado, pintura, venta de repuestos, accesorios y A/C)</p>
         </div>
-        <div class="col-4 text-end">
-          <span class="badge bg-primary fs-6 p-2">FACTURA</span>
+        <div class="col-5 text-end">
+          <span class="badge bg-primary fs-6 p-2">
+            <%= @service_order.tipo_documento_dte.name rescue 'Recibo sin factura' %>
+          </span>
           <h4 class="h5 font-weight-bold text-dark mt-2 mb-0">N° <%= @service_order.numero_orden.presence || 'S/N' %></h4>
+          
+          <% if @service_order.codigo_generacion.present? %>
+            <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+              <strong>Cod. Gen:</strong> <%= @service_order.codigo_generacion %><br>
+              <strong>N° Control:</strong> <%= @service_order.numero_control %>
+            </div>
+          <% end %>
         </div>
       </div>
 
