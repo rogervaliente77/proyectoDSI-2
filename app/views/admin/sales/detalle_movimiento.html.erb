@@ -8,6 +8,7 @@
 </div>
 
 <div class="modal-body">
+  <!-- Cabecera con datos generales -->
   <div class="row mb-3">
     <div class="col-md-6">
       <p class="mb-1"><strong>Cliente:</strong> <%= @movimiento.client_name %></p>
@@ -35,7 +36,44 @@
         </tr>
       </thead>
       <tbody>
-        <% if @product_sales.present? %>
+        <% if @service_order.present? %>
+          <!-- CASO 1: ORDEN DE SERVICIO -->
+          
+          <% # Iteramos Servicios / Mano de obra %>
+          <% @service_order.order_services.each do |serv| %>
+            <% subtotal = (serv.cantidad || 0) * (serv.precio_unitario || 0) %>
+            <tr>
+              <td class="text-left"><%= serv.descripcion %></td>
+              <td><span class="badge badge-info">Servicio</span></td>
+              <td><%= serv.cantidad %></td>
+              <td>$<%= number_with_precision(serv.precio_unitario, precision: 2) %></td>
+              <td>$0.00</td>
+              <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
+            </tr>
+          <% end %>
+
+          <% # Iteramos Repuestos / Insumos %>
+          <% @service_order.order_items.each do |item| %>
+            <% subtotal = (item.cantidad || 0) * (item.precio_unitario || 0) %>
+            <tr>
+              <td class="text-left"><%= item.descripcion %></td>
+              <td><span class="badge badge-secondary"><%= item.tipo || 'Repuesto' %></span></td>
+              <td><%= item.cantidad %></td>
+              <td>$<%= number_with_precision(item.precio_unitario, precision: 2) %></td>
+              <td>$0.00</td>
+              <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
+            </tr>
+          <% end %>
+
+          <% if @service_order.order_services.empty? && @service_order.order_items.empty? %>
+            <tr>
+              <td colspan="6" class="text-center text-muted">Sin detalles registrados en la orden de servicio</td>
+            </tr>
+          <% end %>
+
+        <% elsif @product_sales.present? %>
+          <!-- CASO 2: VENTA NORMAL (SALE) -->
+
           <% @product_sales.each do |ps| %>
             <% 
               discount_decimal = (ps.unit_price * ps.quantity) * ((ps.discount || 0) / 100.0)
@@ -55,9 +93,10 @@
               <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
             </tr>
           <% end %>
+
         <% else %>
           <tr>
-            <td colspan="6" class="text-center text-muted">Sin productos detallados</td>
+            <td colspan="6" class="text-center text-muted">Sin ítems detallados en el movimiento</td>
           </tr>
         <% end %>
       </tbody>
@@ -65,7 +104,12 @@
   </div>
 
   <div class="text-right mt-3">
-    <h4>Total: <span class="text-success">$<%= number_with_precision(@movimiento.monto_total || @sale&.total_amount || 0, precision: 2) %></span></h4>
+    <h4>
+      Total: 
+      <span class="text-success">
+        $<%= number_with_precision(@movimiento.monto_total || @service_order&.total || @sale&.total_amount || 0, precision: 2) %>
+      </span>
+    </h4>
   </div>
 </div>
 

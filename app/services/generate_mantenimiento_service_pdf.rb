@@ -50,13 +50,17 @@ class GenerateMantenimientoServicePdf < Prawn::Document
     fecha_ent = @order.fecha_entrada&.strftime("%d/%m/%Y") || Date.today.strftime("%d/%m/%Y")
     fecha_sal = @order.fecha_salida&.strftime("%d/%m/%Y") || "PENDIENTE"
 
+    # Búsqueda de la Forma de Pago por su código
+    forma_pago_obj = FormaPago.find_by(codigo: @order.forma_pago)
+    nombre_forma_pago = forma_pago_obj&.name || forma_pago_obj&.nombre || 'EFECTIVO'
+
     datos = [
       ["<b>CLIENTE:</b>", @client&.nombre.to_s.upcase, "<b>F. ENTRADA:</b>", fecha_ent, "<b>COT. N°</b>", @order.numero_orden.to_s],
       ["<b>MARCA:</b>", @car&.marca.to_s.upcase, "<b>COLOR:</b>", @car&.color.to_s.upcase, "<b>KM. ENT.</b>", "#{@order.km_entrada} M"],
       ["<b>MODELO:</b>", @car&.modelo.to_s.upcase, "<b>PLACA:</b>", @car&.placa.to_s.upcase, "<b>KM. SAL.</b>", "#{@order.km_salida} M"],
       ["<b>AÑO:</b>", @car&.anio.to_s, "<b>VIN:</b>", @car&.vin.to_s.upcase, "<b>F. SALIDA:</b>", fecha_sal],
-      ["<b>TELÉFONO:</b>", @client&.telefono.to_s, "<b>E-MAIL:</b>", @client&.email.to_s, "<b>PAGO:</b>", @order.forma_pago.presence || 'EFECTIVO'],
-      ["<b>TÉCNICO:</b>", @order.tecnico.presence || 'TALLER BIMERS', "<b>FORMA PAGO:</b>", @order&.forma_pago.to_s, "", ""]
+      ["<b>TELÉFONO:</b>", @client&.telefono.to_s, "<b>E-MAIL:</b>", @client&.email.to_s, "<b>FORMA PAGO:</b>", nombre_forma_pago.upcase],
+      ["<b>TÉCNICO:</b>", @order.tecnico.presence || 'TALLER BIMERS', "", "", "", ""]
     ]
 
     font_size 8

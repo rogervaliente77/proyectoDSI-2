@@ -49,10 +49,10 @@
           </span>
           <h4 class="h5 font-weight-bold text-dark mt-2 mb-0">N° <%= @service_order.numero_orden.presence || 'S/N' %></h4>
           
-          <% if @service_order.codigo_generacion.present? %>
+          <% if @service_order&.head_movimiento_caja&.codigo_generacion.present? %>
             <div class="small text-muted mt-1" style="font-size: 0.75rem;">
-              <strong>Cod. Gen:</strong> <%= @service_order.codigo_generacion %><br>
-              <strong>N° Control:</strong> <%= @service_order.numero_control %>
+              <strong>Cod. Gen:</strong> <%= @service_order&.head_movimiento_caja&.codigo_generacion %><br>
+              <strong>N° Control:</strong> <%= @service_order&.head_movimiento_caja&.numero_control %>
             </div>
           <% end %>
         </div>

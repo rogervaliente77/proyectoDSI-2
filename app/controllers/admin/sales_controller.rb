@@ -203,8 +203,20 @@ module Admin
     # Carga de HTML parcial para el Modal de Detalle
     def detalle_movimiento
       @movimiento = HeadMovimientoCaja.find(params[:id])
-      @sale = Sale.find(@movimiento.origen_id) if @movimiento.origen_id.present?
-      @product_sales = @sale ? @sale.product_sales : []
+
+      if @movimiento.service_order_id.present?
+        @service_order = ServiceOrder.where(id: @movimiento.service_order_id).first
+      elsif @movimiento.sale_id.present?
+        @sale = Sale.where(id: @movimiento.sale_id).first
+        @product_sales = @sale ? @sale.product_sales : []
+      else
+        # Fallback por si existen registros previos con origen_id
+        @service_order = ServiceOrder.where(id: @movimiento.origen_id).first
+        if @service_order.blank?
+          @sale = Sale.where(id: @movimiento.origen_id).first
+          @product_sales = @sale ? @sale.product_sales : []
+        end
+      end
 
       render layout: false
     end

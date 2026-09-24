@@ -19,23 +19,37 @@
     <tbody>
       <% @movimientos.each do |mov| %>
         <% 
-          # Lógica para determinar si el movimiento contiene Productos, Servicios o Ambos
-          sale = mov.origen_id.present? ? Sale.where(id: mov.origen_id).first : nil
-          
-          tipos_productos = []
-          if sale.present?
-            tipos_productos = sale.product_sales.map { |ps| ps.product&.kind }.compact.uniq
-          end
+          # 1. Verificamos si es una Orden de Servicio
+          if mov.service_order_id.present?
+            badge_tipo = '<span class="badge badge-info"><i class="fas fa-tools mr-1"></i>Servicio</span>'
+            monto_total_calc = mov.monto_total
 
-          badge_tipo = if tipos_productos.include?('producto') && tipos_productos.include?('servicio')
-                         '<span class="badge badge-warning">Mixto</span>'
-                       elsif tipos_productos.include?('servicio')
-                         '<span class="badge badge-info">Servicio</span>'
-                       elsif tipos_productos.include?('producto')
-                         '<span class="badge badge-primary">Producto</span>'
-                       else
-                         '<span class="badge badge-secondary">N/A</span>'
-                       end
+          # 2. Verificamos si es una Venta (Sale)
+          elsif mov.sale_id.present? || mov.sale.present?
+            sale = mov.sale || Sale.where(id: mov.sale_id || mov.origen_id).first
+            tipos_productos = sale ? sale.product_sales.map { |ps| ps.product&.kind }.compact.uniq : []
+
+            badge_tipo = if tipos_productos.include?('producto') && tipos_productos.include?('servicio')
+                           '<span class="badge badge-warning">Mixto</span>'
+                         elsif tipos_productos.include?('servicio')
+                           '<span class="badge badge-info">Servicio</span>'
+                         else
+                           '<span class="badge badge-primary">Producto</span>'
+                         end
+            monto_total_calc = mov.monto_total || sale&.total_amount
+
+          # 3. Fallback para registros previos usando origen_id
+          else
+            service_order = ServiceOrder.where(id: mov.origen_id).first
+            if service_order.present?
+              badge_tipo = '<span class="badge badge-info"><i class="fas fa-tools mr-1"></i>Servicio</span>'
+              monto_total_calc = mov.monto_total || service_order.total
+            else
+              sale = Sale.where(id: mov.origen_id).first
+              badge_tipo = '<span class="badge badge-primary">Producto</span>'
+              monto_total_calc = mov.monto_total || sale&.total_amount
+            end
+          end
         %>
         <tr>
           <td><%= mov.created_at.strftime("%d/%m/%Y %I:%M %p") %></td>
@@ -48,7 +62,7 @@
           <td><%= badge_tipo.html_safe %></td>
           <td><%= "#{mov.caja&.nombre || 'N/A'} / #{mov.sucursal&.name || 'Matriz'}" %></td>
           <td><%= mov.cajero&.nombre || 'Desconocido' %></td>
-          <td class="font-weight-bold text-success">$<%= number_with_precision(mov.monto_total || sale&.total_amount || 0, precision: 2) %></td>
+          <td class="font-weight-bold text-success">$<%= number_with_precision(monto_total_calc || 0, precision: 2) %></td>
           <td>
             <div class="btn-group" role="group">
               <!-- Botón Ver Detalle (Modal) -->
