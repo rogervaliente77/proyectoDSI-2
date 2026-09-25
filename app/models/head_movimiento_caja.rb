@@ -39,6 +39,7 @@ class HeadMovimientoCaja
   belongs_to :tipo_documento_dte, class_name: "TipoDocumentoDte", optional: true
   belongs_to :sale, optional: true
   belongs_to :service_order, optional: true, inverse_of: :head_movimiento_caja
+  belongs_to :supplier_invoice, optional: true, inverse_of: :head_movimiento_caja
 
   has_many :det_movimientos_caja, class_name: "DetMovimientoCaja", dependent: :destroy, inverse_of: :head_movimiento_caja
 

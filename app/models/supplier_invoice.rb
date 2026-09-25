@@ -1,12 +1,19 @@
+# app/models/supplier_invoice.rb
 class SupplierInvoice
   include Mongoid::Document
   include Mongoid::Timestamps
 
   # Datos de Factura
-  field :invoice_number, type: String
-  field :voucher_number, type: String
+  field :invoice_number, type: String   # Número impreso por el proveedor
+  field :voucher_number, type: String   # Código interno automático (FAC-XXXXXXX)
   field :voucher_type, type: String, default: "ccf"
   field :description, type: String
+
+  # Clasificación Tributaria de la Compra
+  field :tax_condition, type: String # "gravado", "exento", "no_sujeta"
+  field :total_gravado, type: Float, default: 0.0
+  field :total_exento, type: Float, default: 0.0
+  field :total_no_sujeta, type: Float, default: 0.0
 
   # Fechas clave
   field :issue_date, type: Date
@@ -37,8 +44,11 @@ class SupplierInvoice
   validates :total_amount, numericality: { greater_than: 0 }
 
   # Callbacks
+  before_validation :generate_internal_voucher_number, on: :create
+  before_save :calculate_tax_totals
   before_save :recalculate_and_sync_credit
   after_create :generate_installments_plan!
+  after_create :procesar_pago_contado_inicial
 
   def date_status
     return "pagada" if balance <= 0
@@ -54,7 +64,6 @@ class SupplierInvoice
     end
   end
 
-  # 2. ESTADO DE PAGO / MONTO
   def payment_status
     if balance <= 0
       "pagada"
@@ -65,12 +74,10 @@ class SupplierInvoice
     end
   end
 
-  # Conservamos tu método 'status' como alias del estado de pago o combinador si lo usas en otros lados
   def status
     payment_status
   end
 
-  # Helpers booleanos para facilitar las vistas
   def overdue?
     date_status == "vencida"
   end
@@ -106,6 +113,35 @@ class SupplierInvoice
   end
 
   private
+
+  # Genera el código interno único (Ej: FAC-8A3F19X)
+  def generate_internal_voucher_number
+    return if voucher_number.present?
+
+    loop do
+      random_code = SecureRandom.alphanumeric(7).upcase
+      self.voucher_number = "FAC-#{random_code}"
+      break unless SupplierInvoice.where(voucher_number: self.voucher_number).exists?
+    end
+  end
+
+  # Desglosa automáticamente el monto según la condición tributaria seleccionada
+  def calculate_tax_totals
+    case tax_condition
+    when "exento"
+      self.total_exento = total_amount
+      self.total_gravado = 0.0
+      self.total_no_sujeta = 0.0
+    when "no_sujeta"
+      self.total_no_sujeta = total_amount
+      self.total_gravado = 0.0
+      self.total_exento = 0.0
+    else # "gravado" por defecto
+      self.total_gravado = total_amount
+      self.total_exento = 0.0
+      self.total_no_sujeta = 0.0
+    end
+  end
 
   def recalculate_and_sync_credit
     self.paid_amount = supplier_payments.sum(&:amount).round(2)
@@ -152,5 +188,17 @@ class SupplierInvoice
       interval_days = (credit_term_days.to_f / installments_count).round
       base_date + (step * interval_days).days
     end
+  end
+
+  def procesar_pago_contado_inicial
+    return if is_credit?
+
+    supplier_payments.create!(
+      amount: total_amount,
+      payment_date: issue_date || Date.today,
+      payment_method: "efectivo",
+      notes: description.presence || "Pago automático por compra al contado (Factura: #{invoice_number})",
+      created_by: self.try(:created_by)
+    )
   end
 end
