@@ -195,7 +195,6 @@ module Admin
 
       # 4. Ordenamiento final
       @movimientos = movimientos.order_by(created_at: :desc)
-      e = 2
 
       render layout: false
     end

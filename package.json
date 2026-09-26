@@ -19,5 +19,9 @@
   },
   "browserslist": [
     "defaults"
-  ]
+  ],
+  "devDependencies": {
+    "prettier": "^2.2.1",
+    "prettier-plugin-erb": "^0.4.0"
+  }
 }

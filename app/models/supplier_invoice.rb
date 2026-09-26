@@ -6,7 +6,7 @@ class SupplierInvoice
   # Datos de Factura
   field :invoice_number, type: String   # Número impreso por el proveedor
   field :voucher_number, type: String   # Código interno automático (FAC-XXXXXXX)
-  field :voucher_type, type: String, default: "ccf"
+  field :voucher_type, type: String, default: 'ccf'
   field :description, type: String
 
   # Clasificación Tributaria de la Compra
@@ -25,7 +25,7 @@ class SupplierInvoice
   field :credit_term_days, type: Integer, default: 30
   field :installments_count, type: Integer, default: 1
   field :interest_rate, type: Float, default: 0.0
-  field :term_type, type: String, default: "mensual"
+  field :term_type, type: String, default: 'mensual'
   field :payment_day, type: Integer
 
   # Montos Financieros
@@ -35,9 +35,9 @@ class SupplierInvoice
 
   # Relaciones
   belongs_to :supplier
-  embeds_many :supplier_payments, class_name: "SupplierPayment"
-  embeds_many :payment_installments, class_name: "PaymentInstallment"
-  embeds_many :status_histories, class_name: "StatusHistory"
+  embeds_many :supplier_payments, class_name: 'SupplierPayment'
+  embeds_many :payment_installments, class_name: 'PaymentInstallment'
+  embeds_many :status_histories, class_name: 'StatusHistory'
 
   # Validaciones
   validates :invoice_number, :issue_date, :total_amount, presence: true
@@ -51,26 +51,28 @@ class SupplierInvoice
   after_create :procesar_pago_contado_inicial
 
   def date_status
-    return "pagada" if balance <= 0
+    return 'pagada' if balance <= 0
 
     today = Date.today
 
-    if payment_installments.any? { |i| i.date_status == "vencida" } || (due_date.present? && due_date < today)
-      "vencida"
-    elsif payment_installments.any? { |i| i.date_status == "proxima_vencer" } || (due_date.present? && due_date <= (today + 10.days))
-      "proxima_vencer"
+    if payment_installments.any? { |i| i.date_status == 'vencida' } || (due_date.present? && due_date < today)
+      'vencida'
+    elsif payment_installments.any? do |i|
+      i.date_status == 'proxima_vencer'
+    end || (due_date.present? && due_date <= (today + 10.days))
+      'proxima_vencer'
     else
-      "al_dia"
+      'al_dia'
     end
   end
 
   def payment_status
     if balance <= 0
-      "pagada"
+      'pagada'
     elsif paid_amount > 0
-      "pago_parcial"
+      'pago_parcial'
     else
-      "sin_pago"
+      'sin_pago'
     end
   end
 
@@ -79,7 +81,7 @@ class SupplierInvoice
   end
 
   def overdue?
-    date_status == "vencida"
+    date_status == 'vencida'
   end
 
   def paid?
@@ -103,7 +105,7 @@ class SupplierInvoice
       payment_installments.build(
         number: i + 1,
         due_date: i_due_date,
-        amount: (i == installments_count - 1) ? last_amount : installment_amount,
+        amount: i == installments_count - 1 ? last_amount : installment_amount,
         paid_amount: 0.0
       )
     end
@@ -121,18 +123,18 @@ class SupplierInvoice
     loop do
       random_code = SecureRandom.alphanumeric(7).upcase
       self.voucher_number = "FAC-#{random_code}"
-      break unless SupplierInvoice.where(voucher_number: self.voucher_number).exists?
+      break unless SupplierInvoice.where(voucher_number: voucher_number).exists?
     end
   end
 
   # Desglosa automáticamente el monto según la condición tributaria seleccionada
   def calculate_tax_totals
     case tax_condition
-    when "exento"
+    when 'exento'
       self.total_exento = total_amount
       self.total_gravado = 0.0
       self.total_no_sujeta = 0.0
-    when "no_sujeta"
+    when 'no_sujeta'
       self.total_no_sujeta = total_amount
       self.total_gravado = 0.0
       self.total_exento = 0.0
@@ -163,16 +165,16 @@ class SupplierInvoice
     base_date = issue_date || Date.today
 
     case term_type
-    when "diario"
+    when 'diario'
       base_date + step.days
-    when "semanal"
+    when 'semanal'
       base_date + (step * 7).days
-    when "mensual", "bimestral", "trimestral", "semestral"
+    when 'mensual', 'bimestral', 'trimestral', 'semestral'
       months_addition = case term_type
-                        when "mensual"   then step * 1
-                        when "bimestral"  then step * 2
-                        when "trimestral" then step * 3
-                        when "semestral"  then step * 6
+                        when 'mensual' then step
+                        when 'bimestral'  then step * 2
+                        when 'trimestral' then step * 3
+                        when 'semestral'  then step * 6
                         end
 
       target_date = base_date >> months_addition
@@ -196,9 +198,9 @@ class SupplierInvoice
     supplier_payments.create!(
       amount: total_amount,
       payment_date: issue_date || Date.today,
-      payment_method: "efectivo",
+      payment_method: 'efectivo',
       notes: description.presence || "Pago automático por compra al contado (Factura: #{invoice_number})",
-      created_by: self.try(:created_by)
+      created_by: try(:created_by)
     )
   end
 end
