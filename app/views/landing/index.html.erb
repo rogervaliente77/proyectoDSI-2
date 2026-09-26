@@ -1,4 +1,3 @@
-<!-- 3. HERO CARROUSEL WALLPAPER -->
 <!-- 3. HERO CARROUSEL WALLPAPER DINÁMICO -->
 <header class="hero-carousel">
   <% if @config.header_slides.present? && @config.header_slides.any? %>
@@ -200,6 +199,19 @@
       <i class="fa-solid fa-sliders"></i> Filtros
     </div>
 
+    <!-- Filtro de Categoría Agragado/Corregido -->
+    <div class="filter-group">
+      <label>Categoría</label>
+      <select id="category-select" onchange="filterProducts()">
+        <option value="all">Todas las categorías</option>
+        <% if @categories.present? %>
+          <% @categories.each do |cat| %>
+            <option value="<%= cat.name.parameterize %>"><%= cat.name %></option>
+          <% end %>
+        <% end %>
+      </select>
+    </div>
+
     <div class="filter-group">
       <label>Tipo de servicio / producto</label>
       <select id="type-select" onchange="filterProducts()">
@@ -263,7 +275,7 @@
 
             img_product = img_url_from_db.presence || 'https://images.unsplash.com/photo-1600706432522-e78112d8a9f2?auto=format&fit=crop&w=500&q=80'
 
-            # 2. Evaluación de Oferta (misma lógica que admin/products/catalogo.html.erb)
+            # 2. Evaluación de Oferta
             exp_date = product.offer_expires_at
             offer_active = product.offer.present? && (exp_date.blank? || exp_date.to_date >= Date.current)
             offer = offer_active ? product.offer : nil
@@ -273,10 +285,6 @@
             discount = product.discount.to_f
             offer_type_upcase = offer&.offer_type&.upcase
 
-            # Precio "de oferta" a mostrar en la card (según el tipo de oferta)
-            # Nota: se calcula directo desde product.discount (no con product.discounted_price,
-            # que actualmente siempre devuelve el precio normal por un bug de mayúsculas
-            # en Offer#descuento? / Offer#mayoreo?)
             offer_price = if offer_active && offer_type_upcase == "DESCUENTO" && discount > 0
                             (base_price - (base_price * discount / 100.0)).round(2)
                           elsif offer_active
@@ -341,7 +349,6 @@
                     <span class="original-price">$<%= '%.2f' % base_price %></span>
                     <span class="product-price offer-price">$<%= '%.2f' % offer_price %></span>
                   <% elsif offer_active %>
-                    <!-- Mayoreo, 2x1, 3x1, etc: se mantiene el precio base pero destacado -->
                     <span class="product-price offer-price">$<%= '%.2f' % base_price %></span>
                   <% else %>
                     <span class="product-price">$<%= '%.2f' % base_price %></span>
@@ -651,296 +658,283 @@
     opacity: 0.6;
   }
 
-
-
   /* SECCIÓN DE SERVICIOS - TARJETAS ANCHAS CENTRADAS */
-.services-section {
-  padding: 50px 20px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.services-carousel-wrapper {
-  position: relative;
-  max-width: 1250px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.services-cards-slider {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: 15px 5px 25px 5px;
-  width: 100%;
-  justify-content: center; /* Centra las tarjetas cuando hay 1 o 2 */
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Si hay más de 2 tarjetas y activa el scroll horizontal */
-@media (max-width: 1200px) {
-  .services-cards-slider {
-    justify-content: flex-start;
+  .services-section {
+    padding: 50px 20px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
   }
-}
 
-.services-cards-slider::-webkit-scrollbar {
-  height: 6px;
-}
-.services-cards-slider::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
+  .services-carousel-wrapper {
+    position: relative;
+    max-width: 1250px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-/* Tarjeta Alargada Horizontamente */
-.service-wide-card {
-  flex: 0 0 calc(50% - 12px);
-  height: 300px; /* Altura uniforme para todas */
-  max-width: 580px;
-  min-width: 480px;
-  background: #ffffff;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: row;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+  .services-cards-slider {
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 15px 5px 25px 5px;
+    width: 100%;
+    justify-content: center;
+    -webkit-overflow-scrolling: touch;
+  }
 
-.service-wide-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
-}
+  @media (max-width: 1200px) {
+    .services-cards-slider {
+      justify-content: flex-start;
+    }
+  }
 
-.service-card-img {
-  position: relative;
-  width: 40%; /* 40% para la imagen en horizontal */
-  min-height: 220px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
+  .services-cards-slider::-webkit-scrollbar {
+    height: 6px;
+  }
 
-.service-card-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
+  .services-cards-slider::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
 
-.service-wide-card:hover .service-card-img img {
-  transform: scale(1.08);
-}
-
-.service-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(15, 23, 42, 0.85);
-  color: #ffffff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 16px;
-  text-transform: uppercase;
-  backdrop-filter: blur(4px);
-}
-
-/* 2. Distribuye el espacio interno */
-.service-card-body {
-  width: 60%;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%; /* Ocupa el 100% de los 300px */
-  box-sizing: border-box;
-}
-
-.service-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-
-/* 3. Permite scroll solo en la descripción si supera el espacio */
-.service-desc {
-  font-size: 0.88rem;
-  color: #475569;
-  line-height: 1.5;
-  margin-bottom: 15px;
-  overflow-y: auto; /* Activa el scroll vertical solo en la descripción */
-  padding-right: 5px; /* Espacio para que el texto no pegue con la barra */
-  
-  /* IMPORTANTE: Remueve el recorte previo */
-  display: block; 
-  -webkit-line-clamp: unset;
-  -webkit-box-orient: unset;
-}
-
-/* 4. Estilo de barra de scroll ultra discreta para la descripción */
-.service-desc::-webkit-scrollbar {
-  width: 4px;
-}
-.service-desc::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-.service-desc::-webkit-scrollbar-thumb:hover {
-  background: #0d6efd;
-}
-
-.service-card-footer {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.btn-schedule-service {
-  background: #0d6efd;
-  color: #ffffff;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.btn-schedule-service:hover {
-  background: #0b5ed7;
-  color: #ffffff;
-  transform: scale(1.02);
-}
-
-/* Botones de navegación */
-.services-carousel-btn {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.services-carousel-btn:hover {
-  background: #0d6efd;
-  color: #ffffff;
-  border-color: #0d6efd;
-}
-
-.services-carousel-btn.prev {
-  margin-right: 10px;
-}
-
-.services-carousel-btn.next {
-  margin-left: 10px;
-}
-
-.no-services-msg {
-  width: 100%;
-  text-align: center;
-  padding: 40px;
-  color: #64748b;
-}
-
-/* Adaptación para dispositivos móviles */
-@media (max-width: 768px) {
+  /* Tarjeta Alargada Horizontamente */
   .service-wide-card {
-    flex: 0 0 85%;
-    min-width: 280px;
-    flex-direction: column; /* Cambia a vertical en celulares */
+    flex: 0 0 calc(50% - 12px);
+    height: 300px;
+    max-width: 580px;
+    min-width: 480px;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: row;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .service-wide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
   }
 
   .service-card-img {
+    position: relative;
+    width: 40%;
+    min-height: 220px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .service-card-img img {
     width: 100%;
-    height: 160px;
-    min-height: auto;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .service-wide-card:hover .service-card-img img {
+    transform: scale(1.08);
+  }
+
+  .service-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 16px;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
   }
 
   .service-card-body {
+    width: 60%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .service-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .service-desc {
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    overflow-y: auto;
+    padding-right: 5px;
+    display: block; 
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+  }
+
+  .service-desc::-webkit-scrollbar {
+    width: 4px;
+  }
+  .service-desc::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  .service-desc::-webkit-scrollbar-thumb:hover {
+    background: #0d6efd;
+  }
+
+  .service-card-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .btn-schedule-service {
+    background: #0d6efd;
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn-schedule-service:hover {
+    background: #0b5ed7;
+    color: #ffffff;
+    transform: scale(1.02);
+  }
+
+  .services-carousel-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .services-carousel-btn:hover {
+    background: #0d6efd;
+    color: #ffffff;
+    border-color: #0d6efd;
+  }
+
+  .services-carousel-btn.prev {
+    margin-right: 10px;
+  }
+
+  .services-carousel-btn.next {
+    margin-left: 10px;
+  }
+
+  .no-services-msg {
     width: 100%;
+    text-align: center;
+    padding: 40px;
+    color: #64748b;
   }
 
-  .services-cards-slider {
-    justify-content: flex-start;
+  @media (max-width: 768px) {
+    .service-wide-card {
+      flex: 0 0 85%;
+      min-width: 280px;
+      flex-direction: column;
+    }
+
+    .service-card-img {
+      width: 100%;
+      height: 160px;
+      min-height: auto;
+    }
+
+    .service-card-body {
+      width: 100%;
+    }
+
+    .services-cards-slider {
+      justify-content: flex-start;
+    }
   }
-}
 
-/* Posicionamiento de la imagen para el Badge */
-.product-img-box {
-  position: relative;
-  width: 100%;
-  height: 190px;
-}
+  .product-img-box {
+    position: relative;
+    width: 100%;
+    height: 190px;
+  }
 
-/* Badge visible sobre la imagen */
-.badge-offer {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: #ffc532;
-  color: #000000;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  z-index: 5;
-  text-transform: uppercase;
-}
+  .badge-offer {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #ffc532;
+    color: #000000;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    text-transform: uppercase;
+  }
 
-/* Formato de Precios */
-.product-price-container {
-  display: flex;
-  flex-direction: column;
-}
+  .product-price-container {
+    display: flex;
+    flex-direction: column;
+  }
 
-.original-price {
-  font-size: 0.85rem;
-  color: #94a3b8;
-  text-decoration: line-through;
-}
+  .original-price {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+  }
 
-.product-price.offer-price {
-  color: #dc3545;
-  font-size: 1.2rem;
-  font-weight: 800;
-}
+  .product-price.offer-price {
+    color: #dc3545;
+    font-size: 1.2rem;
+    font-weight: 800;
+  }
 
-.offer-expiration {
-  color: #d97706;
-  font-size: 0.78rem;
-  font-weight: 600;
-  margin-top: 4px;
-}
+  .offer-expiration {
+    color: #d97706;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
 </style>
 
 <!-- JAVASCRIPT CORREGIDO -->
 <script>
-  // 1. Función del slider en ámbito global para ser llamada por el 'onclick' del HTML
   window.scrollServices = function(direction) {
     const slider = document.getElementById('services-cards-slider');
     if (!slider) return;
 
-    const cardWidth = 604; // Ancho de la tarjeta ancha (580px) + gap (24px)
+    const cardWidth = 604;
     slider.scrollBy({
       left: direction * cardWidth,
       behavior: 'smooth'
@@ -948,7 +942,6 @@
   };
 
   function setupLandingScript() {
-    // 1. Menú hamburguesa móvil
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.getElementById('nav-menu');
 
@@ -958,7 +951,6 @@
       });
     }
 
-    // 2. Carrusel de imágenes
     let currentSlide = 0;
     const slides = document.querySelectorAll('.carousel-slide');
 
@@ -975,7 +967,6 @@
       window.showSlide(currentSlide);
     };
 
-    // Auto-play: pasa las imágenes automáticamente cada 3 segundos
     function startHeroAutoplay() {
       if (window.heroCarouselInterval) {
         clearInterval(window.heroCarouselInterval);
@@ -989,13 +980,10 @@
 
     startHeroAutoplay();
 
-    // Si el usuario usa las flechas manualmente, reinicia el temporizador
-    // para que no cambie de imagen justo después de un clic manual
     document.querySelectorAll('.hero-carousel .carousel-btn').forEach(function (btn) {
       btn.addEventListener('click', startHeroAutoplay);
     });
 
-    // 3. Sistema Dinámico de Navegación de Categorías & Breadcrumb
     const categoriesGrid = document.getElementById("categories-grid");
     const breadcrumb = document.getElementById("category-breadcrumb");
     
@@ -1008,7 +996,6 @@
 
         allWrappers.forEach(wrapper => {
           if (wrapper.dataset.parentId === parentId) {
-            // Asegura display: flex para respetar la estructura de la tarjeta
             wrapper.style.display = 'flex';
             countVisible++;
           } else {
@@ -1039,16 +1026,33 @@
           const li = document.createElement("li");
           li.className = `breadcrumb-item ${isLast ? "active" : ""}`;
           
-          if (isLast) {
+          if (isLast && index > 0) {
+            // Si estamos en un nivel profundo y es el activo
             li.textContent = item.name;
           } else {
+            // Si es un enlace del breadcrumb (incluyendo 'Categorías Principales')
             const a = document.createElement("a");
             a.href = "#servicios";
-            a.textContent = item.name;
+            a.innerHTML = index === 0 ? '<i class="fa-solid fa-folder"></i> Categorías Principales' : item.name;
+            a.style.cursor = "pointer";
+            
             a.addEventListener("click", function(e) {
               e.preventDefault();
+              
+              // 1. Recortamos el historial hasta el nivel seleccionado
               navigationHistory = navigationHistory.slice(0, index + 1);
               renderCurrentLevel(item.id);
+
+              // 2. Novedad: Si hace clic en 'Categorías Principales' (index 0), reseteamos el filtro a "Todas"
+              if (index === 0) {
+                const catSelect = document.getElementById('category-select');
+                if (catSelect) {
+                  catSelect.value = 'all'; // Selecciona "Todas las categorías"
+                  if (typeof window.filterProducts === 'function') {
+                    window.filterProducts(); // Vuelve a mostrar todos los productos cargados
+                  }
+                }
+              }
             });
             li.appendChild(a);
           }
@@ -1071,7 +1075,6 @@
       renderCurrentLevel("root");
     }
 
-    // 4. SISTEMA DE FILTRADO Y PAGINACIÓN EN CLIENTE (10 CARDS POR PÁGINA)
     let currentPage = 1;
     const itemsPerPage = 10;
     let filteredCards = [];
@@ -1090,7 +1093,14 @@
     };
 
     window.filterProducts = function() {
-      const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase();
+      // Función auxiliar para insensibilidad a tildes y mayúsculas/minúsculas
+      const normalizeText = (str) => 
+        (str || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+      const searchVal = normalizeText(document.getElementById('search-input')?.value);
       const selectedCategory = document.getElementById('category-select')?.value || 'all';
       const selectedBrand = document.getElementById('brand-select')?.value || 'all';
       const selectedType = document.getElementById('type-select')?.value || 'all';
@@ -1099,12 +1109,11 @@
       const allCards = Array.from(document.querySelectorAll('.product-card'));
       const productsGrid = document.getElementById('products-grid');
 
-      // 1. Filtrar elementos según las selecciones
       filteredCards = allCards.filter(card => {
         const cardCategory = card.dataset.category;
         const cardBrand = card.dataset.brand;
         const cardType = card.dataset.type;
-        const cardName = card.dataset.name;
+        const cardName = normalizeText(card.dataset.name);
 
         const matchesCategory = (selectedCategory === 'all' || cardCategory === selectedCategory);
         const matchesBrand = (selectedBrand === 'all' || cardBrand === selectedBrand);
@@ -1114,7 +1123,6 @@
         return matchesCategory && matchesBrand && matchesType && matchesSearch;
       });
 
-      // 2. Ordenar los elementos filtrados
       filteredCards.sort((a, b) => {
         const priceA = parseFloat(a.dataset.price) || 0;
         const priceB = parseFloat(b.dataset.price) || 0;
@@ -1131,17 +1139,13 @@
           case 'name-desc':
             return nameB.localeCompare(nameA);
           default:
-            return 0; // Mantiene el orden original de Ruby/DB
+            return 0;
         }
       });
 
-      // 3. Reordenar físicamente los nodos DOM dentro del contenedor
       filteredCards.forEach(card => productsGrid.appendChild(card));
-
-      // 4. Ocultar de entrada todos los elementos
       allCards.forEach(card => card.style.display = 'none');
 
-      // 5. Manejar estado cuando no hay resultados
       let noProductsMsg = document.getElementById('no-products-empty-msg');
       if (filteredCards.length === 0) {
         if (!noProductsMsg && productsGrid) {
@@ -1158,26 +1162,19 @@
         noProductsMsg.remove();
       }
 
-      // Resetear a la página 1 cada vez que se aplica un filtro u ordenamiento
       currentPage = 1;
       renderPage();
     };
 
     function renderPage() {
       const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
-      
-      // Ocultar todos los ítems filtrados
       filteredCards.forEach(card => card.style.display = 'none');
 
-      // Determinar los límites de la página actual
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
       const pageItems = filteredCards.slice(startIndex, endIndex);
 
-      // Mostrar los ítems correspondientes a la página
       pageItems.forEach(card => card.style.display = 'flex');
-
-      // Actualizar botones de paginación
       renderPaginationControls(totalPages);
     }
 
@@ -1187,10 +1184,8 @@
 
       paginationContainer.innerHTML = '';
 
-      // Ocultar paginador si no hay productos o solo hay 1 página
       if (totalPages <= 1) return;
 
-      // Botón "Anterior"
       const prevBtn = document.createElement('button');
       prevBtn.className = 'page-btn';
       prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
@@ -1204,7 +1199,6 @@
       };
       paginationContainer.appendChild(prevBtn);
 
-      // Botones Numéricos
       for (let i = 1; i <= totalPages; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
@@ -1217,7 +1211,6 @@
         paginationContainer.appendChild(pageBtn);
       }
 
-      // Botón "Siguiente"
       const nextBtn = document.createElement('button');
       nextBtn.className = 'page-btn';
       nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
@@ -1239,11 +1232,9 @@
       }
     }
 
-    // Inicializar filtrado y paginación
     window.filterProducts();
   }
 
-  // Compatibilidad con eventos de carga de Rails (Turbolinks/Turbo)
   document.addEventListener("DOMContentLoaded", setupLandingScript);
   document.addEventListener("turbo:load", setupLandingScript);
   document.addEventListener("turbolinks:load", setupLandingScript);

@@ -213,15 +213,26 @@ Rails.application.routes.draw do
     end
     
     # Ventas
-    get "/sales", to: "sales#index"
-    get "/sales/new", to: "sales#new"
-    post "/sales/create", to: "sales#create"
-    get "/sales/detalle_venta", to: "sales#detalle_venta"
-    get '/sales/generate_pdf', to: 'sales#generate_pdf', as: :generar_comprobante_venta
-    get "/sales/:id/available_products", to: "sales#available_products", as: :sale_available_products
-    get '/sales/search_by_code', to: 'sales#search_by_code', as: :search_sale_by_code
-    get "/sales/search_clients", to: "sales#search_clients", as: :search_clients
+    resources :sales, only: [:index, :new, :create] do
+      # Rutas para acciones globales o colecciones de ventas (GET /sales/...)
+      collection do
+        get :detalle_venta
+        get :generate_pdf, as: :generar_comprobante
+        get :search_by_code, as: :search_by_code
+        get :search_clients, as: :search_clients
+        get :movimientos_caja
+        get :consultar_movimientos
+      end
+
+      # Rutas que pertenecen a una venta específica (GET /sales/:id/...)
+      member do
+        get :available_products
+        get :detalle_movimiento
+        get :descargar_comprobante
+      end
+    end
   end
+
 
   # Health check y landing
   get "up", to: "rails/health#show", as: :rails_health_check

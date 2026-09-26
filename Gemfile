@@ -104,3 +104,6 @@ gem 'kaminari'
 gem 'kaminari-mongoid'
 gem 'caxlsx'
 gem 'caxlsx_rails'
+gem "rubocop", "~> 1.91"
+
+gem "rubocop-rails", "~> 2.38"

@@ -14,4 +14,12 @@ module ApplicationHelper
       'secondary'    # Gris
     end
   end
+
+  # def admin_or_super?
+  #   @current_user.role.name.in?(["super_admin", "admin"])
+  # end
+
+  # def staff?
+  #   @current_user.role.name.in?(["super_admin", "admin", "cajero"])
+  # end
 end

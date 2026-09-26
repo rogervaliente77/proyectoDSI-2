@@ -29,13 +29,14 @@
       <%= link_to "Volver al listado", admin_supplier_invoices_path, class: "btn btn-outline-secondary me-2", data: { turbo: false } %>
       
       <!-- Botón para Abrir Modal de Historial de Estados -->
-      <button type="button" class="btn btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#statusHistoryModal">
+      <button type="button" class="btn btn-outline-info me-2" data-toggle="modal" data-target="#statusHistoryModal">
         <i class="fas fa-history me-1"></i> Historial de Estados
       </button>
 
+      <!-- Botón Registrar Pago -->
       <% if @invoice.balance > 0 %>
         <div data-turbo="false" class="d-inline-block">
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newPaymentModal">
             <i class="fas fa-plus-circle me-1"></i> Registrar Pago
           </button>
         </div>
@@ -257,7 +258,9 @@
         <h5 class="modal-title" id="statusHistoryModalLabel">
           <i class="fas fa-history me-2 text-info"></i>Historial de Cambios de Estado
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="modal-body p-0">
         <%= turbo_frame_tag "invoice_status_history", src: history_admin_supplier_invoice_path(@invoice), loading: :lazy do %>
@@ -282,7 +285,9 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="newPaymentModalLabel">Registrar Abono / Pago</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <%= form_with(model: [@invoice, @payment], url: admin_supplier_invoice_supplier_payments_path(@invoice), local: true) do |f| %>
         <div class="modal-body">
@@ -315,7 +320,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
           <%= f.submit "Guardar Pago", class: "btn btn-success" %>
         </div>
       <% end %>

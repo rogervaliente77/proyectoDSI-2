@@ -13,29 +13,38 @@ class ServiceOrder
   field :subtotal, type: Float, default: 0.0
   field :total, type: Float, default: 0.0
 
+  # Campos de asociación operativa
+  field :caja_id, type: BSON::ObjectId
+  field :sucursal_id, type: BSON::ObjectId
+  field :cajero_id, type: BSON::ObjectId
+  field :tipo_documento_dte_id, type: BSON::ObjectId
+  field :condicion_tributaria, type: String, default: "gravado"
+
   # Relaciones
   belongs_to :client_car
+  belongs_to :caja, optional: true
+  belongs_to :cajero, class_name: "Cajero", optional: true
+  belongs_to :sucursal, optional: true
+  belongs_to :user, optional: true
+  belongs_to :tipo_documento_dte, class_name: "TipoDocumentoDte", optional: true
   
-  # Atributos embebidos para servicios y repuestos
+  has_one :head_movimiento_caja, dependent: :nullify
+
+  # Atributos embebidos
   embeds_many :order_services
   embeds_many :order_items
 
   accepts_nested_attributes_for :order_services, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :order_items, allow_destroy: true, reject_if: :all_blank
 
-  # --- VALIDACIONES ---
+  # Validaciones
   validates :numero_orden, presence: true, uniqueness: true, numericality: { only_integer: true, greater_than: 0 }
   validates :codigo_orden, presence: true, uniqueness: true
   validates :client_car, presence: true
 
-  # Índices de unicidad en MongoDB
-  index({ numero_orden: 1 }, { unique: true })
-  index({ codigo_orden: 1 }, { unique: true })
-
-  # --- CALLBACKS ---
+  # Callbacks
   before_validation :preparar_correlativos, on: :create
 
-  # Método público para autocalcular correlativos antes de mostrar en el form (new)
   def preparar_correlativos
     assign_numero_orden
     generate_codigo_orden
@@ -43,26 +52,17 @@ class ServiceOrder
 
   private
 
-  # 1. Asigna el siguiente número correlativo autoincrementable
   def assign_numero_orden
     return if numero_orden.present?
-
-    # Busca la orden con el número más alto registrado y le suma 1
     max_order = ServiceOrder.max(:numero_orden) || 0
     self.numero_orden = max_order + 1
   end
 
-  # 2. Genera el código único con formato: B-MMAA-00001
   def generate_codigo_orden
     return if codigo_orden.present? || numero_orden.blank?
-
-    # Usa la fecha de entrada o la fecha actual como fallback
     base_date = fecha_entrada || Date.current
-    mes_anio = base_date.strftime("%m%y") # Ejemplo: 0826
-    
-    # Rellena el número correlativo a 5 dígitos con ceros a la izquierda
+    mes_anio = base_date.strftime("%m%y")
     correlativo = numero_orden.to_s.rjust(5, '0')
-
     self.codigo_orden = "B-#{mes_anio}-#{correlativo}"
   end
 end

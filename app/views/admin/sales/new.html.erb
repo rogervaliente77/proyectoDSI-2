@@ -1,6 +1,5 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
-    <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
         
@@ -9,7 +8,6 @@
         <% end %>
     </div>
 
-    <!-- Content Row -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow mb-4">
@@ -24,16 +22,20 @@
                       <div class="alert alert-danger"><%= flash[:alert] %></div>
                     <% end %>
 
-                    <%= simple_form_for :sale, url: admin_sales_create_path, method: :post, html: { class: "needs-validation", id: "form-control", novalidate: false }, data: { turbo: false } do |form| %> 
+                    <%= simple_form_for :sale, url: admin_sales_path, method: :post, html: { class: "needs-validation", 
+                      id: "form-control", novalidate: false }, data: { turbo: false } do |form| %>
                         <div class="row">
                           <!-- Campo Cliente -->
-                          <div class="col-sm-4 mb-3">
+                          <div class="col-sm-3 mb-3">
                             <%= form.label :client_name, "Nombre del cliente", class: "form-label" %>
                             <div class="input-group">
+                              <!-- Campo Oculto para el ID del cliente -->
+                              <%= form.hidden_field :client_id, id: "client-id-input" %>
+
                               <%= form.text_field :client_name, 
                                                   class: "form-control", 
                                                   id: "client-name-input", 
-                                                  placeholder: "Escriba un nombre o busque...",
+                                                  placeholder: "Escriba un nombre...",
                                                   autocomplete: "off",
                                                   required: true %>
                               <div class="input-group-append">
@@ -44,14 +46,25 @@
                             </div>
                           </div>
 
-                          <!-- Selección de Tipo Documento DTE -->
-                          <div class="col-sm-4 mb-3">
+                          <!-- Selección de Tipo Documento -->
+                          <div class="col-sm-3 mb-3">
                             <%= form.input :tipo_documento_dte_id,
                                            label: "Tipo de Comprobante",
                                            collection: TipoDocumentoDte.where(activo: true).map { |d| [d.name, d.id.to_s] },
                                            include_blank: "-- Seleccione Comprobante --",
                                            required: true,
                                            input_html: { class: "form-control" } %>
+                          </div>
+
+                          <!-- Condición Tributaria -->
+                          <div class="col-sm-3 mb-3">
+                              <%= form.input :condicion_tributaria,
+                                            label: "Condición Tributaria",
+                                            collection: [["Venta Gravada", "gravado"], ["Venta Exenta", "exento"], ["Venta No Sujeta", "no_sujeta"]],
+                                            selected: "gravado",
+                                            prompt: false,
+                                            input_html: { class: "form-control" } %>
+                        
                           </div>
 
                           <% if current_user.puede_vender? %>
@@ -61,7 +74,7 @@
                               <%= form.hidden_field :caja_id, value: cajero.caja.id %>
                               <%= form.hidden_field :sucursal_id, value: cajero.caja.sucursal_id %>
 
-                              <div class="col-sm-4 mb-3">
+                              <div class="col-sm-3 mb-3">
                                 <%= form.input :caja_info,
                                       label: "Sucursal / Caja",
                                       as: :string,
@@ -77,16 +90,16 @@
 
                         <div class="mb-3 text-right">
                             <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#productModal">
-                                <i class="fas fa-plus fa-sm text-white-50"></i> Agregar producto
+                                <i class="fas fa-plus fa-sm text-white-50"></i> Agregar producto / servicio
                             </button>
                         </div>
 
-                        <!-- Tabla de productos agregados -->
+                        <!-- Tabla de productos -->
                         <div class="table-responsive">
                           <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                  <th>Producto</th>
+                                  <th>Producto / Servicio</th>
                                   <th>Cantidad</th>
                                   <th>Precio Unitario</th>
                                   <th>Descuento %</th>
@@ -115,7 +128,7 @@
                         <% end %>
                     <% end %>
 
-                    <!-- Modales de búsqueda (se mantienen exactamente iguales) -->
+                    <!-- Modales de búsqueda -->
                     <div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-labelledby="clientModalLabel" aria-hidden="true">
                       <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
@@ -126,7 +139,7 @@
                             </button>
                           </div>
                           <div class="modal-body">
-                            <input type="text" id="search-client-modal-input" class="form-control mb-3" placeholder="Escriba el nombre del cliente para buscar..." autocomplete="off">
+                            <input type="text" id="search-client-modal-input" class="form-control mb-3" placeholder="Escriba el nombre del cliente..." autocomplete="off">
                             <table class="table table-bordered table-striped">
                               <thead>
                                 <tr>
@@ -149,7 +162,7 @@
                       <div class="modal-dialog modal-xl" role="document">
                         <div class="modal-content">
                           <div class="modal-header">
-                            <h5 class="modal-title" id="productModalLabel">Buscar producto</h5>
+                            <h5 class="modal-title" id="productModalLabel">Buscar producto o servicio</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                               <span aria-hidden="true">&times;</span>
                             </button>
@@ -185,7 +198,6 @@
 </div>
 
 <script>
-// Mantén el mismo JavaScript que ya tenías funcional
 document.addEventListener("turbo:load", initSalesScript);
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initSalesScript);
@@ -211,6 +223,17 @@ function initSalesScript() {
   let clientSearchTimeout = null;
   let productSearchTimeout = null;
 
+  // --- Limpiar client_id si el usuario escribe manualmente en el nombre ---
+  const clientNameInput = document.getElementById("client-name-input");
+  if (clientNameInput && !clientNameInput.dataset.boundIdClear) {
+    clientNameInput.dataset.boundIdClear = "true";
+    clientNameInput.addEventListener("input", function () {
+      const clientIdInput = document.getElementById("client-id-input");
+      if (clientIdInput) clientIdInput.value = ""; // Se vuelve cliente externo/manual
+    });
+  }
+
+  // --- Búsqueda de Clientes en el Modal ---
   const searchClientModalInput = document.getElementById("search-client-modal-input");
   if (searchClientModalInput && !searchClientModalInput.dataset.bound) {
     searchClientModalInput.dataset.bound = "true";
@@ -227,7 +250,7 @@ function initSalesScript() {
       clientSearchTimeout = setTimeout(async () => {
         resultsContainer.innerHTML = `<tr><td colspan="2" class="text-center text-info"><i class="fas fa-spinner fa-spin"></i> Buscando clientes...</td></tr>`;
         try {
-          const response = await fetch(`/admin/sales/search_clients.json?q=${encodeURIComponent(query)}`);
+          const response = await fetch(`<%= search_clients_admin_sales_path(format: :json) %>?q=${encodeURIComponent(query)}`);
           if (!response.ok) return;
           const clients = await response.json();
           resultsContainer.innerHTML = "";
@@ -236,12 +259,21 @@ function initSalesScript() {
             return;
           }
           clients.forEach(client => {
+            console.log(client);
             const clientName = typeof client === 'string' ? client : client.nombre;
+            // Mongoid puede retornar el ID dentro de $oid o como string directamente
+            const clientId = client.id || (client._id ? (client._id.$oid || client._id) : "");
+
             resultsContainer.innerHTML += `
               <tr>
                 <td>${clientName}</td>
                 <td class="text-center">
-                  <button type="button" class="btn btn-sm btn-success select-client-btn" data-name="${clientName}">Seleccionar</button>
+                  <button type="button" 
+                          class="btn btn-sm btn-success select-client-btn" 
+                          data-id="${clientId}" 
+                          data-name="${clientName}">
+                    Seleccionar
+                  </button>
                 </td>
               </tr>`;
           });
@@ -252,6 +284,7 @@ function initSalesScript() {
     });
   }
 
+  // --- Búsqueda de Productos ---
   const searchProductInput = document.getElementById("search-product-input");
   if (searchProductInput && !searchProductInput.dataset.bound) {
     searchProductInput.dataset.bound = "true";
@@ -305,17 +338,27 @@ function initSalesScript() {
     });
   }
 
+  // --- Delegación de Clics Global ---
   if (!document.body.dataset.salesDelegationBound) {
     document.body.dataset.salesDelegationBound = "true";
     document.addEventListener("click", function (e) {
+      
+      // Seleccionar Cliente
       const clientBtn = e.target.closest(".select-client-btn");
       if (clientBtn) {
         const clientName = clientBtn.dataset.name;
+        const clientId = clientBtn.dataset.id;
+
         const clientInput = document.getElementById("client-name-input");
+        const clientIdInput = document.getElementById("client-id-input");
+
         if (clientInput) clientInput.value = clientName;
+        if (clientIdInput) clientIdInput.value = clientId; // Asigna el client_id oculto
+
         closeBootstrapModal('clientModal');
       }
 
+      // Seleccionar Producto
       const productBtn = e.target.closest(".select-product-btn");
       if (productBtn) {
         const id = productBtn.dataset.id;
