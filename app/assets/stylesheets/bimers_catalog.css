@@ -89,7 +89,7 @@
        3. NAVEGACIÓN PRINCIPAL
        ========================================== */
     .main-nav {
-      background-color: rgba(18, 22, 31, 0.95);
+      background-color: rgba(174, 185, 209, 0.95);
       backdrop-filter: blur(10px);
       position: sticky;
       top: 0;
@@ -105,8 +105,12 @@
     .logo-container {
       display: flex;
       align-items: center;
-      gap: 12px;
-      cursor: pointer;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
     }
 
     .bimers-stripes {
@@ -144,6 +148,25 @@
       font-weight: 800;
       letter-spacing: 4px;
       color: var(--cyan-bimers);
+    }
+
+    .navbar-logo-img {
+      height: 50px;          /* Ajusta la altura máxima para que quepa en el header */
+      width: auto;           /* Mantiene la relación de aspecto original */
+      max-width: 180px;      /* Previene que imágenes muy anchas desborden */
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+    
+    .logo-container:hover .navbar-logo-img {
+      transform: scale(1.03); /* Efecto sutil al pasar el cursor */
+    }
+    
+    /* Ajuste responsivo para pantallas pequeñas */
+    @media (max-width: 768px) {
+      .navbar-logo-img {
+        height: 38px;
+      }
     }
 
     .nav-links {
