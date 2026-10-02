@@ -218,6 +218,7 @@ Rails.application.routes.draw do
       collection do
         get :detalle_venta
         get :generate_pdf, as: :generar_comprobante
+        get :generate_ticket, as: :generar_ticket
         get :search_by_code, as: :search_by_code
         get :search_clients, as: :search_clients
         get :movimientos_caja

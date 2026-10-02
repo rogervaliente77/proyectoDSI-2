@@ -8,7 +8,7 @@ module Admin
 
     def index
       @sales = Sale.all
-      
+
       # Búsqueda por código interno de venta
       if params[:code].present?
         query = /#{Regexp.escape(params[:code])}/i
@@ -29,20 +29,20 @@ module Admin
     end
 
     def create
-      if !@current_user.puede_vender?
-        redirect_to admin_sales_new_path, alert: "Esta acción solo la puede hacer un cajero"
+      unless @current_user.puede_vender?
+        redirect_to admin_sales_new_path, alert: 'Esta acción solo la puede hacer un cajero'
         return
       end
 
       @sale = Sale.new(sale_params)
-      @sale.status = "confirmed"
+      @sale.status = 'confirmed'
       @sale.sold_at = Time.now
       @sale.user_id = @current_user.id
 
       if @sale.save
         create_product_histories(@sale)
         registrar_movimiento_caja(@sale) # Registra el movimiento centralizado de caja
-        
+
         redirect_to admin_sales_path, notice: "Venta registrada con éxito. Código: #{@sale.code}"
       else
         flash.now[:alert] = "Error al registrar la venta: #{@sale.errors.full_messages.to_sentence}"
@@ -57,9 +57,19 @@ module Admin
 
     def generate_pdf
       @sale = Sale.find(params[:id])
-      pdf = SalePdf.new(@sale).generate
-      send_data pdf,
+      pdf_data = SalePdf.new(@sale).render
+      send_data pdf_data,
                 filename: "comprobante_#{@sale.code}.pdf",
+                type: 'application/pdf',
+                disposition: 'inline'
+    end
+
+    def generate_ticket
+      @sale = Sale.find(params[:id])
+      pdf_data = SaleTicketPdf.new(@sale).render
+      
+      send_data pdf_data,
+                filename: "ticket_#{@sale.code}.pdf",
                 type: 'application/pdf',
                 disposition: 'inline'
     end
@@ -93,7 +103,7 @@ module Admin
           end
         }
       else
-        render json: { error: "Venta no encontrada o sin productos disponibles" }, status: :not_found
+        render json: { error: 'Venta no encontrada o sin productos disponibles' }, status: :not_found
       end
     end
 
@@ -103,7 +113,8 @@ module Admin
         query = /#{Regexp.escape(params[:q])}/i
         clients = clients.where(nombre: query)
       end
-      render json: clients.limit(10).as_json(only: [:_id, :nombre, :tipo_documento_id, :num_documento, :nrc, :email, :telefono, :direccion])
+      render json: clients.limit(10).as_json(only: %i[_id nombre tipo_documento_id num_documento nrc email
+                                                      telefono direccion])
     end
 
     def movimientos_caja
@@ -111,20 +122,14 @@ module Admin
       @movimientos = HeadMovimientoCaja.all
 
       # Si es Admin / Super Admin, filtramos opcionalmente por Sucursal y Caja
-      if current_user.role.name = "admin" ||  current_user.role.name = "super_admin"
-        if params[:sucursal_id].present?
-          @movimientos = @movimientos.where(sucursal_id: params[:sucursal_id])
-        end
+      if current_user.role.name = 'admin' || current_user.role.name = 'super_admin'
+        @movimientos = @movimientos.where(sucursal_id: params[:sucursal_id]) if params[:sucursal_id].present?
 
-        if params[:caja_id].present?
-          @movimientos = @movimientos.where(caja_id: params[:caja_id])
-        end
+        @movimientos = @movimientos.where(caja_id: params[:caja_id]) if params[:caja_id].present?
       else
         # Si es cajero o rol restrictivo, solo ve su sucursal/caja asignada
         cajero = Cajero.find_by(user_id: current_user.id)
-        if cajero.present?
-          @movimientos = @movimientos.where(caja_id: cajero.caja_id)
-        end
+        @movimientos = @movimientos.where(caja_id: cajero.caja_id) if cajero.present?
       end
 
       # Otros filtros habituales (fechas, etc.)
@@ -136,7 +141,7 @@ module Admin
     end
 
     def consultar_movimientos
-      #binding.pry
+      # binding.pry
       movimientos = HeadMovimientoCaja.all
 
       # 1. Control de Permisos y Filtro de Cajero
@@ -149,16 +154,24 @@ module Admin
 
         # Filtro por Caja
         if params[:caja_id].present?
-          caja_id = BSON::ObjectId.from_string(params[:caja_id]) rescue params[:caja_id]
+          caja_id = begin
+            BSON::ObjectId.from_string(params[:caja_id])
+          rescue StandardError
+            params[:caja_id]
+          end
           movimientos = movimientos.where(caja_id: caja_id)
         end
 
         # Filtro por Sucursal
         if params[:sucursal_id].present?
-          sucursal_id = BSON::ObjectId.from_string(params[:sucursal_id]) rescue params[:sucursal_id]
+          sucursal_id = begin
+            BSON::ObjectId.from_string(params[:sucursal_id])
+          rescue StandardError
+            params[:sucursal_id]
+          end
           movimientos = movimientos.where(sucursal_id: sucursal_id)
         end
-        
+
         # Filtro por Cajero (Conversión a BSON::ObjectId)
         if params[:cajero_id].present?
           begin
@@ -225,7 +238,7 @@ module Admin
       @movimiento = HeadMovimientoCaja.find(params[:id])
       # Aquí adaptas a tu lógica de generación de PDF o descarga de DTE en JSON/PDF
       respond_to do |format|
-        format.html { redirect_to admin_sales_path, notice: "Descargando comprobante..." }
+        format.html { redirect_to admin_sales_path, notice: 'Descargando comprobante...' }
         format.pdf do
           # Lógica para renderizar tu PDF de comprobante
         end
@@ -244,26 +257,24 @@ module Admin
         :tipo_documento_dte_id,
         :condicion_tributaria,
         :total_amount,
-        product_sales_attributes: [:product_id, :quantity, :unit_price, :discount, :offer_type, :subtotal]
+        product_sales_attributes: %i[product_id quantity unit_price discount_porcentage discount offer_type subtotal]
       )
 
       # Si en el modelo Sale el campo se llama :tipo_impuesto
-      if permitted[:condicion_tributaria].present?
-        permitted[:tipo_impuesto] = permitted.delete(:condicion_tributaria)
-      end
+      permitted[:tipo_impuesto] = permitted.delete(:condicion_tributaria) if permitted[:condicion_tributaria].present?
 
       permitted
     end
 
     def registrar_movimiento_caja(sale)
       monto = sale.total_amount || 0.0
-      
+
       # Si hay relación directa con el modelo Client registrado, traemos sus datos
       cliente_db = sale.client if sale.respond_to?(:client) && sale.client_id.present?
 
       head = HeadMovimientoCaja.new(
         comprobante_codigo: sale.code,
-        origen_tipo: "VentaProducto",
+        origen_tipo: 'VentaProducto',
         origen_id: sale.id,
         fecha: sale.sold_at,
         sucursal_id: sale.sucursal_id,
@@ -272,7 +283,7 @@ module Admin
         tipo_documento_dte_id: sale.tipo_documento_dte_id,
         user_id: sale.user_id,
         monto_total: monto,
-        
+
         # Guardado de la información del cliente (registrado o manual)
         client_id: sale.respond_to?(:client_id) ? sale.client_id : nil,
         client_name: sale.client_name,
@@ -299,7 +310,7 @@ module Admin
       # Registro del detalle en DetMovimientoCaja
       sale.product_sales.each do |ps|
         tipo_item = ps.product.respond_to?(:tipo_producto) && ps.product.tipo_producto == 'servicio' ? 'servicio' : 'producto'
-        
+
         DetMovimientoCaja.create!(
           head_movimiento_caja_id: head.id,
           product_id: ps.product_id,
@@ -308,7 +319,7 @@ module Admin
           cantidad: ps.quantity,
           precio_unitario: ps.unit_price,
           descuento: ps.discount || 0.0,
-          condicion_tributaria: sale.condicion_tributaria || "gravado",
+          condicion_tributaria: sale.condicion_tributaria || 'gravado',
           subtotal: ps.subtotal || (ps.quantity * ps.unit_price)
         )
       end
@@ -319,7 +330,7 @@ module Admin
     end
 
     def check_pending_devoluciones
-      if current_user && current_user.role && ["admin", "super_admin"].include?(current_user.role.name)
+      if current_user && current_user.role && %w[admin super_admin].include?(current_user.role.name)
         @pending_devoluciones_count = Devolucion.where(is_authorized: false).count
       else
         @pending_devoluciones_count = 0
@@ -342,7 +353,7 @@ module Admin
           quantity: ps.quantity,
           price: ps.unit_price,
           discount: ps.discount || 0,
-          movement_type: "Salida",
+          movement_type: 'Salida',
           sale_id: sale.id,
           stock_before: ps.product.quantity + ps.quantity,
           current_stock: ps.product.quantity,

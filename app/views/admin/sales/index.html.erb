@@ -111,9 +111,23 @@
                   <%= link_to detalle_venta_admin_sales_path(id: sale.id), class: "btn btn-xs btn-outline-primary" do %>
                     Ver detalle
                   <% end %>
-                  <%= link_to generar_comprobante_admin_sales_path(id: sale.id), target: "_blank", class: "btn btn-xs btn-outline-secondary" do %>
-                    <i class="fa fa-print"></i> Comprob
-                  <% end %>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-xs btn-outline-secondary dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fa fa-print"></i> Imprimir
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <%= link_to generar_comprobante_admin_sales_path(id: sale.id), target: "_blank", class: "dropdown-item text-dark" do %>
+                          <i class="fa fa-file-text-o text-primary me-1"></i> Comprobante (Carta)
+                        <% end %>
+                      </li>
+                      <li>
+                        <%= link_to generar_ticket_admin_sales_path(id: sale.id), target: "_blank", class: "dropdown-item text-dark" do %>
+                          <i class="fa fa-ticket text-success me-1"></i> Ticket (80mm)
+                        <% end %>
+                      </li>
+                    </ul>
+                  </div>
                 </td>
               </tr>
             <% end %>
