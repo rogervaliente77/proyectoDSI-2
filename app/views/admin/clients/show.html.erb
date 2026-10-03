@@ -4,18 +4,18 @@
     <div>
       <h1 class="h3 mb-0 text-gray-800"><%= @client.nombre %></h1>
       <span class="text-muted small">
-        <i class="fas fa-phone me-1"></i><%= @client.telefono.presence || 'Sin teléfono' %> | 
-        <i class="fas fa-envelope me-1"></i><%= @client.email.presence || 'Sin correo' %>
+        <i class="fas fa-phone mr-1"></i><%= @client.telefono.presence || 'Sin teléfono' %> | 
+        <i class="fas fa-envelope mr-1"></i><%= @client.email.presence || 'Sin correo' %>
       </span>
     </div>
-    <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <%= link_to admin_clients_path, data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm" do %>
-        <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Volver a Clientes
+    <div class="d-flex mt-2 mt-sm-0">
+      <%= link_to admin_clients_path, data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm mr-2" do %>
+        <i class="fas fa-arrow-left fa-sm text-white-50 mr-1"></i> Volver a Clientes
       <% end %>
       
-      <!-- BOTÓN QUE ACTIVA EL MODAL DE NUEVO VEHÍCULO -->
-      <button type="button" class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoVehiculo">
-        <i class="fas fa-car me-1"></i> Agregar Vehículo
+      <!-- BOTÓN QUE ACTIVA EL MODAL DE NUEVO VEHÍCULO (Bootstrap 4: data-toggle y data-target) -->
+      <button type="button" class="btn btn-sm btn-success shadow-sm" data-toggle="modal" data-target="#modalNuevoVehiculo">
+        <i class="fas fa-car mr-1"></i> Agregar Vehículo
       </button>
     </div>
   </div>
@@ -24,12 +24,16 @@
   <% if flash[:notice] %>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       <%= flash[:notice] %>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
   <% elsif flash[:alert] %>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
       <%= sanitize(flash[:alert]) %>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
   <% end %>
 
@@ -44,10 +48,9 @@
           <% @client_cars.each do |car| %>
             <div class="col-md-6 col-lg-4 mb-3">
               <div class="card border-left-info shadow h-100">
-                <!-- flex-column y justify-content-between fuerzan al contenido a distribuirse verticalmente -->
                 <div class="card-body d-flex flex-column justify-content-between">
                   
-                  <!-- SECCIÓN SUPERIOR DE LA CARD (Crece para ocupar espacio) -->
+                  <!-- SECCIÓN SUPERIOR DE LA CARD -->
                   <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                       <div class="text-xs font-weight-bold text-info text-uppercase">
@@ -55,15 +58,15 @@
                       </div>
                       <!-- BOTÓN DE EDICIÓN -->
                       <button type="button" class="btn btn-sm btn-light text-primary border-0 py-0 px-1" 
-                              data-bs-toggle="modal" 
-                              data-bs-target="#modalEditarVehiculo_<%= car.id %>" 
+                              data-toggle="modal" 
+                              data-target="#modalEditarVehiculo_<%= car.id %>" 
                               title="Editar Vehículo">
                         <i class="fas fa-edit"></i>
                       </button>
                     </div>
 
                     <div class="row no-gutters align-items-center">
-                      <div class="col me-2">
+                      <div class="col mr-2">
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                           <%= car.marca %> <%= car.modelo %> (<%= car.anio %>)
                         </div>
@@ -72,9 +75,9 @@
                           <strong>VIN:</strong> <%= car.vin.presence || 'N/A' %><br>
                           <strong>Estado:</strong> 
                           <% if car.is_active? %>
-                              <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Activo</span>
+                              <span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i>Activo</span>
                           <% else %>
-                              <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactivo</span>
+                              <span class="badge badge-danger"><i class="fas fa-times-circle mr-1"></i>Inactivo</span>
                           <% end %>
                         </div>
                       </div>
@@ -84,13 +87,13 @@
                     </div>
                   </div>
 
-                  <!-- SECCIÓN INFERIOR DE LA CARD (Siempre fija al fondo) -->
+                  <!-- SECCIÓN INFERIOR DE LA CARD -->
                   <div>
                     <hr class="my-3">
                     <div class="d-flex justify-content-between align-items-center">
-                      <span class="badge bg-secondary"><%= car.service_orders.count %> Orden(es)</span>
+                      <span class="badge badge-secondary"><%= car.service_orders.count %> Orden(es)</span>
                       <%= link_to new_admin_client_car_service_order_path(car), data: { turbo: false }, class: "btn btn-sm btn-primary shadow-sm" do %>
-                        <i class="fas fa-plus-circle me-1"></i> Crear Factura de servicio
+                        <i class="fas fa-plus-circle mr-1"></i> Crear Factura de servicio
                       <% end %>
                     </div>
                   </div>
@@ -99,15 +102,17 @@
               </div>
             </div>
 
-            <!-- MODAL DE EDICIÓN DE VEHÍCULO (Uno por cada registro) -->
+            <!-- MODAL DE EDICIÓN DE VEHÍCULO -->
             <div class="modal fade" id="modalEditarVehiculo_<%= car.id %>" tabindex="-1" aria-labelledby="modalEditarVehiculoLabel_<%= car.id %>" aria-hidden="true">
               <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                   <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title h6 fw-bold m-0" id="modalEditarVehiculoLabel_<%= car.id %>">
-                      <i class="fas fa-edit me-1"></i> Editar Vehículo: <%= car.marca %> <%= car.modelo %> (<%= car.placa %>)
+                    <h5 class="modal-title h6 font-weight-bold m-0" id="modalEditarVehiculoLabel_<%= car.id %>">
+                      <i class="fas fa-edit mr-1"></i> Editar Vehículo: <%= car.marca %> <%= car.modelo %> (<%= car.placa %>)
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
                   </div>
 
                   <%= simple_form_for [@client, car], url: admin_client_client_car_path(@client, car), method: :patch, data: { turbo: false } do |f| %>
@@ -140,12 +145,12 @@
                         <div class="col-12">
                           <div class="card bg-light border-0">
                             <div class="card-body py-2 px-3">
-                              <div class="form-check form-switch m-0">
-                                <%= f.check_box :is_active, class: "form-check-input" %>
-                                <%= f.label :is_active, "Vehículo Activo", class: "form-check-label fw-bold text-dark me-2" %>
-                                <div class="form-text text-muted m-0" style="font-size: 0.8rem;">
+                              <div class="custom-control custom-switch">
+                                <%= f.check_box :is_active, class: "custom-control-input", id: "edit_is_active_#{car.id}" %>
+                                <%= f.label :is_active, "Vehículo Activo", class: "custom-control-label font-weight-bold text-dark mr-2", for: "edit_is_active_#{car.id}" %>
+                                <small class="form-text text-muted m-0">
                                   Desmarca esta casilla si el vehículo ya no recibe mantenimiento en el taller.
-                                </div>
+                                </small>
                               </div>
                             </div>
                           </div>
@@ -154,8 +159,8 @@
                     </div>
 
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                      <%= f.submit "Actualizar Vehículo", class: "btn btn-warning btn-sm shadow-sm fw-bold" %>
+                      <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+                      <%= f.submit "Actualizar Vehículo", class: "btn btn-warning btn-sm shadow-sm font-weight-bold" %>
                     </div>
                   <% end %>
                 </div>
@@ -179,10 +184,12 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title h6 fw-bold m-0" id="modalNuevoVehiculoLabel">
-          <i class="fas fa-car me-1"></i> Agregar Vehículo a <%= @client.nombre %>
+        <h5 class="modal-title h6 font-weight-bold m-0" id="modalNuevoVehiculoLabel">
+          <i class="fas fa-car mr-1"></i> Agregar Vehículo a <%= @client.nombre %>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
 
       <%= simple_form_for [@client, ClientCar.new], url: admin_client_client_cars_path(@client), data: { turbo: false } do |f| %>
@@ -215,12 +222,12 @@
             <div class="col-12">
               <div class="card bg-light border-0">
                 <div class="card-body py-2 px-3">
-                  <div class="form-check form-switch m-0">
-                    <%= f.check_box :is_active, class: "form-check-input" %>
-                    <%= f.label :is_active, "Vehículo Activo", class: "form-check-label fw-bold text-dark me-2" %>
-                    <div class="form-text text-muted m-0" style="font-size: 0.8rem;">
+                  <div class="custom-control custom-switch">
+                    <%= f.check_box :is_active, class: "custom-control-input", id: "new_is_active" %>
+                    <%= f.label :is_active, "Vehículo Activo", class: "custom-control-label font-weight-bold text-dark mr-2", for: "new_is_active" %>
+                    <small class="form-text text-muted m-0">
                       Desmarca esta casilla si el vehículo ya no recibe mantenimiento en el taller.
-                    </div>
+                    </small>
                   </div>
                 </div>
               </div>
@@ -229,7 +236,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
           <%= f.submit "Guardar Vehículo", class: "btn btn-success btn-sm shadow-sm" %>
         </div>
       <% end %>

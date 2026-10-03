@@ -4,6 +4,7 @@ class SupplierInvoice
   include Mongoid::Timestamps
 
   # Datos de Factura
+  field :internal_number, type: String  # Código interno único (autogenerado)
   field :invoice_number, type: String   # Número impreso por el proveedor
   field :voucher_number, type: String   # Código interno automático (FAC-XXXXXXX)
   field :voucher_type, type: String, default: 'ccf'
@@ -44,11 +45,15 @@ class SupplierInvoice
   validates :total_amount, numericality: { greater_than: 0 }
 
   # Callbacks
-  before_validation :generate_internal_voucher_number, on: :create
+  before_validation :generate_internal_number, on: :create
   before_save :calculate_tax_totals
   before_save :recalculate_and_sync_credit
   after_create :generate_installments_plan!
   after_create :procesar_pago_contado_inicial
+
+  def set_default_internal_number!
+    self.internal_number ||= generate_unique_code
+  end
 
   def date_status
     return 'pagada' if balance <= 0
@@ -117,13 +122,14 @@ class SupplierInvoice
   private
 
   # Genera el código interno único (Ej: FAC-8A3F19X)
-  def generate_internal_voucher_number
-    return if voucher_number.present?
+  def generate_internal_number
+    self.internal_number ||= generate_unique_code
+  end
 
+  def generate_unique_code
     loop do
-      random_code = SecureRandom.alphanumeric(7).upcase
-      self.voucher_number = "FAC-#{random_code}"
-      break unless SupplierInvoice.where(voucher_number: voucher_number).exists?
+      random_code = "FAC-#{SecureRandom.alphanumeric(7).upcase}"
+      break random_code unless SupplierInvoice.where(internal_number: random_code).exists?
     end
   end
 

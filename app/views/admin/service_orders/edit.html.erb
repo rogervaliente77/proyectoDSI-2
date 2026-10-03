@@ -4,8 +4,11 @@
       Editar Orden N° <%= @service_order.numero_orden.presence || @service_order.id %>
     </h1>
     <div>
+      <%= link_to admin_service_orders_path, data: { turbo: false }, class: "btn btn-sm btn-outline-dark shadow-sm" do %>
+        <i class="fas fa-list mr-1"></i> Ver Todas las Órdenes
+      <% end %>
       <%= link_to admin_service_order_path(@service_order), data: { turbo: false }, class: "btn btn-sm btn-info text-white shadow-sm me-1" do %>
-        <i class="fas fa-eye fa-sm me-1"></i> Ver Orden
+        <i class="fas fa-eye fa-sm me-1"></i> Imprimir Orden
       <% end %>
       <%= link_to admin_client_path(@service_order.client_car.client), data: { turbo: false }, class: "btn btn-sm btn-secondary shadow-sm" do %>
         <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Volver al Cliente

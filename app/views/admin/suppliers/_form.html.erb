@@ -31,17 +31,9 @@
       <%= f.label :email, "Correo Electrónico", class: "form-label fw-semibold text-dark" %>
       <%= f.email_field :email, class: "form-control", placeholder: "ventas@proveedor.com" %>
     </div>
-    <div class="col-12 col-md-6">
+    <div class="col-12 col-md-12">
       <%= f.label :contact_person, "Persona de Contacto / Vendedor", class: "form-label fw-semibold text-dark" %>
       <%= f.text_field :contact_person, class: "form-control", placeholder: "Ej. Juan Pérez" %>
-    </div>
-    <div class="col-12 col-md-3">
-      <%= f.label :credit_days, "Días de Crédito", class: "form-label fw-semibold text-dark" %>
-      <%= f.number_field :credit_days, class: "form-control", placeholder: "30", min: 0 %>
-    </div>
-    <div class="col-12 col-md-3">
-      <%= f.label :credit_limit, "Límite de Crédito ($)", class: "form-label fw-semibold text-dark" %>
-      <%= f.number_field :credit_limit, step: "0.01", class: "form-control", placeholder: "5000.00", min: 0 %>
     </div>
     <div class="col-12">
       <%= f.label :address, "Dirección Física", class: "form-label fw-semibold text-dark" %>

@@ -1,7 +1,7 @@
 module Admin
   class ServiceOrdersController < Admin::ApplicationController
     before_action :set_client_car, only: [:new, :create]
-    before_action :set_service_order, only: [:show, :edit, :update, :destroy, :print_pdf]
+    before_action :set_service_order, only: [:show, :edit, :update, :destroy, :print_pdf, :print_ticket_pdf]
     layout 'dashboard'
 
     def index
@@ -83,6 +83,19 @@ module Admin
         end
         format.all do
           send_data pdf.render, filename: "Orden_#{@service_order.numero_orden}_BIMERS.pdf", type: 'application/pdf', disposition: 'inline'
+        end
+      end
+    end
+
+    def print_ticket_pdf
+      pdf = GenerateMantenimientoServiceTicketPdf.new(@service_order)
+      
+      respond_to do |format|
+        format.pdf do
+          send_data pdf.render, filename: "Ticket_Orden_#{@service_order.numero_orden}_BIMERS.pdf", type: 'application/pdf', disposition: 'inline'
+        end
+        format.all do
+          send_data pdf.render, filename: "Ticket_Orden_#{@service_order.numero_orden}_BIMERS.pdf", type: 'application/pdf', disposition: 'inline'
         end
       end
     end

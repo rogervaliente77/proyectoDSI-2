@@ -128,6 +128,7 @@ Rails.application.routes.draw do
     resources :service_orders do
       member do
         get :print_pdf
+        get :print_ticket_pdf
       end
     end
 

@@ -10,16 +10,40 @@
       <% end %>
     </div>
     
-    <div>
-      <%= link_to print_pdf_admin_service_order_path(@service_order, format: :pdf), 
-            target: "_blank", 
-            class: "btn btn-sm btn-primary shadow-sm me-1", 
-            data: { turbo: false } do %>
-        <i class="fas fa-print me-1"></i> Imprimir Documento
-      <% end %>
+    <div class="d-flex align-items-center">
+      <!-- BOTÓN DESPLEGABLE ÚNICO -->
+      <div class="dropdown mr-2">
+        <button type="button" 
+                class="btn btn-sm btn-primary shadow-sm dropdown-toggle" 
+                data-toggle="dropdown" 
+                aria-haspopup="true" 
+                aria-expanded="false">
+          <i class="fas fa-print mr-1"></i> Imprimir Documento
+        </button>
 
+        <!-- Menú Desplegable con las Opciones -->
+        <div class="dropdown-menu shadow">
+          <h6 class="dropdown-header">Selecciona el formato</h6>
+          
+          <%= link_to print_pdf_admin_service_order_path(@service_order, format: :pdf), 
+                      target: "_blank", 
+                      class: "dropdown-item small", 
+                      data: { turbo: false } do %>
+            <i class="fas fa-file-pdf mr-2 text-primary"></i> Tamaño Carta (PDF)
+          <% end %>
+
+          <%= link_to print_ticket_pdf_admin_service_order_path(@service_order, format: :pdf), 
+                      target: "_blank", 
+                      class: "dropdown-item small", 
+                      data: { turbo: false } do %>
+            <i class="fas fa-receipt mr-2 text-info"></i> Ticket Térmico (TMU)
+          <% end %>
+        </div>
+      </div>
+
+      <!-- BOTÓN REGRESAR -->
       <%= link_to admin_service_orders_path, data: { turbo: false }, class: "btn btn-sm btn-outline-dark shadow-sm" do %>
-        <i class="fas fa-list me-1"></i> Ver Todas las Órdenes
+        <i class="fas fa-list mr-1"></i> Ver Todas las Órdenes
       <% end %>
     </div>
   </div>

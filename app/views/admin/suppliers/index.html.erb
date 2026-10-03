@@ -59,7 +59,7 @@
               <th scope="col" class="ps-3 text-center" style="width: 60px;">#</th>
               <th scope="col">Proveedor / Razón Social</th>
               <th scope="col">Contacto / Teléfono</th>
-              <th scope="col" class="text-center">Días de Crédito</th>
+              <%# <th scope="col" class="text-center">Días de Crédito</th> %>
               <th scope="col" class="text-center">Deuda Pendiente</th>
               <th scope="col" class="text-center">Estado</th>
               <th scope="col" class="text-center pe-3" style="width: 120px;">Acciones</th>
@@ -86,11 +86,11 @@
                       <i class="fas fa-phone me-1"></i><%= sup.phone.presence || "N/A" %>
                     </small>
                   </td>
-                  <td class="text-center">
+                  <!--<td class="text-center">
                     <span class="badge bg-light text-dark border px-2 py-1">
                       <i class="fas fa-clock me-1 text-muted"></i><%= sup.credit_days || 0 %> Días
                     </span>
-                  </td>
+                  </td>-->
                   <td class="text-center fw-bold <%= debt > 0 ? 'text-danger' : 'text-success' %>">
                     <%= number_to_currency(debt) %>
                   </td>
