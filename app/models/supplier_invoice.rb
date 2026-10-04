@@ -128,7 +128,7 @@ class SupplierInvoice
 
   def generate_unique_code
     loop do
-      random_code = "FAC-#{SecureRandom.alphanumeric(7).upcase}"
+      random_code = "FAC-#{format('%07d', SecureRandom.random_number(10_000_000))}"
       break random_code unless SupplierInvoice.where(internal_number: random_code).exists?
     end
   end

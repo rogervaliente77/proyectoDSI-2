@@ -47,7 +47,7 @@ class SupplierPayment
 
     # 1. Crear el Encabezado de Movimiento de Caja
     head = HeadMovimientoCaja.create!(
-      comprobante_codigo: inv.voucher_number,
+      comprobante_codigo: inv.internal_number,
       origen_tipo: "PagoProveedor",
       origen_id: self.id,
       fecha: payment_date || Time.current,

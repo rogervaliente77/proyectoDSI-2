@@ -8,6 +8,7 @@ class Sale
   field :total_amount, type: Float
   field :code, type: String
   field :tipo_impuesto, type: String, default: "gravado"
+  field :forma_pago, type: String
 
   field :delivery_method, type: String
   field :was_delivered, type: Boolean, default: false

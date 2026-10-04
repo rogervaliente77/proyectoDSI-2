@@ -216,13 +216,24 @@ module Admin
     def detalle_movimiento
       @movimiento = HeadMovimientoCaja.find(params[:id])
 
-      if @movimiento.service_order_id.present?
-        @service_order = ServiceOrder.where(id: @movimiento.service_order_id).first
-      elsif @movimiento.sale_id.present?
-        @sale = Sale.where(id: @movimiento.sale_id).first
+      # 1. Pago a Proveedor
+      if @movimiento.origen_tipo == "PagoProveedor" || @movimiento.supplier_invoice_id.present?
+        @supplier_invoice = SupplierInvoice.where(id: @movimiento.supplier_invoice_id).first
+        if @supplier_invoice.present? && @movimiento.origen_id.present?
+          @supplier_payment = @supplier_invoice.supplier_payments.where(id: @movimiento.origen_id).first
+        end
+
+      # 2. Venta de Servicio
+      elsif @movimiento.service_order_id.present? || @movimiento.origen_tipo == "VentaServicio"
+        @service_order = ServiceOrder.where(id: @movimiento.service_order_id || @movimiento.origen_id).first
+
+      # 3. Venta de Producto
+      elsif @movimiento.sale_id.present? || @movimiento.origen_tipo == "VentaProducto"
+        @sale = Sale.where(id: @movimiento.sale_id || @movimiento.origen_id).first
         @product_sales = @sale ? @sale.product_sales : []
+
+      # 4. Fallback por compatibilidad con registros antiguos
       else
-        # Fallback por si existen registros previos con origen_id
         @service_order = ServiceOrder.where(id: @movimiento.origen_id).first
         if @service_order.blank?
           @sale = Sale.where(id: @movimiento.origen_id).first
@@ -283,6 +294,9 @@ module Admin
         tipo_documento_dte_id: sale.tipo_documento_dte_id,
         user_id: sale.user_id,
         monto_total: monto,
+
+        #Relacion con sale
+        sale_id: sale.id,
 
         # Guardado de la información del cliente (registrado o manual)
         client_id: sale.respond_to?(:client_id) ? sale.client_id : nil,

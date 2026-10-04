@@ -25,16 +25,24 @@
     </div>
     <div class="card-body">
       <div class="row">
-        <!-- Fila 1: Datos de Proveedor y Tipo Documento -->
+        <!-- Fila 1: Datos de Proveedor, Comprobante y Condición Tributaria -->
         <div class="col-md-5 mb-3">
           <%= f.label :supplier_id, "Proveedor *", class: "form-label fw-bold" %>
-          <%= f.collection_select :supplier_id, Supplier.order_by(name: :asc), :id, :name, { prompt: "Seleccione un Proveedor" }, { class: "form-select", required: true } %>
+          
+          <% if @invoice.supplier_id.present? %>
+            <%# Cuando viene el proveedor predefinido desde la URL %>
+            <%= f.collection_select :supplier_id, @suppliers, :id, :name, 
+                                    { selected: @invoice.supplier_id }, 
+                                    { class: "form-select bg-light", disabled: true } %>
+            <%= f.hidden_field :supplier_id, value: @invoice.supplier_id %>
+          <% else %>
+            <%# Cuando ingresas desde la vista general (sin proveedor seleccionado) %>
+            <%= f.collection_select :supplier_id, @suppliers, :id, :name, 
+                                    { prompt: "Seleccione un Proveedor" }, 
+                                    { class: "form-select", required: true } %>
+          <% end %>
         </div>
 
-        <!-- Tipo de Comprobante consultando TipoDocumentoDte (Default: CCFE "03") -->
-        <!-- Tipo de Comprobante consultando TipoDocumentoDte -->
-        <!-- Tipo de Comprobante consultando TipoDocumentoDte -->
-        <!-- Tipo de Comprobante consultando TipoDocumentoDte -->
         <div class="col-md-4 mb-3">
           <%= f.label :tipo_documento_dte_id, "Tipo de Comprobante *", class: "form-label fw-bold" %>
           <%= f.select :tipo_documento_dte_id,
@@ -44,7 +52,6 @@
             { class: "form-select", required: true } %>
         </div>
 
-        <!-- Condición Tributaria con 'Gravado' por defecto -->
         <div class="col-md-3 mb-3">
           <%= f.label :tax_condition, "Condición Tributaria *", class: "form-label fw-bold" %>
           <%= f.select :tax_condition,
@@ -53,14 +60,19 @@
                 { class: "form-select", required: true } %>
         </div>
 
-        <!-- Fila 2: Números y Fechas -->
+        <!-- Fila 2: Código Interno Autogenerado, Números y Fechas -->
         <div class="col-md-3 mb-3">
-          <%= f.label :invoice_number, "Número de Factura Proveedor", class: "form-label fw-bold" %>
+          <%= f.label :internal_number, "N° Interno (Autogenerado)", class: "form-label fw-bold text-primary" %>
+          <%= f.text_field :internal_number, class: "form-control bg-light text-primary fw-bold", readonly: true %>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <%= f.label :invoice_number, "N° Factura Proveedor *", class: "form-label fw-bold" %>
           <%= f.text_field :invoice_number, class: "form-control", placeholder: "Ej. FAC-10294", required: true %>
         </div>
 
         <div class="col-md-3 mb-3">
-          <%= f.label :voucher_number, "Número de CCF / Comprobante", class: "form-label fw-bold" %>
+          <%= f.label :voucher_number, "N° CCF / Comprobante", class: "form-label fw-bold" %>
           <%= f.text_field :voucher_number, class: "form-control", placeholder: "Ej. CCF-88121 (Opcional)" %>
         </div>
 
@@ -69,12 +81,12 @@
           <%= f.date_field :issue_date, class: "form-control", required: true, id: "supplier_invoice_issue_date" %>
         </div>
 
+        <!-- Fila 3: Vencimiento, Monto, Modalidad y Descripción -->
         <div class="col-md-3 mb-3" id="due_date_container">
           <%= f.label :due_date, "Fecha de Vencimiento", class: "form-label fw-bold" %>
           <%= f.date_field :due_date, class: "form-control", id: "supplier_invoice_due_date" %>
         </div>
 
-        <!-- Fila 3: Monto, Modalidad y Descripción -->
         <div class="col-md-3 mb-3">
           <%= f.label :total_amount, "Monto Total ($) *", class: "form-label fw-bold" %>
           <%= f.number_field :total_amount, step: "0.01", min: "0.01", class: "form-control", placeholder: "0.00", required: true %>
@@ -85,9 +97,9 @@
           <%= f.select :is_credit, [["Crédito", true], ["Contado", false]], {}, { class: "form-select", id: "supplier_invoice_is_credit" } %>
         </div>
 
-        <div class="col-md-6 mb-3">
-          <%= f.label :description, "Descripción / Detalle de la Compra", class: "form-label fw-bold" %>
-          <%= f.text_field :description, class: "form-control", placeholder: "Detalle opcional sobre los bienes o servicios adquiridos..." %>
+        <div class="col-md-3 mb-3">
+          <%= f.label :description, "Descripción / Detalle", class: "form-label fw-bold" %>
+          <%= f.text_field :description, class: "form-control", placeholder: "Detalle opcional sobre la compra..." %>
         </div>
       </div>
     </div>

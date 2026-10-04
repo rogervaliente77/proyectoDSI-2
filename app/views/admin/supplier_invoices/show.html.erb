@@ -22,8 +22,12 @@
   <!-- Encabezado y Acciones -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="h3 text-gray-800">Factura #<%= @invoice.invoice_number %></h1>
-      <p class="text-muted mb-0">Proveedor: <strong><%= @invoice.supplier&.name %></strong></p>
+      <div class="d-flex align-items-center gap-2">
+        <h1 class="h3 text-gray-800 mb-0">Factura #<%= @invoice.invoice_number %></h1>
+        <!-- Ubicación 1 del Código Interno: Badge al lado del título -->
+        <span class="badge bg-dark text-white fs-6"><%= @invoice.internal_number %></span>
+      </div>
+      <p class="text-muted mb-0 mt-1">Proveedor: <strong><%= @invoice.supplier&.name %></strong></p>
     </div>
     <div>
       <%= link_to "Volver al listado", admin_supplier_invoices_path, class: "btn btn-outline-secondary me-2", data: { turbo: false } %>
@@ -41,6 +45,57 @@
           </button>
         </div>
       <% end %>
+    </div>
+  </div>
+
+  <!-- Card con Información General y Desglose de la Factura (NUEVA SECCIÓN) -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 bg-light d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-file-invoice me-2"></i>Detalles del Comprobante</h6>
+      <span class="badge bg-secondary text-uppercase"><%= @invoice.voucher_type %></span>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <!-- Datos Principales -->
+        <div class="col-md-6 border-end">
+          <p class="mb-2"><strong>Código Interno:</strong> <span class="badge bg-light text-dark border"><%= @invoice.internal_number %></span></p>
+          <p class="mb-2"><strong>Número de Factura / DTE:</strong> <%= @invoice.invoice_number %></p>
+          <p class="mb-2"><strong>Fecha de Emisión:</strong> <%= @invoice.issue_date&.strftime("%d/%m/%Y") %></p>
+          <p class="mb-2">
+            <strong>Condición de Pago:</strong> 
+            <% if @invoice.is_credit %>
+              <span class="badge bg-warning-subtle text-warning-emphasis border border-warning">
+                Crédito (<%= @invoice.credit_term_days %> días / <%= @invoice.term_type %>)
+              </span>
+            <% else %>
+              <span class="badge bg-success-subtle text-success border border-success">Contado</span>
+            <% end %>
+          </p>
+          <p class="mb-0"><strong>Concepto / Descripción:</strong> <%= @invoice.description.presence || 'Sin descripción' %></p>
+        </div>
+
+        <!-- Desglose Tributario / Montos -->
+        <div class="col-md-6">
+          <h6 class="font-weight-bold text-secondary mb-3">Desglose Fiscal</h6>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Monto Gravado:</span>
+            <span class="fw-bold">$<%= sprintf('%.2f', @invoice.total_gravado || 0) %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Monto Exento:</span>
+            <span class="fw-bold">$<%= sprintf('%.2f', @invoice.total_exento || 0) %></span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Monto No Sujeto:</span>
+            <span class="fw-bold">$<%= sprintf('%.2f', @invoice.total_no_sujeta || 0) %></span>
+          </div>
+          <hr class="my-2">
+          <div class="d-flex justify-content-between text-primary font-weight-bold h5 mb-0">
+            <span>Total Factura:</span>
+            <span>$<%= sprintf('%.2f', @invoice.total_amount || 0) %></span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -77,21 +132,16 @@
           <div class="d-flex align-items-center gap-1 mt-1">
             <%# Label 1: Estado del Pago %>
             <% if @invoice.paid? %>
-              <%# 1. Caso Factura Pagada al 100% (Badge Único) %>
               <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
                 <i class="fas fa-check-circle me-1"></i> Pagada
               </span>
 
             <% elsif @invoice.date_status == "al_dia" %>
-              <%# 2. Caso Factura con Cuota Pagada / Sin Alerta (Badge Único "Al Día") %>
               <span class="badge bg-info-subtle text-info border border-info px-2 py-1">
                 <i class="fas fa-calendar-check me-1"></i> Al Día
               </span>
 
             <% else %>
-              <%# 3. Caso con Alerta de Vencimiento (2 Badges: Pago + Fecha) %>
-
-              <%# Badge 1: Estado del Pago %>
               <% case @invoice.payment_status %>
               <% when "pago_parcial" %>
                 <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
@@ -103,7 +153,6 @@
                 </span>
               <% end %>
 
-              <%# Badge 2: Alerta de Fecha %>
               <% case @invoice.date_status %>
               <% when "vencida" %>
                 <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1">
@@ -142,7 +191,6 @@
               </tr>
             </thead>
             <tbody>
-              <%# Identificamos la primera cuota que tiene saldo pendiente %>
               <% first_pending_installment = @installments.select { |i| i.balance > 0 }.min_by(&:number) %>
 
               <% @installments.each do |inst| %>
@@ -155,7 +203,6 @@
                   <td class="text-center">
                     <div class="d-flex justify-content-center align-items-center gap-1">
                       
-                      <%# 1. Estado de Pago / Monto de la Cuota %>
                       <% case inst.payment_status %>
                       <% when "pagada" %>
                         <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
@@ -171,8 +218,6 @@
                         </span>
                       <% end %>
 
-                      <%# 2. Estado de la Fecha / Vencimiento %>
-                      <%# Solo se evalúa si la cuota no está pagada Y es la cuota actual del periodo (primera pendiente) %>
                       <% if inst.balance > 0 && inst == first_pending_installment %>
                         <% case inst.date_status %>
                         <% when "vencida" %>
@@ -250,7 +295,7 @@
   </div>
 </div>
 
-<!-- Modal para Historial de Cambios de Estado (Carga Dinámica con Turbo Frame) -->
+<!-- Modal para Historial de Cambios de Estado -->
 <div class="modal fade" id="statusHistoryModal" tabindex="-1" aria-labelledby="statusHistoryModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">

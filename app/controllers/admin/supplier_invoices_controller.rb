@@ -69,12 +69,10 @@ module Admin
     end
 
     def new
-      @invoice = SupplierInvoice.new(
-        is_credit: true, 
-        installments_count: 1, 
-        credit_term_days: 30,
-        term_type: "mensual"
-      )
+      supplier_id = params[:supplier_id].presence
+
+      @invoice = SupplierInvoice.new(supplier_id: supplier_id)
+      @invoice.set_default_internal_number!
       @suppliers = Supplier.where(active: true)
     end
 

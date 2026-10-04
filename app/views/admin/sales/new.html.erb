@@ -57,16 +57,26 @@
                           </div>
 
                           <!-- Condición Tributaria -->
-                          <div class="col-sm-3 mb-3">
+                          <div class="col-sm-2 mb-3">
                               <%= form.input :condicion_tributaria,
                                             label: "Condición Tributaria",
                                             collection: [["Venta Gravada", "gravado"], ["Venta Exenta", "exento"], ["Venta No Sujeta", "no_sujeta"]],
                                             selected: "gravado",
                                             prompt: false,
                                             input_html: { class: "form-control" } %>
-                        
                           </div>
 
+                          <!-- Forma de Pago (Nuevo Campo) -->
+                          <div class="col-sm-2 mb-3">
+                            <%= form.input :forma_pago,
+                                           label: "Forma de Pago",
+                                           collection: FormaPago.activos.map { |fp| [fp.name, fp.codigo] },
+                                           include_blank: "-- Seleccione --",
+                                           required: true,
+                                           input_html: { class: "form-control" } %>
+                          </div>
+
+                          <!-- Cajero y Caja / Sucursal (Visible y Readonly) -->
                           <% if current_user.puede_vender? %>
                             <% cajero = Cajero.find_by(user_id: @current_user.id) %>
                             <% if cajero.present? && cajero.caja.present? %>
@@ -74,12 +84,12 @@
                               <%= form.hidden_field :caja_id, value: cajero.caja.id %>
                               <%= form.hidden_field :sucursal_id, value: cajero.caja.sucursal_id %>
 
-                              <div class="col-sm-3 mb-3">
-                                <%= form.input :caja_info,
-                                      label: "Sucursal / Caja",
+                              <div class="col-sm-2 mb-3">
+                                <%= form.input :cajero_info,
+                                      label: "Cajero",
                                       as: :string,
                                       input_html: {
-                                        value: "#{cajero.caja.sucursal&.name || 'Matriz'} - #{cajero.caja.nombre}",
+                                        value: cajero.nombre.presence || @current_user.email,
                                         readonly: true,
                                         class: "form-control bg-light"
                                       } %>
@@ -87,6 +97,7 @@
                             <% end %>
                           <% end %>
                         </div>
+
 
                         <div class="mb-3 text-right">
                             <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#productModal">
@@ -222,6 +233,19 @@ function initSalesScript() {
   let productIndex = document.querySelectorAll("#product-sales-container tr").length;
   let clientSearchTimeout = null;
   let productSearchTimeout = null;
+
+  const salesForm = document.getElementById("form-control");
+  if (salesForm && !salesForm.dataset.boundSubmit) {
+    salesForm.dataset.boundSubmit = "true";
+    salesForm.addEventListener("submit", function (e) {
+      const productRows = document.querySelectorAll("#product-sales-container tr");
+      
+      if (productRows.length === 0) {
+        e.preventDefault(); // Detener el envío del formulario
+        alert("Debes agregar al menos un producto o servicio antes de confirmar la venta.");
+      }
+    });
+  }
 
   // --- Limpiar client_id si el usuario escribe manualmente en el nombre ---
   const clientNameInput = document.getElementById("client-name-input");

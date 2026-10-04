@@ -11,9 +11,24 @@
   <!-- Cabecera con datos generales -->
   <div class="row mb-3">
     <div class="col-md-6">
-      <p class="mb-1"><strong>Cliente:</strong> <%= @movimiento.client_name %></p>
-      <p class="mb-1"><strong>Tipo Documento:</strong> <%= @movimiento.tipo_documento_dte&.name || 'Venta Interna' %></p>
-      <p class="mb-1"><strong>Código de Generación (DTE):</strong> <%= @movimiento.codigo_generacion || 'N/A' %></p>
+      <p class="mb-1">
+        <strong><%= @movimiento.origen_tipo == "PagoProveedor" ? "Proveedor:" : "Cliente:" %></strong> 
+        <%= @movimiento.client_name %>
+      </p>
+      <p class="mb-1">
+        <strong>Tipo Documento:</strong> 
+        <%= @movimiento.tipo_documento_dte&.name || (@movimiento.origen_tipo == "PagoProveedor" ? "Comprobante de Egreso / Pago" : "Venta Interna") %>
+      </p>
+      <p class="mb-1">
+        <strong>Código de Generación (DTE):</strong> <%= @movimiento.codigo_generacion || 'N/A' %>
+      </p>
+      <% if @movimiento.origen_tipo == "PagoProveedor" && @supplier_payment.present? %>
+        <p class="mb-1">
+          <strong>Método de Pago:</strong> 
+          <span class="badge badge-success"><%= @supplier_payment.payment_method.to_s.upcase %></span>
+          <%= " (Ref: #{@supplier_payment.reference_number})" if @supplier_payment.reference_number.present? %>
+        </p>
+      <% end %>
     </div>
     <div class="col-md-6">
       <p class="mb-1"><strong>Fecha:</strong> <%= @movimiento.created_at.strftime("%d/%m/%Y %I:%M %p") %></p>
@@ -27,7 +42,7 @@
     <table class="table table-sm table-bordered text-center">
       <thead class="thead-light">
         <tr>
-          <th>Ítem</th>
+          <th>Ítem / Concepto</th>
           <th>Tipo</th>
           <th>Cantidad</th>
           <th>Precio Unit.</th>
@@ -36,10 +51,36 @@
         </tr>
       </thead>
       <tbody>
-        <% if @service_order.present? %>
-          <!-- CASO 1: ORDEN DE SERVICIO -->
-          
-          <% # Iteramos Servicios / Mano de obra %>
+        <% if @movimiento.origen_tipo == "PagoProveedor" %>
+          <!-- CASO 1: PAGO A PROVEEDOR (Usa det_movimientos_caja) -->
+          <% if @movimiento.det_movimientos_caja.any? %>
+            <% @movimiento.det_movimientos_caja.each do |det| %>
+              <tr>
+                <td class="text-left"><%= det.item_nombre %></td>
+                <td><span class="badge badge-warning">Egreso / Pago</span></td>
+                <td><%= det.cantidad %></td>
+                <td>$<%= number_with_precision(det.precio_unitario, precision: 2) %></td>
+                <td>$<%= number_with_precision(det.descuento || 0, precision: 2) %></td>
+                <td>$<%= number_with_precision(det.subtotal, precision: 2) %></td>
+              </tr>
+            <% end %>
+          <% elsif @supplier_payment.present? %>
+            <tr>
+              <td class="text-left"><%= @supplier_payment.notes.presence || "Pago a Factura #{@supplier_invoice&.invoice_number}" %></td>
+              <td><span class="badge badge-warning">Egreso / Pago</span></td>
+              <td>1</td>
+              <td>$<%= number_with_precision(@supplier_payment.amount, precision: 2) %></td>
+              <td>$0.00</td>
+              <td>$<%= number_with_precision(@supplier_payment.amount, precision: 2) %></td>
+            </tr>
+          <% else %>
+            <tr>
+              <td colspan="6" class="text-center text-muted">Sin detalles registrados en el pago</td>
+            </tr>
+          <% end %>
+
+        <% elsif @service_order.present? %>
+          <!-- CASO 2: ORDEN DE SERVICIO -->
           <% @service_order.order_services.each do |serv| %>
             <% subtotal = (serv.cantidad || 0) * (serv.precio_unitario || 0) %>
             <tr>
@@ -52,7 +93,6 @@
             </tr>
           <% end %>
 
-          <% # Iteramos Repuestos / Insumos %>
           <% @service_order.order_items.each do |item| %>
             <% subtotal = (item.cantidad || 0) * (item.precio_unitario || 0) %>
             <tr>
@@ -72,12 +112,13 @@
           <% end %>
 
         <% elsif @product_sales.present? %>
-          <!-- CASO 2: VENTA NORMAL (SALE) -->
-
+          <!-- CASO 3: VENTA DE PRODUCTOS -->
           <% @product_sales.each do |ps| %>
             <% 
-              discount_decimal = (ps.unit_price * ps.quantity) * ((ps.discount || 0) / 100.0)
-              subtotal = (ps.unit_price * ps.quantity) - discount_decimal 
+              qty = ps.quantity || 0
+              price = ps.unit_price || 0
+              discount_decimal = (price * qty) * ((ps.discount || 0) / 100.0)
+              subtotal = (price * qty) - discount_decimal 
               tipo_prod = ps.product&.kind&.capitalize || 'Producto'
             %>
             <tr>
@@ -87,8 +128,8 @@
                   <%= tipo_prod %>
                 </span>
               </td>
-              <td><%= ps.quantity %></td>
-              <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
+              <td><%= qty %></td>
+              <td>$<%= number_with_precision(price, precision: 2) %></td>
               <td>$<%= number_with_precision(discount_decimal, precision: 2) %></td>
               <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
             </tr>
@@ -106,8 +147,8 @@
   <div class="text-right mt-3">
     <h4>
       Total: 
-      <span class="text-success">
-        $<%= number_with_precision(@movimiento.monto_total || @service_order&.total || @sale&.total_amount || 0, precision: 2) %>
+      <span class="<%= @movimiento.origen_tipo == 'PagoProveedor' ? 'text-danger' : 'text-success' %>">
+        $<%= number_with_precision(@movimiento.monto_total || 0, precision: 2) %>
       </span>
     </h4>
   </div>

@@ -147,6 +147,9 @@ module Admin
         tipo_documento_dte_id: order.tipo_documento_dte_id,
         user_id: order.user_id,
         monto_total: monto,
+
+        #Relacion con Service
+        service_order_id: order.id,
         
         # Datos del cliente
         client_id: cliente&.id,
