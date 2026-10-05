@@ -12,15 +12,9 @@ class ServiceOrder
   field :forma_pago, type: String
   field :subtotal, type: Float, default: 0.0
   field :total, type: Float, default: 0.0
+  field :condicion_tributaria, type: String
 
-  # Campos de asociación operativa
-  field :caja_id, type: BSON::ObjectId
-  field :sucursal_id, type: BSON::ObjectId
-  field :cajero_id, type: BSON::ObjectId
-  field :tipo_documento_dte_id, type: BSON::ObjectId
-  field :condicion_tributaria, type: String, default: "gravado"
-
-  # Relaciones
+  # Relaciones (Mongoid genera caja_id, sucursal_id, etc. automáticamente)
   belongs_to :client_car
   belongs_to :caja, optional: true
   belongs_to :cajero, class_name: "Cajero", optional: true

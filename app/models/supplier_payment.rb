@@ -11,6 +11,9 @@ class SupplierPayment
   field :created_by, type: BSON::ObjectId
 
   embedded_in :supplier_invoice
+  belongs_to :sucursal, optional: true
+  belongs_to :caja, optional: true
+  belongs_to :cajero, optional: true
 
   validates :amount, :payment_date, :payment_method, presence: true
   validates :amount, numericality: { greater_than: 0 }
@@ -62,6 +65,9 @@ class SupplierPayment
       telefono_cliente: prov.try(:phone),
       direccion_cliente: prov.try(:address),
       user_id: created_by,
+      sucursal_id: sucursal_id,
+      caja_id: caja_id,
+      cajero_id: cajero_id,
       supplier_invoice_id: inv.id,
       tipo_documento_dte_id: inv.try(:tipo_documento_dte_id)
     )

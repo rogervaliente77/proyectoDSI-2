@@ -334,40 +334,83 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <%= form_with(model: [@invoice, @payment], url: admin_supplier_invoice_supplier_payments_path(@invoice), local: true) do |f| %>
+
+      <% cajero_actual = Cajero.find_by(user_id: current_user.id) if current_user.respond_to?(:puede_vender?) && current_user.puede_vender? %>
+
+      <% unless cajero_actual %>
         <div class="modal-body">
-          <div class="mb-3">
-            <%= f.label :amount, "Monto a Pagar ($)", class: "form-label" %>
-            <%= f.number_field :amount, value: @invoice.balance, step: '0.01', max: @invoice.balance, min: '0.01', class: "form-control", required: true %>
-            <small class="text-muted">Saldo pendiente actual: $<%= sprintf('%.2f', @invoice.balance) %></small>
-          </div>
-
-          <div class="mb-3">
-            <%= f.label :payment_date, "Fecha de Pago", class: "form-label" %>
-            <%= f.date_field :payment_date, value: Date.today, class: "form-control", required: true %>
-          </div>
-
-          <div class="mb-3">
-            <%= f.label :payment_method, "Método de Pago", class: "form-label" %>
-            <%= f.select :payment_method, 
-                         options_for_select([['Transferencia Bancaria', 'transferencia'], ['Cheque', 'cheque'], ['Efectivo', 'efectivo']], 'transferencia'), 
-                         {}, class: "form-select" %>
-          </div>
-
-          <div class="mb-3">
-            <%= f.label :reference_number, "Número de Referencia / Transacción", class: "form-label" %>
-            <%= f.text_field :reference_number, class: "form-control", placeholder: "Ej. TR-998122 o Cheque #4521" %>
-          </div>
-
-          <div class="mb-3">
-            <%= f.label :notes, "Notas adicionales", class: "form-label" %>
-            <%= f.text_area :notes, rows: 2, class: "form-control", placeholder: "Detalles del pago..." %>
+          <div class="alert alert-warning mb-0" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Advertencia:</strong> Tu usuario no está registrado o asignado como <strong>Cajero</strong>. No tienes permisos para registrar movimientos de caja.
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-          <%= f.submit "Guardar Pago", class: "btn btn-success" %>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
         </div>
+      <% else %>
+        <%= form_with(model: [@invoice, @payment || @invoice.supplier_payments.build], url: admin_supplier_invoice_supplier_payments_path(@invoice), local: true) do |f| %>
+          <div class="modal-body">
+
+            <!-- Campos Ocultos de Sucursal, Caja y Cajero -->
+            <%= f.hidden_field :cajero_id, value: cajero_actual.id %>
+            <%= f.hidden_field :caja_id, value: cajero_actual.caja_id %>
+            <%= f.hidden_field :sucursal_id, value: cajero_actual.caja&.sucursal_id %>
+
+            <!-- Información General del Cajero y Punto de Venta -->
+            <div class="card bg-light border-0 mb-3">
+              <div class="card-body py-2 px-3 small">
+                <div class="row">
+                  <div class="col-4">
+                    <span class="text-muted d-block">Sucursal</span>
+                    <strong class="text-dark"><%= cajero_actual.caja&.sucursal&.name.presence || 'N/A' %></strong>
+                  </div>
+                  <div class="col-4">
+                    <span class="text-muted d-block">Caja</span>
+                    <strong class="text-dark"><%= cajero_actual.caja&.nombre.presence || 'N/A' %></strong>
+                  </div>
+                  <div class="col-4">
+                    <span class="text-muted d-block">Cajero</span>
+                    <strong class="text-dark"><%= cajero_actual.nombre.presence || current_user.email %></strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :amount, "Monto a Pagar ($)", class: "form-label" %>
+              <%= f.number_field :amount, value: @invoice.balance, step: '0.01', max: @invoice.balance, min: '0.01', class: "form-control", required: true %>
+              <small class="text-muted">Saldo pendiente actual: $<%= sprintf('%.2f', @invoice.balance) %></small>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :payment_date, "Fecha de Pago", class: "form-label" %>
+              <%= f.date_field :payment_date, value: Date.today, class: "form-control", required: true %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :payment_method, "Método de Pago", class: "form-label" %>
+              <%= f.select :payment_method, 
+                          options_from_collection_for_select(FormaPago.activos, :name, :name, f.object.payment_method.presence || 'EFECTIVO'), 
+                          { prompt: "Seleccione un método de pago" }, 
+                          class: "form-select", 
+                          required: true %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :reference_number, "Número de Referencia / Transacción", class: "form-label" %>
+              <%= f.text_field :reference_number, class: "form-control", placeholder: "Ej. TR-998122 o Cheque #4521" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :notes, "Notas adicionales", class: "form-label" %>
+              <%= f.text_area :notes, rows: 2, class: "form-control", placeholder: "Detalles del pago..." %>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <%= f.submit "Guardar Pago", class: "btn btn-success" %>
+          </div>
+        <% end %>
       <% end %>
     </div>
   </div>

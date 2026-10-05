@@ -1,7 +1,17 @@
+<% cajero_actual = Cajero.find_by(user_id: current_user.id) if current_user.puede_vender? %>
+<% puede_operar_caja = current_user.puede_vender? && cajero_actual.present? && cajero_actual.caja.present? %>
+
+<% unless puede_operar_caja %>
+  <div class="alert alert-danger shadow-sm mb-4" role="alert">
+    <i class="fas fa-exclamation-triangle mr-2"></i>
+    <strong>Atención:</strong> El usuario actual no está configurado como cajero activo o no tiene una caja asignada para realizar operaciones.
+  </div>
+<% end %>
+
 <%= simple_form_for [@client_car, @service_order], 
       url: @service_order.persisted? ? admin_service_order_path(@service_order) : admin_client_car_service_orders_path(@client_car), 
       data: { turbo: false }, 
-      html: { class: "needs-validation" } do |f| %>
+      html: { id: "form-service-order", novalidate: true } do |f| %>
 
   <!-- DATOS OPERATIVOS Y DTE -->
   <div class="border-left-primary pl-3 mb-4">
@@ -11,21 +21,21 @@
   <div class="row">
     <!-- CÓDIGO DE ORDEN -->
     <div class="col-md-3 mb-3">
-      <%= f.label :codigo_orden, "Código de Orden", class: "form-label fw-bold text-dark" %>
-      <%= f.text_field :codigo_orden, class: "form-control bg-light text-primary fw-bold", readonly: true %>
+      <%= f.label :codigo_orden, "Código de Orden", class: "form-label font-weight-bold text-dark" %>
+      <%= f.text_field :codigo_orden, class: "form-control bg-light text-primary font-weight-bold", readonly: true %>
       <%= f.hidden_field :codigo_orden %>
     </div>
 
     <!-- N° CORRELATIVO -->
     <div class="col-md-2 mb-3">
-      <%= f.label :numero_orden, "N° Orden", class: "form-label fw-bold text-dark" %>
-      <%= f.text_field :numero_orden, class: "form-control bg-light fw-bold", readonly: true %>
+      <%= f.label :numero_orden, "N° Orden", class: "form-label font-weight-bold text-dark" %>
+      <%= f.text_field :numero_orden, class: "form-control bg-light font-weight-bold", readonly: true %>
       <%= f.hidden_field :numero_orden %>
     </div>
 
     <!-- TIPO DE DTE (Relación por ID) -->
     <div class="col-md-4 mb-3">
-      <%= f.label :tipo_documento_dte_id, "Tipo de Documento (DTE)", class: "form-label fw-bold text-dark" %>
+      <%= f.label :tipo_documento_dte_id, "Tipo de Documento (DTE)", class: "form-label font-weight-bold text-dark" %>
       <%= f.select :tipo_documento_dte_id, 
             options_from_collection_for_select(
               TipoDocumentoDte.where(activo: true), 
@@ -34,12 +44,12 @@
               f.object.tipo_documento_dte_id
             ), 
             { include_blank: "Seleccione tipo de DTE" }, 
-            class: "form-select", required: true %>
+            class: "form-control", required: true %>
     </div>
 
     <!-- CONDICIÓN TRIBUTARIA -->
     <div class="col-md-3 mb-3">
-      <%= f.label :condicion_tributaria, "Condición Tributaria", class: "form-label fw-bold text-dark" %>
+      <%= f.label :condicion_tributaria, "Condición Tributaria", class: "form-label font-weight-bold text-dark" %>
       <%= f.select :condicion_tributaria, 
             [
               ["Gravado", "gravado"], 
@@ -47,30 +57,28 @@
               ["No Sujeta", "no_sujeta"]
             ], 
             { selected: f.object.condicion_tributaria || "gravado" }, 
-            class: "form-select" %>
+            class: "form-control", required: true %>
     </div>
   </div>
 
   <div class="row mt-2">
     <div class="col-md-2 mb-3">
-      <%= f.input :fecha_entrada, label: "Fecha de Entrada", as: :date, html5: true, input_html: { class: "form-control" } %>
+      <%= f.input :fecha_entrada, label: "Fecha de Entrada", as: :date, html5: true, input_html: { class: "form-control", required: true } %>
     </div>
     <div class="col-md-2 mb-3">
-      <%= f.input :fecha_salida, label: "Fecha de Salida", as: :date, html5: true, input_html: { class: "form-control" } %>
+      <%= f.input :fecha_salida, label: "Fecha de Salida", as: :date, html5: true, input_html: { class: "form-control", required: true } %>
     </div>
     <div class="col-md-2 mb-3">
-      <%= f.input :km_entrada, label: "KM Entrada", input_html: { class: "form-control" } %>
+      <%= f.input :km_entrada, label: "KM Entrada", input_html: { class: "form-control", required: true } %>
     </div>
     <div class="col-md-2 mb-3">
-      <%= f.input :km_salida, label: "KM Salida", input_html: { class: "form-control" } %>
+      <%= f.input :km_salida, label: "KM Salida", input_html: { class: "form-control", required: true } %>
     </div>
     <div class="col-md-2 mb-3">
-      <%= f.input :tecnico, label: "Técnico Asignado", input_html: { class: "form-control" } %>
+      <%= f.input :tecnico, label: "Técnico Asignado", input_html: { class: "form-control", required: true } %>
     </div>
-    
-  </div>
-<div class="col-md-2 mb-3">
-      <%= f.label :forma_pago, "Forma de Pago", class: "form-label fw-bold text-dark" %>
+    <div class="col-md-2 mb-3">
+      <%= f.label :forma_pago, "Forma de Pago", class: "form-label font-weight-bold text-dark" %>
       <%= f.select :forma_pago, 
             options_from_collection_for_select(
               FormaPago.where(activo: true), 
@@ -79,32 +87,56 @@
               f.object.forma_pago
             ), 
             { include_blank: "Seleccione forma de pago" }, 
-            class: "form-select" %>
+            class: "form-control", required: true %>
     </div>
+  </div>
+
+  <!-- CAJERO Y CAJA / SUCURSAL -->
+  <% if puede_operar_caja %>
+    <%= f.hidden_field :cajero_id, value: cajero_actual.id %>
+    <%= f.hidden_field :caja_id, value: cajero_actual.caja.id %>
+    <%= f.hidden_field :sucursal_id, value: cajero_actual.caja.sucursal_id %>
+
+    <div class="row mt-2">
+      <div class="col-md-6 mb-3">
+        <%= label_tag :cajero_info, "Cajero Asignado", class: "form-label font-weight-bold text-dark" %>
+        <%= text_field_tag :cajero_info, cajero_actual.nombre, class: "form-control bg-light", readonly: true %>
+      </div>
+      <div class="col-md-6 mb-3">
+        <%= label_tag :caja_info, "Sucursal / Caja", class: "form-label font-weight-bold text-dark" %>
+        <%= text_field_tag :caja_info, "#{cajero_actual.caja.sucursal&.name || 'Matriz'} - #{cajero_actual.caja.nombre}", class: "form-control bg-light", readonly: true %>
+      </div>
+    </div>
+  <% end %>
+
   <!-- TABLA 1: SERVICIOS Y MANO DE OBRA -->
   <div class="border-left-success pl-3 mb-3 mt-5 d-flex justify-content-between align-items-center">
     <h5 class="text-success m-0">2. Servicios y Mano de Obra</h5>
     <button type="button" onclick="agregarFilaServicio()" class="btn btn-sm btn-success shadow-sm">
-      <i class="fas fa-plus me-1"></i> Agregar Servicio
+      <i class="fas fa-plus mr-1"></i> Agregar Servicio
     </button>
   </div>
 
   <div class="table-responsive mb-4">
     <table class="table table-bordered align-middle" id="tabla-servicios">
-      <thead class="table-dark">
+      <thead class="thead-dark">
         <tr>
           <th style="width: 60%;">Descripción del Trabajo / Servicio</th>
           <th style="width: 15%;" class="text-center">Cantidad</th>
-          <th style="width: 15%;" class="text-end">Precio Unit. ($)</th>
+          <th style="width: 15%;" class="text-right">Precio Unit. ($)</th>
           <th style="width: 10%;" class="text-center">Eliminar</th>
         </tr>
       </thead>
       <tbody id="contenedor-servicios">
+        <% if f.object.order_services.empty? %>
+          <% f.object.order_services.build %>
+        <% end %>
+
         <%= f.fields_for :order_services do |s_form| %>
           <tr class="fila-nested">
-            <td><%= s_form.text_field :descripcion, class: "form-control" %></td>
-            <td><%= s_form.number_field :cantidad, class: "form-control text-center", value: s_form.object.cantidad || 1 %></td>
-            <td><%= s_form.number_field :precio_unitario, step: :any, class: "form-control text-end", value: s_form.object.precio_unitario || 0.0 %></td>
+            <td><%= s_form.text_field :descripcion, class: "form-control req-descripcion", required: true %></td>
+            <td><%= s_form.number_field :cantidad, class: "form-control text-center req-cantidad", value: s_form.object.cantidad || 1, min: 1, required: true %></td>
+            <td><%= s_form.number_field :precio_unitario, step: "0.01", min: 0.01, class: "form-control text-right req-precio", value: s_form.object.precio_unitario || 0.0, required: true %></td>
             <td class="text-center">
               <%= s_form.hidden_field :_destroy, class: "destroy-flag" %>
               <button type="button" onclick="eliminarFila(this)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
@@ -119,28 +151,32 @@
   <div class="border-left-info pl-3 mb-3 mt-5 d-flex justify-content-between align-items-center">
     <h5 class="text-info m-0">3. Repuestos, Lubricantes e Insumos</h5>
     <button type="button" onclick="agregarFilaItem()" class="btn btn-sm btn-info text-white shadow-sm">
-      <i class="fas fa-plus me-1"></i> Agregar Repuesto / Insumo
+      <i class="fas fa-plus mr-1"></i> Agregar Repuesto / Insumo
     </button>
   </div>
 
   <div class="table-responsive mb-4">
     <table class="table table-bordered align-middle" id="tabla-items">
-      <thead class="table-dark">
+      <thead class="thead-dark">
         <tr>
           <th style="width: 20%;">Tipo</th>
           <th style="width: 40%;">Descripción del Repuesto / Lubricante</th>
           <th style="width: 15%;" class="text-center">Cantidad</th>
-          <th style="width: 15%;" class="text-end">Precio Unit. ($)</th>
+          <th style="width: 15%;" class="text-right">Precio Unit. ($)</th>
           <th style="width: 10%;" class="text-center">Eliminar</th>
         </tr>
       </thead>
       <tbody id="contenedor-items">
+        <% if f.object.order_items.empty? %>
+          <% f.object.order_items.build %>
+        <% end %>
+
         <%= f.fields_for :order_items do |i_form| %>
           <tr class="fila-nested">
-            <td><%= i_form.select :tipo, ['Repuesto', 'Lubricante', 'Otro'], {}, class: "form-select" %></td>
-            <td><%= i_form.text_field :descripcion, class: "form-control" %></td>
-            <td><%= i_form.number_field :cantidad, class: "form-control text-center", value: i_form.object.cantidad || 1 %></td>
-            <td><%= i_form.number_field :precio_unitario, step: :any, class: "form-control text-end", value: i_form.object.precio_unitario || 0.0 %></td>
+            <td><%= i_form.select :tipo, ['Repuesto', 'Lubricante', 'Otro'], {}, class: "form-control" %></td>
+            <td><%= i_form.text_field :descripcion, class: "form-control req-descripcion", required: true %></td>
+            <td><%= i_form.number_field :cantidad, class: "form-control text-center req-cantidad", value: i_form.object.cantidad || 1, min: 1, required: true %></td>
+            <td><%= i_form.number_field :precio_unitario, step: "0.01", min: 0.01, class: "form-control text-right req-precio", value: i_form.object.precio_unitario || 0.0, required: true %></td>
             <td class="text-center">
               <%= i_form.hidden_field :_destroy, class: "destroy-flag" %>
               <button type="button" onclick="eliminarFila(this)" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
@@ -151,11 +187,18 @@
     </table>
   </div>
 
+  <!-- MENSAJE DE ADVERTENCIA PARA CAMPOS VACÍOS EN TABLAS -->
+  <div id="item-validation-alert" class="alert alert-danger d-none" role="alert">
+    <i class="fas fa-exclamation-circle mr-2"></i>
+    Por favor complete la descripción y el precio unitario en todos los ítems agregados antes de guardar.
+  </div>
+
   <div class="row mt-4">
     <div class="col-12">
       <hr>
       <%= f.submit @service_order.new_record? ? 'Guardar y Generar Documento' : 'Actualizar Orden', 
-          class: "btn #{@service_order.new_record? ? 'btn-success' : 'btn-warning'} btn-lg btn-block shadow" %>
+            class: "btn #{@service_order.new_record? ? 'btn-success' : 'btn-warning'} btn-lg btn-block shadow",
+            disabled: !puede_operar_caja %>
     </div>
   </div>
 <% end %>
@@ -165,9 +208,9 @@
     const time = new Date().getTime();
     const template = `
       <tr class="fila-nested">
-        <td><input type="text" name="service_order[order_services_attributes][${time}][descripcion]" class="form-control" /></td>
-        <td><input type="number" name="service_order[order_services_attributes][${time}][cantidad]" value="1" class="form-control text-center" /></td>
-        <td><input type="number" step="0.01" name="service_order[order_services_attributes][${time}][precio_unitario]" value="0.00" class="form-control text-end" /></td>
+        <td><input type="text" name="service_order[order_services_attributes][${time}][descripcion]" class="form-control req-descripcion" required /></td>
+        <td><input type="number" name="service_order[order_services_attributes][${time}][cantidad]" value="1" min="1" class="form-control text-center req-cantidad" required /></td>
+        <td><input type="number" step="0.01" min="0.01" name="service_order[order_services_attributes][${time}][precio_unitario]" value="0.00" class="form-control text-right req-precio" required /></td>
         <td class="text-center">
           <button type="button" onclick="this.closest('tr').remove()" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
         </td>
@@ -181,15 +224,15 @@
     const template = `
       <tr class="fila-nested">
         <td>
-          <select name="service_order[order_items_attributes][${time}][tipo]" class="form-select">
+          <select name="service_order[order_items_attributes][${time}][tipo]" class="form-control">
             <option value="Repuesto">Repuesto</option>
             <option value="Lubricante">Lubricante</option>
             <option value="Otro">Otro</option>
           </select>
         </td>
-        <td><input type="text" name="service_order[order_items_attributes][${time}][descripcion]" class="form-control" /></td>
-        <td><input type="number" name="service_order[order_items_attributes][${time}][cantidad]" value="1" class="form-control text-center" /></td>
-        <td><input type="number" step="0.01" name="service_order[order_items_attributes][${time}][precio_unitario]" value="0.00" class="form-control text-end" /></td>
+        <td><input type="text" name="service_order[order_items_attributes][${time}][descripcion]" class="form-control req-descripcion" required /></td>
+        <td><input type="number" name="service_order[order_items_attributes][${time}][cantidad]" value="1" min="1" class="form-control text-center req-cantidad" required /></td>
+        <td><input type="number" step="0.01" min="0.01" name="service_order[order_items_attributes][${time}][precio_unitario]" value="0.00" class="form-control text-right req-precio" required /></td>
         <td class="text-center">
           <button type="button" onclick="this.closest('tr').remove()" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
         </td>
@@ -208,4 +251,130 @@
       row.remove();
     }
   }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById('form-service-order');
+    const validationAlert = document.getElementById('item-validation-alert');
+
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+      let isFormValid = true;
+      let tieneAlMenosUnItem = false;
+      let errorMsgs = [];
+
+      // 1. Validar estrictamente los campos generales de la cabecera
+      // Buscamos los inputs y selects dentro del primer bloque (sección 1)
+      const inputsCabecera = form.querySelectorAll('.row input:not([readonly]):not([type="hidden"]), .row select:not([readonly])');
+
+      inputsCabecera.forEach(input => {
+        // Ignorar si está dentro de las tablas
+        if (input.closest('tr.fila-nested')) return;
+
+        const val = input.value ? input.value.trim() : "";
+
+        if (val === "" || val === null) {
+          marcarCampo(input, false);
+          isFormValid = false;
+        } else {
+          marcarCampo(input, true);
+        }
+      });
+
+      // 2. Validar filas de Servicios y Repuestos
+      const filas = form.querySelectorAll('tr.fila-nested');
+
+      filas.forEach(row => {
+        if (row.style.display === 'none') return; // Ignorar filas eliminadas
+
+        const inputDesc = row.querySelector('input.req-descripcion, input[name*="[descripcion]"]');
+        const inputPrecio = row.querySelector('input.req-precio, input[name*="[precio_unitario]"]');
+        const inputCant = row.querySelector('input.req-cantidad, input[name*="[cantidad]"]');
+
+        if (!inputDesc || !inputPrecio) return;
+
+        const descVal = inputDesc.value ? inputDesc.value.trim() : "";
+        const precioVal = parseFloat(inputPrecio.value) || 0;
+        const cantVal = parseInt(inputCant ? inputCant.value : 1) || 0;
+
+        const tieneContenido = descVal !== "" || precioVal > 0;
+
+        if (tieneContenido) {
+          let filaValida = true;
+
+          // Validar descripción
+          if (descVal === "") {
+            marcarCampo(inputDesc, false);
+            filaValida = false;
+          } else {
+            marcarCampo(inputDesc, true);
+          }
+
+          // Validar precio (mayor a 0.00)
+          if (precioVal <= 0) {
+            marcarCampo(inputPrecio, false);
+            filaValida = false;
+          } else {
+            marcarCampo(inputPrecio, true);
+          }
+
+          // Validar cantidad
+          if (cantVal <= 0) {
+            if (inputCant) marcarCampo(inputCant, false);
+            filaValida = false;
+          } else {
+            if (inputCant) marcarCampo(inputCant, true);
+          }
+
+          if (filaValida) {
+            tieneAlMenosUnItem = true;
+          } else {
+            isFormValid = false;
+          }
+        } else {
+          limpiarEstadoCampo(inputDesc);
+          limpiarEstadoCampo(inputPrecio);
+          if (inputCant) limpiarEstadoCampo(inputCant);
+        }
+      });
+
+      // 3. Confirmar al menos 1 servicio/repuesto válido
+      if (!tieneAlMenosUnItem) {
+        isFormValid = false;
+        errorMsgs.push("Debe agregar al menos un servicio o repuesto con descripción y precio mayor a $0.00.");
+      }
+
+      // 4. Detener envío si falla la validación
+      if (!isFormValid) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (validationAlert) {
+          validationAlert.innerHTML = `
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            ${errorMsgs.length > 0 ? errorMsgs.join("<br>") : "Por favor complete todos los campos obligatorios de la orden (Fechas, KM, Técnico, etc) y verifique que los precios sean mayores a $0.00."}
+          `;
+          validationAlert.classList.remove('d-none');
+          validationAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } else {
+        if (validationAlert) validationAlert.classList.add('d-none');
+      }
+    });
+
+    // Funciones auxiliares para clases de Bootstrap 4
+    function marcarCampo(element, esValido) {
+      if (esValido) {
+        element.classList.remove('is-invalid');
+        element.classList.add('is-valid');
+      } else {
+        element.classList.remove('is-valid');
+        element.classList.add('is-invalid');
+      }
+    }
+
+    function limpiarEstadoCampo(element) {
+      element.classList.remove('is-valid', 'is-invalid');
+    }
+  });
 </script>

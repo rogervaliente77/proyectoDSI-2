@@ -26,13 +26,16 @@ class User
   # Relacionamientos (ajústalos a tus modelos Mongoid)
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
   belongs_to :role
+  has_one :cajero
 
   def cliente?
     role.present? && role.name.downcase == 'cliente'
   end
 
   def puede_vender?
-    role.present? && !cliente?
+    # 1. No debe ser cliente
+    # 2. Debe existir un registro en la tabla cajeros asociado a este usuario (id)
+    role.present? && !cliente? && Cajero.exists?(user_id: id)
   end
   
   #has_many :addresses, inverse_of: :user, dependent: :destroy, autosave: true

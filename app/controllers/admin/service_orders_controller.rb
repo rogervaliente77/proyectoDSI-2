@@ -27,6 +27,7 @@ module Admin
     end
 
     def create
+      binding.pry
       @service_order = @client_car.service_orders.build(service_order_params)
       
       # Asignación de contexto operativo / cajero / usuario
@@ -36,13 +37,13 @@ module Admin
       if cajero.present?
         @service_order.cajero_id = cajero.id
         @service_order.caja_id = cajero.caja_id
-        @service_order.sucursal_id = cajero.sucursal_id || (cajero.caja.present? ? cajero.caja.sucursal_id : nil)
+        @service_order.sucursal_id = cajero.sucursal_id || cajero.caja&.sucursal_id
       end
 
       calcular_totales(@service_order)
 
       if @service_order.save
-        registrar_movimiento_caja(@service_order) # <--- Registro en HeadMovimientoCaja
+        registrar_o_actualizar_movimiento_caja(@service_order)
         redirect_to admin_service_order_path(@service_order), notice: 'Orden de servicio y movimiento DTE registrados con éxito.'
       else
         cargar_catalogos
@@ -60,6 +61,7 @@ module Admin
       calcular_totales(@service_order)
 
       if @service_order.save
+        registrar_o_actualizar_movimiento_caja(@service_order)
         redirect_to admin_service_order_path(@service_order), notice: 'Orden actualizada exitosamente.'
       else
         @client_car = @service_order.client_car
@@ -71,7 +73,11 @@ module Admin
 
     def destroy
       car = @service_order.client_car
+      
+      # Opcional: Si eliminas la orden, eliminas el movimiento asociado
+      @service_order.head_movimiento_caja&.destroy
       @service_order.destroy
+      
       redirect_to admin_client_path(car.client), notice: 'Orden de servicio eliminada.'
     end
 
@@ -114,8 +120,8 @@ module Admin
       subtotal_servicios = order.order_services.reject(&:_destroy).sum { |s| (s.cantidad || 1) * (s.precio_unitario || 0.0) }
       subtotal_items = order.order_items.reject(&:_destroy).sum { |i| (i.cantidad || 1) * (i.precio_unitario || 0.0) }
       
-      order.order_services.each { |s| s.precio_total = (s.cantidad || 1) * (s.precio_unitario || 0.0) }
-      order.order_items.each { |i| i.precio_total = (i.cantidad || 1) * (i.precio_unitario || 0.0) }
+      order.order_services.reject(&:_destroy).each { |s| s.precio_total = (s.cantidad || 1) * (s.precio_unitario || 0.0) }
+      order.order_items.reject(&:_destroy).each { |i| i.precio_total = (i.cantidad || 1) * (i.precio_unitario || 0.0) }
 
       order.subtotal = subtotal_servicios + subtotal_items
       order.total = order.subtotal
@@ -130,26 +136,23 @@ module Admin
       )
     end
 
-    def registrar_movimiento_caja(order)
+    def registrar_o_actualizar_movimiento_caja(order)
       monto = order.total || 0.0
       cliente = order.client_car&.client
 
-      # 1. Crear cabecera del movimiento (Aquí `HeadMovimientoCaja` generará la numeración DTE correspondiente)
-      head = HeadMovimientoCaja.new(
+      head = HeadMovimientoCaja.find_or_initialize_by(service_order_id: order.id)
+
+      head.assign_attributes(
         comprobante_codigo: order.codigo_orden,
         origen_tipo: "VentaServicio",
         origen_id: order.id,
-        service_order_id: order.id,
-        fecha: Time.current,
+        fecha: head.fecha || Time.current,
         sucursal_id: order.sucursal_id,
         caja_id: order.caja_id,
         cajero_id: order.cajero_id,
         tipo_documento_dte_id: order.tipo_documento_dte_id,
         user_id: order.user_id,
         monto_total: monto,
-
-        #Relacion con Service
-        service_order_id: order.id,
         
         # Datos del cliente
         client_id: cliente&.id,
@@ -159,7 +162,12 @@ module Admin
         nrc_cliente: cliente&.nrc,
         email_cliente: cliente&.email,
         telefono_cliente: cliente&.telefono,
-        direccion_cliente: cliente&.direccion
+        direccion_cliente: cliente&.direccion,
+
+        # Restablecer totales
+        total_exento: 0.0,
+        total_no_sujeta: 0.0,
+        total_gravado: 0.0
       )
 
       # Clasificación tributaria
@@ -174,8 +182,11 @@ module Admin
 
       head.save!
 
-      # 2. Registrar Servicios en DetMovimientoCaja
-      order.order_services.each do |serv|
+      # Limpiar detalles previos si se está editando
+      DetMovimientoCaja.where(head_movimiento_caja_id: head.id).destroy_all
+
+      # 1. Registrar Servicios en DetMovimientoCaja
+      order.order_services.reject(&:_destroy).each do |serv|
         cant = serv.cantidad || 1.0
         precio = serv.precio_unitario || 0.0
         DetMovimientoCaja.create!(
@@ -190,8 +201,8 @@ module Admin
         )
       end
 
-      # 3. Registrar Repuestos/Insumos en DetMovimientoCaja
-      order.order_items.each do |item|
+      # 2. Registrar Repuestos/Insumos en DetMovimientoCaja
+      order.order_items.reject(&:_destroy).each do |item|
         cant = item.cantidad || 1.0
         precio = item.precio_unitario || 0.0
         DetMovimientoCaja.create!(
@@ -208,8 +219,8 @@ module Admin
     end
 
     def cargar_catalogos
-      @tipos_dte = TipoDocumentoDte.all
-      @formas_pago = FormaPago.all if defined?(FormaPago)
+      @tipos_dte = TipoDocumentoDte.where(activo: true) if defined?(TipoDocumentoDte)
+      @formas_pago = FormaPago.where(activo: true) if defined?(FormaPago)
     end
   end
 end
