@@ -355,9 +355,12 @@
                   <% end %>
                 </div>
 
-                <button class="btn-buy" type="button" aria-label="Agregar al carrito">
-                  <i class="fa-solid fa-cart-shopping"></i>
-                </button>
+                <!-- CONTENEDOR DE BOTÓN/CONTADOR DINÁMICO -->
+                <div class="product-cart-action-box" data-product-id="<%= product.id %>" data-product-name="<%= product.name %>" data-product-price="<%= effective_price %>" data-product-img="<%= img_product %>">
+                  <button class="btn-buy btn-add-to-cart" type="button" aria-label="Agregar al carrito" onclick="handleAddToCart('<%= product.id %>')">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1247,7 +1250,143 @@
     window.filterProducts();
   }
 
-  document.addEventListener("DOMContentLoaded", setupLandingScript);
-  document.addEventListener("turbo:load", setupLandingScript);
-  document.addEventListener("turbolinks:load", setupLandingScript);
+  // --- SISTEMA DE GESTIÓN DEL CARRITO (PERSISTENCIA Y TIEMPO REAL) ---
+
+  const STORAGE_KEY = 'bimers_cart_data';
+
+  // 1. Obtener Carrito guardado
+  function getCart() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error("Error al leer localStorage:", e);
+      return [];
+    }
+  }
+
+  // 2. Guardar Carrito en LocalStorage y refrescar interfaz
+  function saveCart(cart) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+      console.error("Error al guardar en localStorage:", e);
+    }
+    updateUI();
+  }
+
+  // 3. Agregar o Incrementar Producto
+  function handleAddToCart(productId) {
+    let cart = getCart();
+    const box = document.querySelector(`.product-cart-action-box[data-product-id='${productId}']`);
+    
+    if (!box) return;
+
+    const name = box.dataset.productName;
+    const price = parseFloat(box.dataset.productPrice);
+    const img = box.dataset.productImg;
+
+    const existingIndex = cart.findIndex(item => String(item.id) === String(productId));
+
+    if (existingIndex > -1) {
+      cart[existingIndex].qty += 1;
+    } else {
+      cart.push({ id: String(productId), name: name, price: price, img: img, qty: 1 });
+    }
+
+    saveCart(cart);
+  }
+
+  // 4. Disminuir o Incrementar Cantidad
+  function changeQty(productId, delta) {
+    let cart = getCart();
+    const index = cart.findIndex(item => String(item.id) === String(productId));
+
+    if (index > -1) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      saveCart(cart);
+    }
+  }
+
+  // 5. Abrir/Cerrar el Modal del Carrito
+  function toggleCartModal() {
+    document.getElementById('cart-modal-overlay')?.classList.toggle('open');
+    document.getElementById('cart-drawer')?.classList.toggle('open');
+  }
+
+  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
+  function updateUI() {
+    const cart = getCart();
+    
+    // A. Actualizar el Contador Flotante
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const badge = document.getElementById('floating-cart-count');
+    if (badge) badge.textContent = totalQty;
+
+    // B. Actualizar Botones/Contadores en las Tarjetas de Producto
+    document.querySelectorAll('.product-cart-action-box').forEach(box => {
+      const productId = String(box.dataset.productId);
+      const item = cart.find(i => String(i.id) === productId);
+
+      if (item && item.qty > 0) {
+        box.innerHTML = `
+          <div class="card-qty-selector">
+            <button type="button" class="btn-qty" onclick="changeQty('${productId}', -1)">-</button>
+            <span class="qty-num">${item.qty}</span>
+            <button type="button" class="btn-qty" onclick="changeQty('${productId}', 1)">+</button>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <button class="btn-buy btn-add-to-cart" type="button" aria-label="Agregar al carrito" onclick="handleAddToCart('${productId}')">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </button>
+        `;
+      }
+    });
+
+    // C. Renderizar Elementos en el Drawer/Modal Lateral
+    const container = document.getElementById('cart-drawer-items');
+    const totalElem = document.getElementById('cart-drawer-total');
+    
+    if (container) {
+      if (cart.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:30px;">Tu carrito está vacío.</p>`;
+      } else {
+        container.innerHTML = cart.map(item => `
+          <div class="cart-item-row">
+            <img src="${item.img}" alt="${item.name}">
+            <div class="cart-item-info">
+              <h4 class="cart-item-title">${item.name}</h4>
+              <span class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</span>
+            </div>
+            <div class="cart-qty-controls">
+              <button type="button" class="btn-qty" onclick="changeQty('${item.id}', -1)">-</button>
+              <span>${item.qty}</span>
+              <button type="button" class="btn-qty" onclick="changeQty('${item.id}', 1)">+</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    if (totalElem) {
+      const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      totalElem.textContent = `$${grandTotal.toFixed(2)}`;
+    }
+  }
+
+  function initLandingPage() {
+    setupLandingScript(); // Inicializa carruseles, filtros, breadcrumbs y eventos del menú
+    updateUI();           // Carga y pinta el carrito desde localStorage
+  }
+
+  // Escuchamos los eventos de carga de navegador y de Rails (Turbo / Turbolinks)
+  ['DOMContentLoaded', 'turbo:load', 'turbolinks:load'].forEach(eventName => {
+    document.removeEventListener(eventName, initLandingPage); // Evita duplicar escuchadores
+    document.addEventListener(eventName, initLandingPage);
+  });
 </script>
