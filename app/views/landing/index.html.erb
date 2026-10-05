@@ -1318,6 +1318,7 @@
   }
 
   // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
+  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
   function updateUI() {
     const cart = getCart();
     
@@ -1348,7 +1349,7 @@
       }
     });
 
-    // C. Renderizar Elementos en el Drawer/Modal Lateral
+    // C. Renderizar Elementos en el Drawer/Modal Lateral (CON CANTIDAD Y SUB-TOTAL)
     const container = document.getElementById('cart-drawer-items');
     const totalElem = document.getElementById('cart-drawer-total');
     
@@ -1356,20 +1357,29 @@
       if (cart.length === 0) {
         container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:30px;">Tu carrito está vacío.</p>`;
       } else {
-        container.innerHTML = cart.map(item => `
-          <div class="cart-item-row">
-            <img src="${item.img}" alt="${item.name}">
-            <div class="cart-item-info">
-              <h4 class="cart-item-title">${item.name}</h4>
-              <span class="cart-item-price">$${(item.price * item.qty).toFixed(2)}</span>
+        container.innerHTML = cart.map(item => {
+          const itemSubtotal = (item.price * item.qty).toFixed(2);
+          const itemUnitPrice = item.price.toFixed(2);
+
+          return `
+            <div class="cart-item-row">
+              <img src="${item.img}" alt="${item.name}">
+              <div class="cart-item-info">
+                <h4 class="cart-item-title">${item.name}</h4>
+                <div class="cart-item-details">
+                  <span class="cart-item-qty-badge">Cant: <strong>${item.qty}</strong></span>
+                  <span class="cart-item-unit-price">($${itemUnitPrice} c/u)</span>
+                </div>
+                <span class="cart-item-price">$${itemSubtotal}</span>
+              </div>
+              <div class="cart-qty-controls">
+                <button type="button" class="btn-qty" onclick="changeQty('${item.id}', -1)">-</button>
+                <span class="qty-display">${item.qty}</span>
+                <button type="button" class="btn-qty" onclick="changeQty('${item.id}', 1)">+</button>
+              </div>
             </div>
-            <div class="cart-qty-controls">
-              <button type="button" class="btn-qty" onclick="changeQty('${item.id}', -1)">-</button>
-              <span>${item.qty}</span>
-              <button type="button" class="btn-qty" onclick="changeQty('${item.id}', 1)">+</button>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
     }
 
