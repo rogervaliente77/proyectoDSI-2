@@ -1,6 +1,9 @@
 module Portal
   class AuthenticationController < ApplicationController
+    before_action :set_config
     skip_before_action :authenticate_user!, only: [:login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout]
+    layout 'login_layout'
+
     def login
       # Lógica para el formulario de login
       # binding.pry
@@ -187,6 +190,11 @@ module Portal
         token = SecureRandom.hex(16) # Genera un token de 32 caracteres (16 bytes en hexadecimal)
         break token unless User.where(jwt_token: token).exists?
       end
+    end
+
+    def set_config
+      # Ajusta según cómo obtienes las configuraciones globales (ej. Config.first, SystemSetting.first, etc.)
+      @config = SiteConfiguration.first || SiteConfiguration.new
     end
   end
 end

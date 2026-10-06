@@ -15,7 +15,7 @@ class User
   field :enabled, type: Boolean, default: true
   field :session_token_id, type: String
   field :otp_code,         type: Integer
-  field :is_admin,         type: Mongoid::Boolean, default: false
+  #field :is_admin,         type: Mongoid::Boolean, default: false
   field :profile_image, type: String
   field :profile_image_url, type: String
 

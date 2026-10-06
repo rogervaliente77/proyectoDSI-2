@@ -3,16 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login RRHH - FerrePro</title>
+  <title>BIMERS Motor Cars - Registro</title>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
+
+  <!-- FontAwesome e Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Cargamos únicamente los estilos del login sin arrastrar los de la plantilla vieja -->
-  <%= stylesheet_link_tag "login", media: "all", "data-turbo-track": "reload" %>
+  <!-- Hojas de estilo de la tienda / landing -->
+  <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+
+  <style>
+    /* Estilos específicos para envolver la tarjeta de registro dentro del cuerpo */
+    .portal-signup-wrapper {
+      background-color: #f8fafc;
+      padding: 60px 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70vh;
+    }
+
+    .portal-signup-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 680px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .auth-header h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 25px;
+    }
+
+    .form-section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #0d6efd;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 6px;
+      margin: 20px 0 15px 0;
+    }
+
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 576px) {
+      .form-row-2 {
+        grid-template-columns: 1fr;
+      }
+      .portal-signup-card {
+        padding: 25px 20px;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-group .req {
+      color: #ef4444;
+    }
+
+    .custom-auth-input {
+      width: 100% !important;
+      height: 44px !important;
+      padding: 0 14px !important;
+      font-size: 0.92rem !important;
+      color: #0f172a !important;
+      background-color: #f8fafc !important;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 8px !important;
+      outline: none !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .custom-auth-input:focus {
+      background-color: #ffffff !important;
+      border-color: #0d6efd !important;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15) !important;
+    }
+
+    .btn-auth-submit {
+      width: 100%;
+      height: 48px;
+      background-color: #0d6efd;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.98rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-auth-submit:hover {
+      background-color: #0b5ed7;
+    }
+
+    .auth-links {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 0.88rem;
+      color: #64748b;
+    }
+
+    .auth-links a {
+      color: #0d6efd;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
 
-  <%= yield %>
+  <!-- HEADER Y NAV DE LA LANDING -->
+  <%= render "components/landing/landing_header" %>
+
+  <!-- CONTENIDO CENTRAL DE SIGNUP -->
+  <main class="portal-signup-wrapper">
+    <div class="portal-signup-card">
+      <%= yield %>
+    </div>
+  </main>
+
+  <!-- FOOTER DE LA LANDING -->
+  <%= render "components/landing/landing_footer" %>
 
 </body>
 </html>

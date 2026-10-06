@@ -1,164 +1,169 @@
-/* ==========================================================================
-   ESTILOS GLOBALES DE RESETEO
-   ========================================================================== */
-   * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
+/* --- CONFIGURACIÓN GENERAL DEL LAYOUT AUTH --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background:
-    radial-gradient(circle at center,
-    rgba(0, 180, 255, .15) 0%,
-    rgba(0, 0, 0, 0) 30%),
-    linear-gradient(135deg, #070d1c, #0d1328, #111a35);
+  background-color: #f1f5f9;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 15px;
 }
 
-/* ==========================================================================
-   CONTENEDOR PRINCIPAL (Efecto de Cristal / Glassmorphism)
-   ========================================================================== */
-.login-container {
-    width: 380px;
-    padding: 30px;
-    border-radius: 20px;
-    background: rgba(20, 27, 48, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px); /* Soporte para navegadores basados en Safari/iOS */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-    0 0 40px rgba(0, 183, 255, .15),
-    0 10px 30px rgba(0, 0, 0, .5);
+/* Contenedor tipo tarjeta */
+.auth-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  padding: 40px;
+  border: 1px solid #e2e8f0;
 }
 
-/* ==========================================================================
-   ELEMENTO LOGO
-   ========================================================================== */
-   .logo {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 25px;
+.auth-brand {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.logo img {
-    width: 200px;
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    /* Se eliminó background, padding y border-radius */
+.auth-brand h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
-/* ==========================================================================
-   FORMULARIO Y ENTRADAS DE TEXTO
-   ========================================================================== */
-.login-form h3 {
-    color: white;
-    text-align: center;
-    margin-bottom: 25px;
-    font-weight: 500;
-    font-size: 1.5rem;
+.auth-brand h1 span {
+  color: #0284c7;
 }
 
-/* Contenedor de control para evitar que los campos se peguen */
-.form-group-field {
-    margin-bottom: 18px;
-    width: 100%;
+.auth-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  text-align: center;
 }
 
-.login-form label {
-    display: block;
-    color: #bfc8dd;
-    font-size: 13px;
-    margin-bottom: 6px;
-    font-weight: 500;
+.auth-subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-bottom: 25px;
+  text-align: center;
 }
 
-.login-form input {
-    width: 100%;
-    height: 45px;
-    border: none;
-    outline: none;
-    border-radius: 8px;
-    padding: 0 15px;
-    background: #edf2ff;
-    border: 2px solid transparent;
-    transition: all .3s ease;
-    color: #111111; /* Asegura legibilidad del texto ingresado */
-    font-size: 14px;
+/* Divisiones de Secciones */
+.form-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #0284c7;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 6px;
+  margin: 20px 0 15px 0;
 }
 
-.login-form input:focus {
-    border-color: #3f6cff;
-    background: #ffffff;
-    box-shadow: 0 0 8px rgba(63, 108, 255, 0.2);
+/* Filas de 2 columnas */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-/* ==========================================================================
-   BOTÓN DE ACCIÓN CORREGIDO
-   ========================================================================== */
-.btn-submit-custom {
-    width: 100%;
-    height: 45px;
-    margin-top: 10px;
-    border: none !important;
-    outline: none;
-    border-radius: 8px;
-    background: linear-gradient(90deg, #2d5bff, #2848d9) !important;
-    color: white !important;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all .3s ease;
-    display: block;
-    text-align: center;
+@media (max-width: 576px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+  .auth-card {
+    padding: 25px 20px;
+  }
 }
 
-.btn-submit-custom:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(45, 91, 255, .4);
-    background: linear-gradient(90deg, #3f6cff, #2d5bff) !important;
+/* Grupos e Inputs */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
 }
 
-.btn-submit-custom:active {
-    transform: translateY(0);
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
 }
 
-/* ==========================================================================
-   NOTIFICACIONES Y ALERTAS FLASHEADAS DE RAILS
-   ========================================================================== */
+.form-group .req {
+  color: #ef4444;
+}
+
+.auth-input {
+  width: 100% !important;
+  height: 44px !important;
+  padding: 0 14px !important;
+  font-size: 0.92rem !important;
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  box-shadow: none !important;
+}
+
+.auth-input:focus {
+  background-color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+}
+
+/* Botón Submit */
+.btn-auth-submit {
+  width: 100%;
+  height: 48px;
+  background-color: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-auth-submit:hover {
+  background-color: #0369a1;
+}
+
+.auth-links {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.auth-links a {
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
+/* Alertas de Flash */
 .alert {
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-bottom: 15px;
-    text-align: center;
-    font-weight: 500;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  margin-bottom: 20px;
 }
-
-.alert-danger {
-    background-color: rgba(231, 74, 59, 0.15);
-    color: #ff5252;
-    border: 1px solid rgba(231, 74, 59, 0.3);
-}
-
-.alert-success {
-    background-color: rgba(28, 200, 138, 0.15);
-    color: #2ecc71;
-    border: 1px solid rgba(28, 200, 138, 0.3);
-}
-
-/* ==========================================================================
-   PIE DE PÁGINA RESTRINGIDO
-   ========================================================================== */
-.footer {
-    margin-top: 25px;
-    text-align: center;
-    color: #7d879e;
-    font-size: 11px;
-    line-height: 1.6;
-}
+.alert-danger { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.alert-success { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
