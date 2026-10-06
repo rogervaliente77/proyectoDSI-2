@@ -27,7 +27,7 @@ module Admin
     end
 
     def create
-      binding.pry
+      #binding.pry
       @service_order = @client_car.service_orders.build(service_order_params)
       
       # Asignación de contexto operativo / cajero / usuario

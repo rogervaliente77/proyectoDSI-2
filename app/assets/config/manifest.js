@@ -7,3 +7,4 @@
 //= link login.css
 //= link sb-admin-2.css
 //= link bimers_catalog.css
+//= link auth_layout.css

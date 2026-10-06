@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIMERS Motor Cars - Registro / Acceso</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Carga EXCLUSIVA de los estilos de Header/Footer del Auth -->
+  <%= stylesheet_link_tag "auth_layout", media: "all", "data-turbo-track": "reload" %>
+</head>
+<body>
+
+  <!-- HEADER DEDICADO -->
+  <%= render "components/auth/auth_header" %>
+
+  <!-- CONTENIDO CENTRAL (SIGNUP / LOGIN) -->
+  <main class="auth-main-wrapper">
+    <%= yield %>
+  </main>
+
+  <!-- FOOTER DEDICADO -->
+  <%= render "components/auth/auth_footer" %>
+
+</body>
+</html>

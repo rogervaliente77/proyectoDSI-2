@@ -2,7 +2,7 @@ module Portal
   class AuthenticationController < ApplicationController
     before_action :set_config
     skip_before_action :authenticate_user!, only: [:login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout]
-    layout 'login_layout'
+    layout 'portal_auth_layout'
 
     def login
       # Lógica para el formulario de login
@@ -83,26 +83,35 @@ module Portal
     end
     
     def signup
-
+      @user = User.new
     end
 
     def user_request
-      # binding.pry
-      @user = User.new(user_params)
-      @user.otp_code = generate_otp_code # Genera un código aleatorio de 6 dígitos
+      # 1. Filtramos ÚNICAMENTE los parámetros que existen en el modelo User
+      @user = User.new(user_params_for_user)
+      
+      @user.otp_code = generate_otp_code
       @user.jwt_token = SecureRandom.hex(20)
       @user.role = Role.where(name: 'cliente').first
       @user.enabled = false
-  
+
       if @user.save
-        # Si el registro es exitoso
         session[:jwt_token] = @user.jwt_token
+        session[:pending_client_data] = {
+          nombre: @user.full_name,
+          email: @user.email,
+          phone_number: @user.phone_number,
+          direccion: params.dig(:user, :direccion),
+          departamento: params.dig(:user, :departamento),
+          municipio: params.dig(:user, :municipio)
+        }
+
         UserVerificationMailer.send_otp_email(@user).deliver_now
-        redirect_to portal_validating_user_path, notice: "Solicitud recibida con exito"
+        redirect_to portal_validating_user_path, notice: "Solicitud recibida con éxito"
       else
-        # Si hay errores, renderiza el formulario nuevamente
-        flash[:alert] = @user.errors.full_messages.to_sentence
-        render :signup
+        # 2. Si falla la validación, mostramos la alerta
+        flash.now[:alert] = @user.errors.full_messages.to_sentence
+        render :signup, status: :unprocessable_entity
       end
     end
 
@@ -116,18 +125,28 @@ module Portal
     end
 
     def signup_create
-      # binding.pry
-      # Lógica para validar y crear el usuario
-      # Encuentra al usuario por jwt_token y valida su otp_code
       user = User.find_by(jwt_token: params[:user][:jwt_token])
+      
       if user && user.otp_code == params[:user][:otp_code].to_i
         user.update(enabled: true)
 
-        # Crea un nuevo token de sesión
-        session_token = SecureRandom.hex(32)
-        session_expiration_time = Time.now + 30.minutes  # o el tiempo que necesites
+        # Crear o actualizar el registro en el modelo Client
+        client_data = session[:pending_client_data] || {}
+        Client.find_or_create_by(email: user.email) do |client|
+          client.nombre       = user.full_name
+          client.telefono     = client_data["phone_number"] || user.phone_number
+          client.direccion    = client_data["direccion"]
+          client.departamento = client_data["departamento"]
+          client.municipio    = client_data["municipio"]
+          client.is_active    = true
+        end
 
-        # Crea un UserSession
+        session.delete(:pending_client_data)
+
+        # Crear sesión
+        session_token = SecureRandom.hex(32)
+        session_expiration_time = Time.now + 30.minutes
+
         user_session = UserSession.create!(
           session_token: session_token,
           expiration_time: session_expiration_time,
@@ -135,19 +154,14 @@ module Portal
           user_email: user.email
         )
 
-        # Asocia el session_token_id con el usuario
         user.update(session_token_id: user_session.id)
 
-        # Almacena la sesión en Rails
-        session[:user_id] = user.id.to_s # MongoDB usa ObjectId, convertirlo a string es buena práctica
+        session[:user_id] = user.id.to_s
         session[:session_token] = session_token
 
-        # Devuelve la respuesta o redirige
-        redirect_to portal_home_path, notice: "Autenticacion con exito"   
-        #render json: { message: 'Usuario validado', session_token: session_token }
+        redirect_to portal_home_path, notice: "Cuenta creada y verificada exitosamente"
       else
-        redirect_to portal_validating_user_path, alert: "Otp code invalido, por favor ingrese el codigo enviado a su corrreo"
-        #render json: { error: 'Código OTP incorrecto' }, status: :unauthorized
+        redirect_to portal_validating_user_path, alert: "Código OTP inválido. Revisa tu correo."
       end
     end
 
@@ -177,8 +191,16 @@ module Portal
     end
 
     # Only allow a list of trusted parameters through.
-    def user_params
-      params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation)
+    def user_params_for_user
+      params.require(:user).permit(
+        :first_name, :last_name, :email, :password, 
+        :password_confirmation, :phone_number
+      )
+    end
+    
+    # Si necesitas validar o requerir los campos del Cliente en el mismo formulario:
+    def client_extra_params
+      params.require(:user).permit(:direccion, :departamento, :municipio)
     end
 
     def generate_otp_code

@@ -1,98 +1,281 @@
-<div class="container">
-  <!-- Outer Row -->
-  <div class="row justify-content-center">
+<div class="otp-card-container">
+  <div class="auth-brand">
+    <h1>BIMERS MO<span>TOR CARS</span></h1>
+  </div>
 
-    <div class="col-xl-10 col-lg-12 col-md-9">
-      <div class="card o-hidden border-0 shadow-lg my-5">
-        <div class="card-body p-0">
-          <!-- Nested Row within Card Body -->
-          <div class="row">
-            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-            <div class="col-lg-6">
-              <div class="p-5">
-                <div class="text-center">
-                  <h1 class="h4 text-gray-900 mb-4">Validando usuario</h1>
-                </div>
+  <div class="auth-header">
+    <h2>Validando usuario</h2>
+    <p class="auth-subtitle">Por favor ingresa el código OTP de 6 dígitos enviado a tu correo electrónico.</p>
+  </div>
 
-                <% if flash[:notice] %>
-                  <div class="alert alert-success"><%= flash[:notice] %></div>
-                <% elsif flash[:alert] %>
-                  <div class="alert alert-danger"><%= flash[:alert] %></div>
-                <% end %>
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
 
-                <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+  <div id="error-message" class="alert alert-danger" style="display: none;"></div>
 
-                <!-- Centered text -->
-                <p class="text-center">Por favor ingresa el código OTP enviado a tu correo</p>
+  <%= simple_form_for :user, url: portal_signup_create_path, method: :post, html: { class: "otp-form-body", id: "otp-form" }, data: { turbo: false } do |form| %>
+    <!-- JWT Hidden Token -->
+    <%= form.hidden_field :jwt_token, value: session[:jwt_token] %>
 
-                <%= simple_form_for :user, url: portal_signup_create_path, method: :post, html: { class: "needs-validation", id: "otp-form" }, data: { turbo: false } do |form| %>
-                    <!-- JWT Input -->
-                    <%= form.hidden_field :jwt_token, value: session[:jwt_token] %>
-
-                    <!-- OTP Input -->
-                    <div class="form-group">
-                      <%= form.input :otp_code, required: true, label: false, input_html: { class: "otp-input", id: "otp-input", type: "tel", maxlength: 6, pattern: "[0-9]{6}", oninput: "moveFocus(event)", autocomplete: "off", inputmode: "numeric" } %>
-                      <div id="otp-error" style="color: red; display: none;">Por favor ingresa los 6 dígitos del código OTP.</div>
-                    </div>
-                    <br>
-
-                    <%= form.button :submit, "Validar", class: "btn btn-primary btn-user btn-block" %>
-                <% end %>
-          
-                <hr>
-                <div class="text-center">
-                  <%= link_to "¿Olvidaste tu contraseña?", "#", class: "small" %>
-                </div>
-                <div class="text-center">
-                  <%= link_to "Crear una cuenta", portal_signup_path, class: "small" %>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Campo OTP -->
+    <div class="otp-field-group">
+      <label for="otp-input" class="otp-label">Código de Verificación <span class="req">*</span></label>
+      
+      <%= form.input_field :otp_code, 
+            id: "otp-input", 
+            type: "tel", 
+            maxlength: 6, 
+            pattern: "[0-9]{6}", 
+            autocomplete: "off", 
+            inputmode: "numeric", 
+            placeholder: "000000", 
+            required: true, 
+            class: "otp-custom-input" %>
+            
+      <div id="otp-error" class="otp-error-text" style="display: none;">
+        Por favor ingresa los 6 dígitos del código OTP.
       </div>
+    </div>
+
+    <button type="submit" class="btn-otp-submit">
+      Validar Código
+    </button>
+  <% end %>
+
+  <div class="otp-footer-links">
+    <div class="signup-prompt">
+      ¿No tienes cuenta? <a href="<%= portal_signup_path %>" data-turbo="false">Crear una cuenta</a>
     </div>
   </div>
 </div>
 
 <script>
-  // Move focus to the next field after a valid digit is entered
-  function moveFocus(event) {
-    const input = event.target;
-    const value = input.value;
+  document.addEventListener("DOMContentLoaded", function() {
+    const otpForm = document.getElementById("otp-form");
+    const otpInput = document.getElementById("otp-input");
+    const otpError = document.getElementById("otp-error");
 
-    // Check if the input is a digit and only allow numbers
-    if (!/^\d{1}$/.test(value)) {
-      return; // Do nothing if the input is not a valid digit
-    }
+    if (otpForm) {
+      // Filtrar para permitir solo números mientras escribe
+      otpInput.addEventListener("input", function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+      });
 
-    const nextInput = input.nextElementSibling;
-    if (nextInput && nextInput.tagName.toLowerCase() === 'input' && input.value.length === 1) {
-      nextInput.focus();
-    }
-  }
-
-  // Form validation before submission
-  document.getElementById("otp-form").addEventListener("submit", function(event) {
-    const otpCode = document.getElementById("otp-input").value;
-
-    // Check if the OTP code has 6 digits
-    if (otpCode.length !== 6) {
-      event.preventDefault();  // Prevent form submission
-      document.getElementById("otp-error").style.display = 'block'; // Show error message
-    } else {
-      document.getElementById("otp-error").style.display = 'none'; // Hide error message
+      // Validación al enviar el formulario
+      otpForm.addEventListener("submit", function(event) {
+        if (otpInput.value.trim().length !== 6) {
+          event.preventDefault();
+          otpError.style.display = 'block';
+          otpInput.classList.add('input-error');
+        } else {
+          otpError.style.display = 'none';
+          otpInput.classList.remove('input-error');
+        }
+      });
     }
   });
 </script>
 
-<!-- Add styles and JavaScript for OTP input -->
 <style>
-  .otp-input {
-    text-align: center;
-    font-size: 18px;
-    width: 100%;
-    padding: 5px;
-    letter-spacing: 10px;
+/* ==========================================================================
+   REFACTORIZACIÓN AUTOCONTENIDA - VISTA DE VALIDACIÓN OTP
+   ========================================================================== */
+
+/* Reset de contenedor principal para independizarse de Bootstrap/SB Admin */
+.otp-card-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 40px 32px;
+  border: 1px solid #e2e8f0;
+  margin: 40px auto;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Marca / Encabezado */
+.otp-card-container .auth-brand h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #003399;
+  text-align: center;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+
+.otp-card-container .auth-brand h1 span {
+  color: #00d2ff;
+}
+
+.otp-card-container .auth-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.otp-card-container .auth-subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0 0 24px 0;
+}
+
+/* Estructura del Formulario */
+.otp-form-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.otp-field-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.otp-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.otp-label .req {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Input principal con centrado exacto */
+.otp-custom-input {
+  width: 100% !important;
+  max-width: 280px;
+  height: 52px;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  letter-spacing: 10px !important;
+  color: #003399 !important;
+  background-color: #f8fafc !important;
+  border: 2px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease-in-out;
+  padding-left: 10px !important; /* Compensa el padding visual del letter-spacing */
+}
+
+.otp-custom-input::placeholder {
+  color: #cbd5e1 !important;
+  letter-spacing: 8px !important;
+  font-weight: 400 !important;
+}
+
+.otp-custom-input:focus {
+  background-color: #ffffff !important;
+  border-color: #003399 !important;
+  box-shadow: 0 0 0 4px rgba(0, 51, 153, 0.12) !important;
+}
+
+.otp-custom-input.input-error {
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* Mensajes de Error */
+.otp-error-text {
+  color: #dc2626;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Botón de envío */
+.btn-otp-submit {
+  width: 100%;
+  height: 48px;
+  background-color: #003399;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 5px;
+}
+
+.btn-otp-submit:hover {
+  background-color: #002266;
+}
+
+.btn-otp-submit:active {
+  transform: scale(0.99);
+}
+
+/* Enlaces del pie */
+.otp-footer-links {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.otp-footer-links a {
+  color: #003399;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.otp-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.signup-prompt {
+  margin-top: 8px;
+}
+
+/* Alertas estilo portal */
+.otp-card-container .alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.otp-card-container .alert-danger {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.otp-card-container .alert-success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+/* Adaptabilidad para móviles */
+@media (max-width: 480px) {
+  .otp-card-container {
+    padding: 30px 20px;
+    margin: 20px auto;
+    border: none;
+    box-shadow: none;
   }
+}
 </style>

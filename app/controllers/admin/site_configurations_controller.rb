@@ -6,7 +6,13 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
   end
 
   def update
-    if @config.update(config_params)
+    # Obtenemos los parámetros permitidos y eliminamos app_password_sender si viene en blanco
+    updated_params = config_params
+    if updated_params[:app_password_sender].blank?
+      updated_params.delete(:app_password_sender)
+    end
+  
+    if @config.update(updated_params)
       redirect_to admin_site_configuration_path, notice: "Configuración actualizada correctamente."
     else
       flash.now[:alert] = "Error al actualizar la configuración."

@@ -5,7 +5,7 @@ module Admin
       :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
     ]
 
-    layout "login_layout"
+    layout 'login_layout'
 
     # skip_before_action :check_admin_access, only: [
     # :login, :signup, :validating_user, :user_request, :signup_create, :new_login, :logout
@@ -98,7 +98,7 @@ module Admin
     end
 
     def user_request
-      # binding.pry
+       binding.pry
       @user = User.new(user_params)
       @user.otp_code = generate_otp_code # Genera un código aleatorio de 6 dígitos
       @user.jwt_token = SecureRandom.hex(20)

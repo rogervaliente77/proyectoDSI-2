@@ -1,7 +1,8 @@
 module Portal
   class HomeController < ApplicationController
-    layout 'dashboard'
+    layout 'portal_landing'
     before_action :set_current_user
+    before_action :set_config
 
     def index
       @products = Product.all.includes(:category, :marca)
@@ -41,6 +42,11 @@ module Portal
 
     def set_current_user
       @current_user = current_user
+    end
+
+    def set_config
+      # Ajusta según cómo obtienes las configuraciones globales (ej. Config.first, SystemSetting.first, etc.)
+      @config = SiteConfiguration.first || SiteConfiguration.new
     end
   end
 end

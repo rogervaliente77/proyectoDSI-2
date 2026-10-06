@@ -1,0 +1,56 @@
+<!-- TOP BAR SUPERIOR -->
+<div class="top-bar">
+  <div class="top-bar-info">
+    <span><i class="fa-solid fa-envelope"></i> <%= @config&.company_email.presence || "bimersmotor.cars@gmail.com" %></span>
+    <span><i class="fa-solid fa-phone"></i> <%= @config&.tel.presence || "2262 1909" %></span>
+    <a href="<%= @config&.wsp_number rescue '#' %>" target="_blank" rel="noopener noreferrer">
+      <i class="fa-brands fa-whatsapp"></i> WhatsApp
+    </a>
+    <span><i class="fa-solid fa-location-dot"></i> <%= @config&.short_address.presence || "San Salvador, El Salvador" %></span>
+  </div>
+  <div class="top-bar-social">
+    <a href="<%= @config&.fb_url rescue '#' %>" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+    <a href="<%= @config&.inst_url rescue '#' %>" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN PRINCIPAL -->
+<nav class="main-nav">
+  <div class="logo-container">
+    <%= link_to root_path, class: "logo-link" do %>
+      <%= image_tag "logo-blanco.png", alt: "Logo Bimers", class: "navbar-logo-img", onerror: "this.style.display='none'; this.nextElementSibling.style.display='flex';" %>
+      
+      <!-- Fallback en CSS por si la imagen de logo no se encuentra -->
+      <div class="logo-fallback" style="display: none; align-items: center;">
+        <div class="bimers-stripes">
+          <div class="stripe cyan"></div>
+          <div class="stripe navy"></div>
+          <div class="stripe red"></div>
+        </div>
+        <div class="logo-text">
+          <span class="logo-main">BIMERS</span>
+          <span class="logo-sub">MOTOR CARS</span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <button class="mobile-toggle" id="auth-menu-toggle" onclick="toggleAuthMenu()">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+
+  <ul class="nav-links" id="auth-nav-menu">
+    <li><%= link_to "Inicio", root_path, data: { turbo: false } %></li>
+    <li><%= link_to "Iniciar sesión", portal_login_path, data: { turbo: false } %></li>
+    <li><%= link_to "Crear cuenta", portal_signup_path, data: { turbo: false } %></li>
+  </ul>
+</nav>
+
+<script>
+  function toggleAuthMenu() {
+    const navMenu = document.getElementById('auth-nav-menu');
+    if (navMenu) {
+      navMenu.classList.toggle('active');
+    }
+  }
+</script>

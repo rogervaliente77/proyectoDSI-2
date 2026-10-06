@@ -1,0 +1,62 @@
+<!-- FOOTER ORGANIZADO -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="logo-container" style="margin-bottom: 15px;">
+        <div class="bimers-stripes">
+          <div class="stripe cyan"></div>
+          <div class="stripe navy"></div>
+          <div class="stripe red"></div>
+        </div>
+        <div class="logo-text">
+          <span class="logo-main">BIMERS</span>
+          <span class="logo-sub">MOTOR CARS</span>
+        </div>
+      </div>
+      <p>Centro de servicio automotriz especializado. Reparación, mantenimiento preventivo y venta de repuestos importados.</p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Servicios</h4>
+      <ul>
+        <% if @config&.footer_services.present? %>
+          <% @config.footer_services.split("\n").each do |service_name| %>
+            <% next if service_name.blank? %>
+            <li>
+              <%= link_to service_name.strip, root_path(anchor: "servicios-taller") %>
+            </li>
+          <% end %>
+        <% else %>
+          <li><%= link_to "Diagnóstico Computarizado", root_path(anchor: "servicios-taller") %></li>
+          <li><%= link_to "Mantenimiento de Motor", root_path(anchor: "servicios-taller") %></li>
+          <li><%= link_to "Sistema de Frenos ABS", root_path(anchor: "servicios-taller") %></li>
+          <li><%= link_to "Alineación y Balanceo 3D", root_path(anchor: "servicios-taller") %></li>
+        <% end %>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Contacto Info</h4>
+      <div class="contact-item">
+        <i class="fa-solid fa-phone"></i>
+        <div><%= @config&.tel.presence || "2262 1909" %></div>
+      </div>
+      <div class="contact-item">
+        <i class="fa-solid fa-location-dot"></i>
+        <div><%= @config&.address.presence || "C. El Algodon Casa 114, San Salvador" %></div>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h4>Sociales</h4>
+      <ul>
+        <li><a href="<%= @config&.inst_url rescue '#' %>" target="_blank"><i class="fa-brands fa-instagram"></i> Instagram</a></li>
+        <li><a href="<%= @config&.fb_url rescue '#' %>" target="_blank"><i class="fa-brands fa-facebook"></i> Facebook</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; <%= Time.current.year %> BIMERS Motor Cars. Todos los derechos reservados.</p>
+  </div>
+</footer>

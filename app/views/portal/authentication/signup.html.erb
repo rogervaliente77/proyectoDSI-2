@@ -1,6 +1,6 @@
-<div class="auth-card">
+<div class="portal-signup-card">
   <div class="auth-brand">
-    <h1>FERRE<span>PRO</span></h1>
+    <h1>BIMERS MOTOR<span> CARS</span></h1>
   </div>
 
   <div class="auth-header">
@@ -24,10 +24,10 @@
     <div class="alert alert-danger"><%= flash[:alert] %></div>
   <% end %>
 
-  <%= simple_form_for :user, url: portal_signup_path, method: :post do |form| %>
+  <%= simple_form_for @user, url: portal_signup_path, method: :post, data: { turbo: false } do |form| %>
 
     <div class="form-section-title">Información Personal</div>
-    <div class="form-row-2">
+    <div class="form-grid form-grid-3">
       <div class="form-group">
         <label>Nombres <span class="req">*</span></label>
         <%= form.input_field :first_name, placeholder: "Ej. Rogelio Leonardo", required: true, class: "auth-input" %>
@@ -36,21 +36,18 @@
         <label>Apellidos <span class="req">*</span></label>
         <%= form.input_field :last_name, placeholder: "Ej. Valiente Rivera", required: true, class: "auth-input" %>
       </div>
-    </div>
-
-    <div class="form-row-2">
       <div class="form-group">
         <label>Correo Electrónico <span class="req">*</span></label>
         <%= form.input_field :email, type: "email", placeholder: "ejemplo@correo.com", required: true, class: "auth-input" %>
       </div>
       <div class="form-group">
         <label>Teléfono <span class="req">*</span></label>
-        <%= form.input_field :telefono, placeholder: "7000-0000", required: true, class: "auth-input" %>
+        <%= form.input_field :phone_number, placeholder: "7000-0000", required: true, class: "auth-input" %>
       </div>
     </div>
 
     <div class="form-section-title">Dirección de Entrega</div>
-    <div class="form-row-2">
+    <div class="form-grid form-grid-address">
       <div class="form-group">
         <label>Departamento <span class="req">*</span></label>
         <%= form.input_field :departamento, as: :select, 
@@ -61,21 +58,23 @@
                 ["10 - San Vicente", "10"], ["11 - Usulután", "11"], ["12 - San Miguel", "12"],
                 ["13 - Morazán", "13"], ["14 - La Unión", "14"]
               ], 
+              selected: params.dig(:user, :departamento),
               prompt: "Selecciona departamento", required: true, class: "auth-input" %>
       </div>
+
       <div class="form-group">
         <label>Municipio / Distrito <span class="req">*</span></label>
-        <%= form.input_field :municipio, placeholder: "Ej. Chalchuapa", required: true, class: "auth-input" %>
+        <%= form.input_field :municipio, value: params.dig(:user, :municipio), placeholder: "Ej. Chalchuapa", required: true, class: "auth-input" %>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label>Dirección Detallada <span class="req">*</span></label>
-      <%= form.input_field :direccion, placeholder: "Calle, número de casa, colonia o punto de referencia...", required: true, class: "auth-input" %>
+      <div class="form-group span-2-desktop">
+        <label>Dirección Detallada <span class="req">*</span></label>
+        <%= form.input_field :direccion, value: params.dig(:user, :direccion), placeholder: "Calle, número de casa, colonia o punto de referencia...", required: true, class: "auth-input" %>
+      </div>
     </div>
 
     <div class="form-section-title">Seguridad</div>
-    <div class="form-row-2">
+    <div class="form-grid form-grid-2">
       <div class="form-group">
         <label>Contraseña <span class="req">*</span></label>
         <%= form.input_field :password, type: "password", placeholder: "••••••••", required: true, class: "auth-input" %>
@@ -92,6 +91,213 @@
   <% end %>
 
   <div class="auth-links">
-    ¿Ya tienes una cuenta? <a href="<%= portal_login_path %>">Iniciar sesión</a>
+    ¿Ya tienes una cuenta? <a href="<%= portal_login_path %>" data-turbo="false">Iniciar sesión</a>
   </div>
+  
 </div>
+
+<style>
+/* ==========================================================================
+   ESTILOS DEDICADOS APANALLADOS (HORIZONTAL EN DESKTOP / APILADO EN MÓVIL)
+   ========================================================================== */
+
+/* Contenedor ampliado para pantallas grandes */
+.portal-signup-card, .auth-card {
+  background: #ffffff;
+  width: 95%;
+  max-width: 1050px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  padding: 35px 45px;
+  border: 1px solid #cbd5e1;
+  margin: 20px auto;
+}
+
+/* Encabezados */
+.auth-brand h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--blue-bimers, #003399);
+  margin-bottom: 6px;
+}
+
+.auth-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.auth-subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
+/* Títulos de sección interna */
+.form-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--blue-bimers, #003399);
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin: 18px 0 14px 0;
+}
+
+/* Disposición CSS Grid para Escritorio */
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.form-grid-3 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.form-grid-address {
+  grid-template-columns: 1fr 1fr 2fr;
+}
+
+.form-grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Grupos de Formulario */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 5px;
+}
+
+.form-group .req {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Inputs y Selects */
+.auth-input,
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="tel"],
+.form-group select,
+.simple_form input,
+.simple_form select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.auth-input:focus,
+.form-group input:focus,
+.form-group select:focus {
+  background-color: #ffffff;
+  border-color: var(--cyan-bimers, #00d2ff);
+  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2);
+}
+
+/* Botón de envío */
+.btn-auth-submit,
+.simple_form input[type="submit"],
+.simple_form button[type="submit"] {
+  width: 100%;
+  height: 46px;
+  background-color: var(--blue-bimers, #003399);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-auth-submit:hover,
+.simple_form input[type="submit"]:hover {
+  background-color: #002266;
+}
+
+/* Alertas */
+.alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.alert-success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+/* Footer links */
+.auth-links {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.auth-links a {
+  color: var(--blue-bimers, #003399);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVO (PANTALLAS MEDIANAS Y PEQUEÑAS) */
+@media (max-width: 992px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .form-grid-address {
+    grid-template-columns: 1fr 1fr;
+  }
+  .span-2-desktop {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 576px) {
+  .portal-signup-card, .auth-card {
+    padding: 25px 18px;
+    margin: 10px auto;
+  }
+  .form-grid-3,
+  .form-grid-address,
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .span-2-desktop {
+    grid-column: span 1;
+  }
+}
+</style>

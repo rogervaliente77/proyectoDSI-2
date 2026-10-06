@@ -1,63 +1,55 @@
-<div class="container">
-  <!-- Outer Row -->
-  <div class="row justify-content-center">
+<div class="login-card-container">
+  <div class="auth-brand">
+    <h1>BIMERS MOTOR<span> CARS</span></h1>
+  </div>
 
-    <div class="col-xl-10 col-lg-12 col-md-9">
+  <div class="auth-header">
+    <h2>¡Bienvenido de nuevo!</h2>
+    <p class="auth-subtitle">Ingresa tus credenciales para acceder a tu cuenta.</p>
+  </div>
 
-      <div class="card o-hidden border-0 shadow-lg my-5">
-        <div class="card-body p-0">
-          <!-- Nested Row within Card Body -->
-          <div class="row">
-            <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
-            <div class="col-lg-6">
-              <div class="p-5">
-                <div class="text-center">
-                  <h1 class="h4 text-gray-900 mb-4">Welcome!</h1>
-                </div>
+  <% if flash[:notice] %>
+    <div class="alert alert-success"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="alert alert-danger"><%= flash[:alert] %></div>
+  <% end %>
 
-                <% if flash[:notice] %>
-                  <div class="alert alert-success"><%= flash[:notice] %></div>
-                <% elsif flash[:alert] %>
-                  <div class="alert alert-danger"><%= flash[:alert] %></div>
-                <% end %>
+  <div id="error-message" class="alert alert-danger" style="display: none;"></div>
 
-                <div id="error-message" class="alert alert-danger" style="display: none;"></div>
-
-                <%= simple_form_for :user, url: portal_new_login_path, method: :post, html: { class: "user", id: "login-form" }, data: { turbo: false } do |form| %>
-                  <div class="form-group">
-                    <%= form.input :email, label: false, required: true, input_html: { class: "form-control form-control-user", placeholder: "Correo electrónico" } %>
-                  </div>
-                  <div class="form-group">
-                    <%= form.input :password, label: false, required: true, input_html: { class: "form-control form-control-user", placeholder: "Contraseña" } %>
-                  </div>
-
-                  <%= form.button :submit, "Iniciar sesión", class: "btn btn-primary btn-user btn-block" %>
-
-                  <hr>
-                  <!-- Opcional: botones sociales -->
-                  <!--<a href="#" class="btn btn-google btn-user btn-block">
-                    <i class="fab fa-google fa-fw"></i> Iniciar sesión con Google
-                  </a>
-                  <a href="#" class="btn btn-facebook btn-user btn-block">
-                    <i class="fab fa-facebook-f fa-fw"></i> Iniciar sesión con Facebook
-                  </a>-->
-                <% end %>
-
-                <hr>
-                <div class="text-center">
-                  <%= link_to "¿Olvidaste tu contraseña?", "#", class: "small" %>
-                </div>
-                <div class="text-center">
-                  <%= link_to "Crear una cuenta", portal_signup_path, class: "small" %>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+  <%= simple_form_for :user, url: portal_new_login_path, method: :post, html: { class: "login-form-body", id: "login-form" }, data: { turbo: false } do |form| %>
+    
+    <div class="login-field-group">
+      <label for="user_email" class="login-label">Correo Electrónico <span class="req">*</span></label>
+      <%= form.input_field :email, 
+            id: "user_email", 
+            type: "email", 
+            placeholder: "ejemplo@correo.com", 
+            required: true, 
+            class: "login-custom-input" %>
     </div>
 
+    <div class="login-field-group">
+      <label for="user_password" class="login-label">Contraseña <span class="req">*</span></label>
+      <%= form.input_field :password, 
+            id: "user_password", 
+            type: "password", 
+            placeholder: "••••••••", 
+            required: true, 
+            class: "login-custom-input" %>
+    </div>
+
+    <button type="submit" class="btn-login-submit">
+      Iniciar Sesión
+    </button>
+  <% end %>
+
+  <div class="login-footer-links">
+    <div>
+      <%= link_to "¿Olvidaste tu contraseña?", "#" %>
+    </div>
+    <div class="signup-prompt">
+      ¿No tienes una cuenta? <%= link_to "Crear una cuenta", portal_signup_path, data: { turbo: false } %>
+    </div>
   </div>
 </div>
 
@@ -68,17 +60,198 @@
     const passwordInput = document.querySelector("#user_password");
     const errorMessage = document.getElementById("error-message");
 
-    form.addEventListener("submit", function (event) {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
 
-      if (!email || !password) {
-        event.preventDefault();
-        errorMessage.textContent = "Todos los campos son obligatorios";
-        errorMessage.style.display = "block";
-      } else {
-        errorMessage.style.display = "none";
-      }
-    });
+        if (!email || !password) {
+          event.preventDefault();
+          errorMessage.textContent = "Todos los campos son obligatorios";
+          errorMessage.style.display = "block";
+        } else {
+          errorMessage.style.display = "none";
+        }
+      });
+    }
   });
 </script>
+
+<style>
+/* ==========================================================================
+   REFACTORIZACIÓN AUTOCONTENIDA - VISTA DE LOGIN
+   ========================================================================== */
+
+/* Contenedor principal de la tarjeta */
+.login-card-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 40px 32px;
+  border: 1px solid #e2e8f0;
+  margin: 40px auto;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Marca y Encabezados */
+.login-card-container .auth-brand h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #003399;
+  text-align: center;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+
+.login-card-container .auth-brand h1 span {
+  color: #00d2ff;
+}
+
+.login-card-container .auth-header h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.login-card-container .auth-subtitle {
+  font-size: 0.88rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0 0 24px 0;
+}
+
+/* Estructura del Formulario */
+.login-form-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.login-field-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.login-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.login-label .req {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Inputs con estilo moderno */
+.login-custom-input {
+  width: 100% !important;
+  height: 46px;
+  padding: 0 14px !important;
+  font-size: 0.92rem !important;
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.login-custom-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.login-custom-input:focus {
+  background-color: #ffffff !important;
+  border-color: #003399 !important;
+  box-shadow: 0 0 0 4px rgba(0, 51, 153, 0.12) !important;
+}
+
+/* Botón de Submit */
+.btn-login-submit {
+  width: 100%;
+  height: 48px;
+  background-color: #003399;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 8px;
+}
+
+.btn-login-submit:hover {
+  background-color: #002266;
+}
+
+.btn-login-submit:active {
+  transform: scale(0.99);
+}
+
+/* Enlaces del pie */
+.login-footer-links {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.login-footer-links a {
+  color: #003399;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.login-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.signup-prompt {
+  margin-top: 8px;
+}
+
+/* Alertas */
+.login-card-container .alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.login-card-container .alert-danger {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.login-card-container .alert-success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .login-card-container {
+    padding: 30px 20px;
+    margin: 20px auto;
+    border: none;
+    box-shadow: none;
+  }
+}
+</style>
