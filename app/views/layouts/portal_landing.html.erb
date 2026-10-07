@@ -8,7 +8,7 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 
-  <%= stylesheet_link_tag "auth_layout", media: "all", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "bimers_catalog", media: "all", "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
 
   <!-- FontAwesome 6 -->
@@ -17,13 +17,13 @@
 <body>
 
   <!-- Renderizado desde app/views/components/landing/_landing_header.html.erb -->
-  <%= render "components//landing_header" %>
+  <%= render "components/portal/landing_header" %>
 
   <!-- Renderizado de la vista principal app/views/landing/index.html.erb -->
   <%= yield %>
 
   <!-- Renderizado desde app/views/components/landing/_landing_footer.html.erb -->
-  <%= render "components/landing/landing_footer" %>
+  <%= render "components/portal/landing_footer" %>
 
 </body>
 </html>

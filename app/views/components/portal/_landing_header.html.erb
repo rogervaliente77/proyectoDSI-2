@@ -27,17 +27,11 @@
   </button>
 
   <ul class="nav-links" id="nav-menu">
-    <li><%= link_to "Inicio", root_path, data: { turbo: false } %></li>
-    <li><a href="#servicios-taller" data-turbo="false">Servicios de Taller</a></li>
-    <li><a href="#tienda" data-turbo="false">Tienda Online</a></li>
-    <li><a href="#contacto" data-turbo="false">Ubicación & Contacto</a></li>
-    
-    <!-- Opciones destacadas -->
+    <li><%= link_to "Home", portal_home_path, data: { turbo: false } %></li>
+    <li><a href="#servicios-taller" data-turbo="false">Mis compras</a></li>
+
     <li class="nav-item-auth">
-      <%= link_to "Iniciar sesión", portal_login_path, class: "btn-nav-outline", data: { turbo: false } %>
-    </li>
-    <li class="nav-item-auth">
-      <%= link_to "Crear cuenta", portal_signup_path, class: "btn-nav-primary", data: { turbo: false } %>
+      <%= link_to "Cerrar sesion", portal_signup_path, class: "btn-nav-primary", data: { turbo: false } %>
     </li>
   </ul>
 </nav>
