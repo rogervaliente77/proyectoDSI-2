@@ -2,45 +2,19 @@ module Portal
   class UsersController < ApplicationController
     #before_action :check_admin_access
     # before_action :set_current_user
-    layout 'dashboard'
+    before_action :set_config
+    layout 'portal_landing'
     # def index
-      
-    #   @users = User.all
-    #   unless @current_user.role == "super_admin"
-    #     redirect_to admin_home_path
-    #     return
-    #   end
-    # end
-
-    # def new
-
-    # end
-
-    # #Función para crear usuario desde el super_admin
-    # def create
-    #   @user = User.new(user_params)
-    
-    #   if @user.save
-    #     redirect_to admin_users_path, notice: "Usuario creado con éxito."
-    #   else
-    #     flash[:alert] = "Hubo un error al crear el usuario"
-    #     render :new, status: :unprocessable_entity
-    #   end
-    # end
-
-    # #Esta función sirve para actualizar los roles desde el administrador  
-    # def edit
-    #   @user = User.find(params[:id])
-    # end
 
     def update
       @user = User.find(params[:id])
-
-      #binding.pry
+    
       if @user.update(user_params)
-        redirect_to portal_home_path, notice: "Usuario actualizado correctamente."
+        redirect_to portal_users_edit_password_path(id: @user.id), notice: "Contraseña actualizada correctamente."
       else
-        redirect_to portal_home_path, alert: "Error al actualizar el usuario."
+        # Capturamos los errores del modelo o enviamos el mensaje genérico
+        error_msg = @user.errors.full_messages.to_sentence.presence || "Error al actualizar la contraseña."
+        redirect_to portal_users_edit_password_path(id: @user.id), alert: error_msg
       end
     end
 
@@ -48,23 +22,7 @@ module Portal
       @user = User.find(params[:id])
     end
 
-    # def show
-
-    # end
-
     private
-
-    # def check_admin_access
-    #   admin_email = ENV['USER_ADMIN']
-
-    #   unless current_user && current_user.email == admin_email
-    #     redirect_to portal_home_path, alert: "No tienes acceso a esta sección."
-    #   end
-    # end
-
-    # def set_current_user
-    #   @current_user = current_user
-    # end
 
     def user_params
       params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
@@ -72,6 +30,11 @@ module Portal
 
     def created_user_params
       params.require(:user).permit(:is_valid, :first_name, :last_name, :role, :password, :password_confirmation, :email)
+    end
+
+    def set_config
+      # Ajusta según cómo obtienes las configuraciones globales (ej. Config.first, SystemSetting.first, etc.)
+      @config = SiteConfiguration.first || SiteConfiguration.new
     end
   end
 

@@ -49,13 +49,28 @@
         </button>
 
         <div class="profile-dropdown-menu" id="profile-dropdown-menu">
-          <a href="<%= defined?(edit_user_registration_path) ? edit_user_registration_path : '#' %>" class="dropdown-item">
-            <i class="fa-solid fa-key"></i> Cambiar contraseña
-          </a>
+          <% if defined?(portal_users_edit_password_path) %>
+            <a href="<%= portal_users_edit_password_path(id: current_user.id) %>" data-turbo="false" class="dropdown-item">
+              <i class="fa-solid fa-key"></i> Cambiar contraseña
+            </a>
+          <% else %>
+            <a href="#" class="dropdown-item">
+              <i class="fa-solid fa-key"></i> Cambiar contraseña
+            </a>
+          <% end %>
+
           <hr class="dropdown-divider">
-          <% if defined?(destroy_user_session_path) %>
-            <%= link_to destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: "dropdown-item dropdown-item-danger" do %>
+
+          <% if defined?(portal_logout_path) %>
+            <a href="<%= portal_logout_path %>" 
+              data-turbo="false" 
+              data-method="put" 
+              onclick="event.preventDefault(); document.getElementById('portal-logout-form').submit();" 
+              class="dropdown-item dropdown-item-danger">
               <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            </a>
+
+            <%= form_with url: portal_logout_path, method: :put, id: 'portal-logout-form', html: { style: 'display: none;', data: { turbo: false } } do %>
             <% end %>
           <% else %>
             <a href="#" class="dropdown-item dropdown-item-danger">
@@ -216,7 +231,7 @@
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     padding: 8px 0;
     z-index: 1000;
   }
@@ -225,33 +240,45 @@
     display: block;
   }
 
-  .dropdown-item {
+  /* Estilos base de las opciones del dropdown */
+  .profile-dropdown-menu a.dropdown-item,
+  .profile-dropdown-menu a.dropdown-item i {
+    color: #334155 !important;
+    text-decoration: none !important;
+  }
+
+  .profile-dropdown-menu a.dropdown-item {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 10px 16px;
     font-size: 0.85rem;
-    color: #334155 !important;
-    text-decoration: none !important;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
   }
 
-  /* Sobrescribir el estilo de hover en la etiqueta <a> y en los íconos internos */
-  .profile-dropdown-menu a.dropdown-item:hover,
-  .profile-dropdown-menu a.dropdown-item:hover i,
-  .profile-dropdown-menu a.dropdown-item:focus,
-  .profile-dropdown-menu a.dropdown-item:focus i {
-    color: #0f172a !important; /* Texto e icono oscuro */
-    background-color: #f1f5f9 !important; /* Fondo suave */
+  /* --- OVERRIDE DE HOVER (Anula la regla .main-nav .nav-links li a:hover) --- */
+  
+  /* Hover opción Cambiar Contraseña y generales */
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:hover,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:hover i,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:focus,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:focus i {
+    color: #0f172a !important; /* Texto e icono azul/gris oscuro */
+    background-color: #f1f5f9 !important; /* Fondo gris claro */
   }
 
-  /* Para el botón de Cerrar Sesión en hover */
-  .profile-dropdown-menu a.dropdown-item-danger:hover,
-  .profile-dropdown-menu a.dropdown-item-danger:hover i,
-  .profile-dropdown-menu a.dropdown-item-danger:focus,
-  .profile-dropdown-menu a.dropdown-item-danger:focus i {
+  /* Hover opción Cerrar Sesión (Peligro) */
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger i {
+    color: #dc2626 !important;
+  }
+
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:hover,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:hover i,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:focus,
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:focus i {
     color: #991b1b !important; /* Texto e icono rojo oscuro */
-    background-color: #fef2f2 !important; /* Fondo rojo claro */
+    background-color: #fef2f2 !important; /* Fondo rojo suave */
   }
 
   .dropdown-divider {
@@ -260,20 +287,26 @@
     border-top: 1px solid #e2e8f0;
   }
 
+  .main-nav .nav-links li a:not(.dropdown-item):hover {
+    color: #ffffff !important;
+  }
+
   /* ==========================================================================
      EXCLUSIVO PARA PANTALLAS PEQUEÑAS (< 992px)
      ========================================================================== */
-
   @media (max-width: 991px) {
+    /* Ocultar barra superior con datos de contacto */
     .top-bar {
       display: none !important;
     }
 
+    /* Mostrar icono de tres barras */
     .mobile-toggle {
       display: block !important;
       color: #ffffff !important;
     }
 
+    /* Menú desplegable móvil */
     .nav-links {
       display: none;
       flex-direction: column;
@@ -281,7 +314,7 @@
       top: 100%;
       left: 0;
       width: 100%;
-      background-color: #0d1527 !important;
+      background-color: #0d1527 !important; /* Azul oscuro */
       padding: 20px 0;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
       z-index: 999;
@@ -301,8 +334,9 @@
       justify-content: center;
     }
 
-    .nav-links li a:not(.dropdown-item) {
-      color: #0c0c0c !important;
+    /* FORZAR TEXTO BLANCO EN ENLACES DEL MENÚ NAVEGACIÓN (EXCLUYENDO BOTONES Y DROPDOWNS) */
+    .nav-links li a:not(.btn-nav-outline):not(.btn-nav-primary):not(.dropdown-item) {
+      color: #ffffff !important;
       font-size: 0.95rem;
       font-weight: 600;
       text-decoration: none;
@@ -311,17 +345,39 @@
       width: 100%;
     }
 
-    .nav-item-profile {
-      width: 100%;
+    .nav-links li a:not(.btn-nav-outline):not(.btn-nav-primary):not(.dropdown-item):hover {
+      color: #38bdf8 !important; /* Azul celeste al interactuar */
+    }
+
+    /* RESTABLECER TEXTO OSCURO Y ESTILOS PARA LAS OPCIONES DEL MENÚ DESPLEGABLE DE PERFIL */
+    .profile-dropdown-menu a.dropdown-item {
+      color: #334155 !important;
+      background-color: transparent !important;
+      text-align: left !important;
+      padding: 10px 16px !important;
+      display: block !important;
+    }
+
+    .profile-dropdown-menu a.dropdown-item:hover,
+    .profile-dropdown-menu a.dropdown-item:focus {
+      color: #0f172a !important;
+      background-color: #f1f5f9 !important;
+    }
+
+    /* Ajustar botones de autenticación dentro del dropdown móvil */
+    .nav-links .nav-item-auth {
+      margin-left: 0;
+      width: 80%;
       display: flex;
       justify-content: center;
     }
 
-    .profile-dropdown-menu {
-      right: 50%;
-      transform: translateX(50%);
+    .nav-links .nav-item-auth a {
+      width: 100%;
+      text-align: center;
     }
   }
+  
 
   /* ==========================================================================
      CARRITO Y MODAL LATERAL

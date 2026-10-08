@@ -1,3 +1,21 @@
+<!-- DENTRO DEL BODY DE TU LAYOUT PRINCIPAL -->
+<% if flash.any? %>
+  <div class="flash-messages-wrapper">
+    <% flash.each do |key, message| %>
+      <% alert_type = (key.to_s == 'notice' || key.to_s == 'success') ? 'success' : 'danger' %>
+      <div class="portal-flash-alert flash-<%= alert_type %>">
+        <div class="flash-content">
+          <i class="fa-solid <%= alert_type == 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation' %>"></i>
+          <span><%= message %></span>
+        </div>
+        <button type="button" class="btn-close-flash" onclick="this.closest('.portal-flash-alert').remove()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
 <!-- 5. CARDS DE CATEGORÍAS (DINÁMICAS CON BREADCRUMB) -->
 <section id="servicios" class="text-center">
   <div class="section-title text-center">
@@ -249,50 +267,96 @@
   </main>
 </section>
 
-<!-- MODAL DE PAGO (QUEMADO PARA DESPLIEGUE INICIAL) -->
+<!-- MODAL DE FINALIZAR COMPRA -->
 <div id="checkout-modal-overlay" class="checkout-modal-overlay" onclick="closeCheckoutModal()">
   <div class="checkout-modal" onclick="event.stopPropagation()">
-    <div class="checkout-modal-header">
-      <h3><i class="fa-solid fa-credit-card"></i> Finalizar Compra</h3>
-      <button type="button" class="checkout-close-btn" onclick="closeCheckoutModal()">&times;</button>
+    <div class="checkout-header">
+      <h3><i class="fa-solid fa-file-invoice-dollar"></i> Finalizar Compra</h3>
+      <button type="button" class="close-checkout-btn" onclick="closeCheckoutModal()">&times;</button>
     </div>
 
-    <div class="checkout-modal-body">
-      <div class="checkout-summary-box">
-        <h4>Resumen del Pedido</h4>
-        <div id="checkout-items-list" class="checkout-items-list">
+    <div class="checkout-body">
+      <!-- RESUMEN DE ORDEN -->
+      <div class="checkout-section">
+        <h4 class="checkout-subtitle"><i class="fa-solid fa-list-check"></i> Resumen de tu Pedido</h4>
+        <div id="checkout-summary-list" class="checkout-summary-list">
           <!-- Carga dinámicamente el contenido del carrito -->
         </div>
-        <div class="checkout-total-row">
-          <span>Total a Pagar:</span>
-          <strong id="checkout-total-amount">$0.00</strong>
+        <div class="checkout-total-banner">
+          <span>Total a pagar:</span>
+          <strong id="checkout-grand-total">$0.00</strong>
         </div>
       </div>
 
-      <form id="checkout-form" onsubmit="event.preventDefault(); alert('Funcionalidad de pago en desarrollo'); closeCheckoutModal();">
-        <div class="form-group mb-3">
-          <label class="form-label">Método de Pago</label>
-          <select class="form-select">
-            <option value="card">Tarjeta de Crédito / Débito</option>
-            <option value="transfer">Transferencia Bancaria</option>
-            <option value="cash">Pago en Efectivo al Recibir</option>
-          </select>
+      <!-- SELECCIÓN DE MÉTODO DE ENTREGA -->
+      <div class="checkout-section">
+        <h4 class="checkout-subtitle"><i class="fa-solid fa-truck-ram"></i> Tipo de Entrega</h4>
+        <div class="options-grid">
+          <label class="option-card active" onclick="selectDeliveryOption('pickup', this)">
+            <input type="radio" name="delivery_method" value="pickup" checked style="display:none;">
+            <i class="fa-solid fa-warehouse option-icon"></i>
+            <div>
+              <strong>Recoger en Taller</strong>
+              <p>Retiras en nuestro taller en El Salvador.</p>
+            </div>
+          </label>
+
+          <label class="option-card" onclick="selectDeliveryOption('delivery', this)">
+            <input type="radio" name="delivery_method" value="delivery" style="display:none;">
+            <i class="fa-solid fa-truck-fast option-icon"></i>
+            <div>
+              <strong>Envío a Domicilio</strong>
+              <p>Recibe tu repuesto directamente en tu casa.</p>
+            </div>
+          </label>
         </div>
 
-        <div class="form-group mb-3">
-          <label class="form-label">Dirección de Envío</label>
-          <input type="text" class="form-input" placeholder="Ej. Av. Principal #123, San Salvador" required>
+        <div id="address-field-container" class="address-field-container" style="display: none;">
+          <label for="shipping_address">Dirección de Entrega:</label>
+          <input type="text" id="shipping_address" class="checkout-input" placeholder="Ej: Av. Principal, Res. Los Pinos #12">
+        </div>
+      </div>
+
+      <!-- SELECCIÓN DE MÉTODO DE PAGO -->
+      <div class="checkout-section">
+        <h4 class="checkout-subtitle"><i class="fa-solid fa-credit-card"></i> Método de Pago</h4>
+        <div class="options-grid">
+          <label class="option-card active" onclick="selectPaymentOption('cash', this)">
+            <input type="radio" name="payment_method" value="cash" checked style="display:none;">
+            <i class="fa-solid fa-money-bill-wave option-icon"></i>
+            <div>
+              <strong>Efectivo (Pago Contra Entrega)</strong>
+              <p>Pagas al recibir o al retirar en taller.</p>
+            </div>
+          </label>
+
+          <label class="option-card" onclick="selectPaymentOption('transfer', this)">
+            <input type="radio" name="payment_method" value="transfer" style="display:none;">
+            <i class="fa-solid fa-building-columns option-icon"></i>
+            <div>
+              <strong>Transferencia Bancaria</strong>
+              <p>Transferencia inmediata a nuestra cuenta.</p>
+            </div>
+          </label>
         </div>
 
-        <div class="form-group mb-3">
-          <label class="form-label">Teléfono de Contacto</label>
-          <input type="tel" class="form-input" placeholder="Ej. +503 7000-0000" required>
+        <div id="transfer-details-info" class="transfer-details-info" style="display: none;">
+          <div class="bank-alert">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Datos de Cuenta Bancaria:</strong>
+              <p>Banco Agrícola - Cuenta Corriente: <strong>#123-456789-0</strong><br>A nombre de: BIMERS MOTOR CARS</p>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <button type="submit" class="btn-confirm-payment">
-          <i class="fa-solid fa-lock"></i> Confirmar y Pagar
-        </button>
-      </form>
+    <div class="checkout-footer">
+      <button type="button" class="btn-cancel-checkout" onclick="closeCheckoutModal()">Cancelar</button>
+      <button type="button" class="btn-confirm-order" onclick="confirmPurchase()">
+        <i class="fa-solid fa-circle-check"></i> Confirmar Compra
+      </button>
     </div>
   </div>
 </div>
@@ -640,15 +704,17 @@
     color: #ffffff !important;
   }
 
-  /* ESTILOS DEL MODAL DE CHECKOUT (PAGO) */
+ /* ==========================================================================
+     ESTILOS DEL MODAL DE FINALIZAR COMPRA
+     ========================================================================== */
   .checkout-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -662,120 +728,322 @@
   .checkout-modal {
     background: #ffffff;
     width: 100%;
-    max-width: 520px;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 580px;
+    border-radius: 14px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     margin: 15px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
   }
 
-  .checkout-modal-header {
+  .checkout-header {
     background: #0f172a;
     color: #ffffff;
-    padding: 16px 20px;
+    padding: 16px 22px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
-  .checkout-modal-header h3 {
+  .checkout-header h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  .checkout-close-btn {
+  .close-checkout-btn {
     background: transparent;
     border: none;
-    color: #ffffff;
-    font-size: 1.5rem;
+    color: #94a3b8;
+    font-size: 1.6rem;
     cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
   }
 
-  .checkout-modal-body {
+  .close-checkout-btn:hover {
+    color: #ffffff;
+  }
+
+  .checkout-body {
     padding: 20px;
-    max-height: 80vh;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  .checkout-summary-box {
+  .checkout-section {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    padding: 14px 16px;
   }
 
-  .checkout-summary-box h4 {
-    margin: 0 0 10px 0;
-    font-size: 0.95rem;
+  .checkout-subtitle {
+    margin: 0 0 12px 0;
+    font-size: 0.92rem;
+    font-weight: 700;
     color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .checkout-items-list {
-    max-height: 120px;
+  /* LISTADO Y TOTAL DEL RESUMEN */
+  .checkout-summary-list {
+    max-height: 140px;
     overflow-y: auto;
-    font-size: 0.85rem;
-    color: #475569;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 4px;
     margin-bottom: 10px;
   }
 
-  .checkout-item-line {
+  .checkout-summary-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #334155;
     padding: 4px 0;
+    border-bottom: 1px dashed #e2e8f0;
   }
 
-  .checkout-total-row {
+  .checkout-summary-item:last-child {
+    border-bottom: none;
+  }
+
+  .checkout-total-banner {
     display: flex;
     justify-content: space-between;
-    border-top: 1px dashed #cbd5e1;
-    padding-top: 8px;
-    font-size: 1rem;
-    color: #0f172a;
+    align-items: center;
+    background: #0f172a;
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-top: 6px;
   }
 
-  .form-group {
-    margin-bottom: 12px;
+  .checkout-total-banner strong {
+    font-size: 1.15rem;
+    color: #38bdf8;
   }
 
-  .form-label {
+  /* TARJETAS OPCIONALES (ENTREGA Y PAGO) */
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  @media (max-width: 480px) {
+    .options-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .option-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .option-card:hover {
+    border-color: #94a3b8;
+  }
+
+  .option-card.active {
+    border-color: #0284c7;
+    background: #f0f9ff;
+  }
+
+  .option-icon {
+    font-size: 1.25rem;
+    color: #0284c7;
+    margin-top: 2px;
+  }
+
+  .option-card strong {
     display: block;
     font-size: 0.85rem;
+    color: #0f172a;
+    margin-bottom: 2px;
+  }
+
+  .option-card p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.2;
+  }
+
+  /* CAMPOS Y ALERTAS SECUNDARIAS */
+  .address-field-container {
+    margin-top: 12px;
+  }
+
+  .address-field-container label {
+    display: block;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #334155;
     margin-bottom: 4px;
   }
 
-  .form-input, .form-select {
+  .checkout-input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 9px 12px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     box-sizing: border-box;
   }
 
-  .form-input:focus, .form-select:focus {
+  .checkout-input:focus {
     outline: none;
-    border-color: #0d6efd;
+    border-color: #0284c7;
   }
 
-  .btn-confirm-payment {
-    width: 100%;
-    padding: 12px;
+  .transfer-details-info {
+    margin-top: 12px;
+  }
+
+  .bank-alert {
+    display: flex;
+    gap: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #1e40af;
+    font-size: 0.82rem;
+  }
+
+  .bank-alert i {
+    font-size: 1.1rem;
+    margin-top: 2px;
+  }
+
+  .bank-alert p {
+    margin: 2px 0 0 0;
+    line-height: 1.35;
+  }
+
+  /* FOOTER DEL MODAL */
+  .checkout-footer {
+    padding: 14px 20px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .btn-cancel-checkout {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .btn-cancel-checkout:hover {
+    background: #f8fafc;
+  }
+
+  .btn-confirm-order {
     background: #10b981;
     color: #ffffff;
     border: none;
-    border-radius: 8px;
+    padding: 9px 18px;
+    border-radius: 6px;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    transition: background 0.2s ease;
-    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
   }
 
-  .btn-confirm-payment:hover {
+  .btn-confirm-order:hover {
     background: #059669;
+  }
+
+  /* ESTILOS PARA LAS ALERTAS FLASH */
+  .flash-messages-wrapper {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+  }
+
+  .portal-flash-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .portal-flash-alert .flash-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .portal-flash-alert.flash-success {
+    background-color:rgb(185, 242, 216);
+    border: 1px solidrgb(33, 240, 144);
+    color: #065f46;
+  }
+
+  .portal-flash-alert.flash-danger {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .btn-close-flash {
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: opacity 0.2s ease;
+  }
+
+  .btn-close-flash:hover {
+    opacity: 1;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 
@@ -1107,32 +1375,91 @@
       return;
     }
 
-    toggleCartModal(); // Cierra el slider/drawer del carrito
+    // Cierra el drawer desplegable del carrito si está abierto
+    if (typeof toggleCartModal === 'function') {
+      const drawer = document.getElementById('cart-drawer');
+      if (drawer && drawer.classList.contains('open')) {
+        toggleCartModal();
+      }
+    }
 
-    // Carga los productos dentro del modal de checkout
-    const itemsContainer = document.getElementById('checkout-items-list');
-    const totalElem = document.getElementById('checkout-total-amount');
+    // Cargar ítems en el resumen
+    const summaryList = document.getElementById('checkout-summary-list');
+    const grandTotalElem = document.getElementById('checkout-grand-total');
 
-    if (itemsContainer) {
-      itemsContainer.innerHTML = cart.map(item => `
-        <div class="checkout-item-line">
+    if (summaryList) {
+      summaryList.innerHTML = cart.map(item => `
+        <div class="checkout-summary-item">
           <span>${item.qty}x ${item.name}</span>
           <strong>$${(item.price * item.qty).toFixed(2)}</strong>
         </div>
       `).join('');
     }
 
-    if (totalElem) {
+    if (grandTotalElem) {
       const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      totalElem.textContent = `$${grandTotal.toFixed(2)}`;
+      grandTotalElem.textContent = `$${grandTotal.toFixed(2)}`;
     }
 
-    // Muestra el modal de checkout
+    // Abrir modal
     document.getElementById('checkout-modal-overlay')?.classList.add('open');
   }
 
   function closeCheckoutModal() {
     document.getElementById('checkout-modal-overlay')?.classList.remove('open');
+  }
+
+  function selectDeliveryOption(method, element) {
+    const parent = element.closest('.options-grid');
+    if (parent) {
+      parent.querySelectorAll('.option-card').forEach(card => card.classList.remove('active'));
+    }
+    element.classList.add('active');
+
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+
+    const addressContainer = document.getElementById('address-field-container');
+    if (addressContainer) {
+      addressContainer.style.display = (method === 'delivery') ? 'block' : 'none';
+    }
+  }
+
+  /* Selección dinámica de Métodos de Pago */
+  function selectPaymentOption(method, element) {
+    const parent = element.closest('.options-grid');
+    if (parent) {
+      parent.querySelectorAll('.option-card').forEach(card => card.classList.remove('active'));
+    }
+    element.classList.add('active');
+
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+
+    const transferInfo = document.getElementById('transfer-details-info');
+    if (transferInfo) {
+      transferInfo.style.display = (method === 'transfer') ? 'block' : 'none';
+    }
+  }
+
+  function confirmPurchase() {
+    const selectedDelivery = document.querySelector('input[name="delivery_method"]:checked')?.value;
+    const selectedPayment = document.querySelector('input[name="payment_method"]:checked')?.value;
+
+    if (selectedDelivery === 'delivery') {
+      const address = document.getElementById('shipping_address')?.value.trim();
+      if (!address) {
+        alert("Por favor ingresa tu dirección de entrega.");
+        document.getElementById('shipping_address')?.focus();
+        return;
+      }
+    }
+
+    alert("¡Pedido realizado con éxito! Nos pondremos en contacto contigo.");
+    
+    // Vaciar el carrito tras confirmación
+    saveCart([]);
+    closeCheckoutModal();
   }
 
   function updateUI() {

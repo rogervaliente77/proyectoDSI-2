@@ -10,9 +10,8 @@ module Portal
     end
 
     def new_login
-      # binding.pry
       if params[:user].blank?
-        redirect_to admin_login_path, alert: "No ingresó datos, ingrese los datos en el formulario"
+        redirect_to admin_login_path, alert: "No ingresó datos, ingrese los datos en el formulario", status: :see_other
         return
       end
     
@@ -20,51 +19,34 @@ module Portal
       password = params[:user][:password].presence
     
       if email.blank? || password.blank?
-        redirect_to admin_login_path, alert: "Debe ingresar correo y contraseña"
+        redirect_to admin_login_path, alert: "Debe ingresar correo y contraseña", status: :see_other
         return
       end
     
-      begin
-        @user = User.find_by(email: email)
-      rescue Mongoid::Errors::DocumentNotFound
-        @user = nil
-      end
-
-      if !@user.present?
-        redirect_to portal_login_path, alert: "Usuario no existe"
-        return
-      end
-
-      unless @user.role.name == "cliente"
-        flash[:alert] = 'Usted no es usuario cliente, debe iniciar sesion en el login para administradores'
-        redirect_to admin_login_path
-        return
-      end
-
-      if @user.present?
-        if !@user.is_valid?
-          respond_to do |format|
-            @user.update(otp_code: generate_otp_code)
-            session[:jwt_token] = @user.jwt_token
-            @user = User.find(@user.id)
-            UserVerificationMailer.send_otp_email(@user).deliver_now
-            flash[:alert] = 'Usuario no validado, debe ingresar el codigo de verificacion que se envio a su correo'
-            redirect_to portal_validating_user_path
-            return
-          end
-        end
-      else
-        flash[:alert] = 'Usuario con ese correo no esta registrado'
-        redirect_to portal_login_path
+      @user = User.where(email: email).first
+    
+      if @user.nil?
+        redirect_to portal_login_path, alert: "Usuario no existe", status: :see_other
         return
       end
     
-      # Validamos que el usuario exista y que la contraseña sea correcta
-      if @user&.authenticate(password)
+      unless @user.role&.name == "cliente"
+        redirect_to admin_login_path, alert: "Usted no es usuario cliente, debe iniciar sesión en el login para administradores", status: :see_other
+        return
+      end
+    
+      unless @user.is_valid?
+        @user.update(otp_code: generate_otp_code)
+        session[:jwt_token] = @user.jwt_token
+        UserVerificationMailer.send_otp_email(@user).deliver_now
+        redirect_to portal_validating_user_path, alert: "Usuario no validado, debe ingresar el código de verificación que se envió a su correo", status: :see_other
+        return
+      end
+    
+      if @user.authenticate(password)
         session_token = SecureRandom.hex(32)
-        session_expiration_time = Time.now + 30.minutes # o el tiempo que necesites
-        # binding.pry
-        # Crea un UserSession
+        session_expiration_time = Time.now + 30.minutes
+    
         user_session = UserSession.create!(
           session_token: session_token,
           expiration_time: session_expiration_time,
@@ -74,11 +56,10 @@ module Portal
     
         session[:user_id] = @user.id
         session[:session_token] = user_session.session_token
-        flash[:notice] = "Bienvenido, #{@user.first_name}!"
-        redirect_to portal_home_path
-        return
+    
+        redirect_to portal_home_path, notice: "¡Bienvenido, #{@user.first_name}!", status: :see_other
       else
-        redirect_to portal_login_path, alert: "Contraseña incorrecta"
+        redirect_to portal_login_path, alert: "Contraseña incorrecta", status: :see_other
       end
     end
     
