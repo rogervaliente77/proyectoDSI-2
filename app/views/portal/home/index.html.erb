@@ -1,5 +1,3 @@
-<!-- 3. HERO CARROUSEL WALLPAPER DINÁMICO -->
-
 <!-- 5. CARDS DE CATEGORÍAS (DINÁMICAS CON BREADCRUMB) -->
 <section id="servicios" class="text-center">
   <div class="section-title text-center">
@@ -76,7 +74,7 @@
       <i class="fa-solid fa-sliders"></i> Filtros
     </div>
 
-    <!-- Filtro de Categoría Agragado/Corregido -->
+    <!-- Filtro de Categoría -->
     <div class="filter-group">
       <label>Categoría</label>
       <select id="category-select" onchange="filterProducts()">
@@ -251,7 +249,55 @@
   </main>
 </section>
 
-<!-- ESTILOS CORREGIDOS -->
+<!-- MODAL DE PAGO (QUEMADO PARA DESPLIEGUE INICIAL) -->
+<div id="checkout-modal-overlay" class="checkout-modal-overlay" onclick="closeCheckoutModal()">
+  <div class="checkout-modal" onclick="event.stopPropagation()">
+    <div class="checkout-modal-header">
+      <h3><i class="fa-solid fa-credit-card"></i> Finalizar Compra</h3>
+      <button type="button" class="checkout-close-btn" onclick="closeCheckoutModal()">&times;</button>
+    </div>
+
+    <div class="checkout-modal-body">
+      <div class="checkout-summary-box">
+        <h4>Resumen del Pedido</h4>
+        <div id="checkout-items-list" class="checkout-items-list">
+          <!-- Carga dinámicamente el contenido del carrito -->
+        </div>
+        <div class="checkout-total-row">
+          <span>Total a Pagar:</span>
+          <strong id="checkout-total-amount">$0.00</strong>
+        </div>
+      </div>
+
+      <form id="checkout-form" onsubmit="event.preventDefault(); alert('Funcionalidad de pago en desarrollo'); closeCheckoutModal();">
+        <div class="form-group mb-3">
+          <label class="form-label">Método de Pago</label>
+          <select class="form-select">
+            <option value="card">Tarjeta de Crédito / Débito</option>
+            <option value="transfer">Transferencia Bancaria</option>
+            <option value="cash">Pago en Efectivo al Recibir</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label">Dirección de Envío</label>
+          <input type="text" class="form-input" placeholder="Ej. Av. Principal #123, San Salvador" required>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label">Teléfono de Contacto</label>
+          <input type="tel" class="form-input" placeholder="Ej. +503 7000-0000" required>
+        </div>
+
+        <button type="submit" class="btn-confirm-payment">
+          <i class="fa-solid fa-lock"></i> Confirmar y Pagar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ESTILOS GENERALES -->
 <style>
   html {
     scroll-behavior: smooth;
@@ -538,230 +584,6 @@
     opacity: 0.6;
   }
 
-  /* SECCIÓN DE SERVICIOS - TARJETAS ANCHAS CENTRADAS */
-  .services-section {
-    padding: 50px 20px;
-    background-color: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .services-carousel-wrapper {
-    position: relative;
-    max-width: 1250px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .services-cards-slider {
-    display: flex;
-    gap: 24px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 15px 5px 25px 5px;
-    width: 100%;
-    justify-content: center;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  @media (max-width: 1200px) {
-    .services-cards-slider {
-      justify-content: flex-start;
-    }
-  }
-
-  .services-cards-slider::-webkit-scrollbar {
-    height: 6px;
-  }
-
-  .services-cards-slider::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
-  }
-
-  /* Tarjeta Alargada Horizontamente */
-  .service-wide-card {
-    flex: 0 0 calc(50% - 12px);
-    height: 300px;
-    max-width: 580px;
-    min-width: 480px;
-    background: #ffffff;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: row;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .service-wide-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
-  }
-
-  .service-card-img {
-    position: relative;
-    width: 40%;
-    min-height: 220px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .service-card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-  }
-
-  .service-wide-card:hover .service-card-img img {
-    transform: scale(1.08);
-  }
-
-  .service-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: rgba(15, 23, 42, 0.85);
-    color: #ffffff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 16px;
-    text-transform: uppercase;
-    backdrop-filter: blur(4px);
-  }
-
-  .service-card-body {
-    width: 60%;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    box-sizing: border-box;
-  }
-
-  .service-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 8px;
-    line-height: 1.3;
-  }
-
-  .service-desc {
-    font-size: 0.88rem;
-    color: #475569;
-    line-height: 1.5;
-    margin-bottom: 15px;
-    overflow-y: auto;
-    padding-right: 5px;
-    display: block; 
-    -webkit-line-clamp: unset;
-    -webkit-box-orient: unset;
-  }
-
-  .service-desc::-webkit-scrollbar {
-    width: 4px;
-  }
-  .service-desc::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-  .service-desc::-webkit-scrollbar-thumb:hover {
-    background: #0d6efd;
-  }
-
-  .service-card-footer {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-  }
-
-  .btn-schedule-service {
-    background: #0d6efd;
-    color: #ffffff;
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-
-  .btn-schedule-service:hover {
-    background: #0b5ed7;
-    color: #ffffff;
-    transform: scale(1.02);
-  }
-
-  .services-carousel-btn {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    color: #0f172a;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-  }
-
-  .services-carousel-btn:hover {
-    background: #0d6efd;
-    color: #ffffff;
-    border-color: #0d6efd;
-  }
-
-  .services-carousel-btn.prev {
-    margin-right: 10px;
-  }
-
-  .services-carousel-btn.next {
-    margin-left: 10px;
-  }
-
-  .no-services-msg {
-    width: 100%;
-    text-align: center;
-    padding: 40px;
-    color: #64748b;
-  }
-
-  @media (max-width: 768px) {
-    .service-wide-card {
-      flex: 0 0 85%;
-      min-width: 280px;
-      flex-direction: column;
-    }
-
-    .service-card-img {
-      width: 100%;
-      height: 160px;
-      min-height: auto;
-    }
-
-    .service-card-body {
-      width: 100%;
-    }
-
-    .services-cards-slider {
-      justify-content: flex-start;
-    }
-  }
-
   .product-img-box {
     position: relative;
     width: 100%;
@@ -814,25 +636,151 @@
     transition: color 0.3s ease;
   }
 
-  /* Color blanco al pasar el cursor */
   .main-nav .nav-links li a:hover {
     color: #ffffff !important;
   }
+
+  /* ESTILOS DEL MODAL DE CHECKOUT (PAGO) */
+  .checkout-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+  }
+
+  .checkout-modal-overlay.open {
+    display: flex;
+  }
+
+  .checkout-modal {
+    background: #ffffff;
+    width: 100%;
+    max-width: 520px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 15px;
+  }
+
+  .checkout-modal-header {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .checkout-modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .checkout-close-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .checkout-modal-body {
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .checkout-summary-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+
+  .checkout-summary-box h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+
+  .checkout-items-list {
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    color: #475569;
+    margin-bottom: 10px;
+  }
+
+  .checkout-item-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+
+  .checkout-total-row {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px dashed #cbd5e1;
+    padding-top: 8px;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 4px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: #0d6efd;
+  }
+
+  .btn-confirm-payment {
+    width: 100%;
+    padding: 12px;
+    background: #10b981;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 10px;
+  }
+
+  .btn-confirm-payment:hover {
+    background: #059669;
+  }
 </style>
 
-<!-- JAVASCRIPT CORREGIDO -->
+<!-- JAVASCRIPT CORREGIDO Y EXPANDIDO -->
 <script>
-  window.scrollServices = function(direction) {
-    const slider = document.getElementById('services-cards-slider');
-    if (!slider) return;
-
-    const cardWidth = 604;
-    slider.scrollBy({
-      left: direction * cardWidth,
-      behavior: 'smooth'
-    });
-  };
-
   function setupLandingScript() {
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.getElementById('nav-menu');
@@ -842,39 +790,6 @@
         navMenu.classList.toggle('active');
       });
     }
-
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.carousel-slide');
-
-    window.showSlide = function(index) {
-      if (!slides.length) return;
-      slides.forEach(slide => slide.classList.remove('active'));
-      if (index >= slides.length) currentSlide = 0;
-      if (index < 0) currentSlide = slides.length - 1;
-      slides[currentSlide].classList.add('active');
-    };
-
-    window.moveSlide = function(step) {
-      currentSlide += step;
-      window.showSlide(currentSlide);
-    };
-
-    function startHeroAutoplay() {
-      if (window.heroCarouselInterval) {
-        clearInterval(window.heroCarouselInterval);
-      }
-      if (slides.length > 1) {
-        window.heroCarouselInterval = setInterval(function () {
-          window.moveSlide(1);
-        }, 5000);
-      }
-    }
-
-    startHeroAutoplay();
-
-    document.querySelectorAll('.hero-carousel .carousel-btn').forEach(function (btn) {
-      btn.addEventListener('click', startHeroAutoplay);
-    });
 
     const categoriesGrid = document.getElementById("categories-grid");
     const breadcrumb = document.getElementById("category-breadcrumb");
@@ -919,10 +834,8 @@
           li.className = `breadcrumb-item ${isLast ? "active" : ""}`;
           
           if (isLast && index > 0) {
-            // Si estamos en un nivel profundo y es el activo
             li.textContent = item.name;
           } else {
-            // Si es un enlace del breadcrumb (incluyendo 'Categorías Principales')
             const a = document.createElement("a");
             a.href = "#servicios";
             a.innerHTML = index === 0 ? '<i class="fa-solid fa-folder"></i> Categorías Principales' : item.name;
@@ -931,17 +844,15 @@
             a.addEventListener("click", function(e) {
               e.preventDefault();
               
-              // 1. Recortamos el historial hasta el nivel seleccionado
               navigationHistory = navigationHistory.slice(0, index + 1);
               renderCurrentLevel(item.id);
 
-              // 2. Novedad: Si hace clic en 'Categorías Principales' (index 0), reseteamos el filtro a "Todas"
               if (index === 0) {
                 const catSelect = document.getElementById('category-select');
                 if (catSelect) {
-                  catSelect.value = 'all'; // Selecciona "Todas las categorías"
+                  catSelect.value = 'all';
                   if (typeof window.filterProducts === 'function') {
-                    window.filterProducts(); // Vuelve a mostrar todos los productos cargados
+                    window.filterProducts();
                   }
                 }
               }
@@ -985,7 +896,6 @@
     };
 
     window.filterProducts = function() {
-      // Función auxiliar para insensibilidad a tildes y mayúsculas/minúsculas
       const normalizeText = (str) => 
         (str || "")
           .toLowerCase()
@@ -1127,11 +1037,10 @@
     window.filterProducts();
   }
 
-  // --- SISTEMA DE GESTIÓN DEL CARRITO (PERSISTENCIA Y TIEMPO REAL) ---
+  // --- SISTEMA DE GESTIÓN DEL CARRITO ---
 
   const STORAGE_KEY = 'bimers_cart_data';
 
-  // 1. Obtener Carrito guardado
   function getCart() {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -1142,7 +1051,6 @@
     }
   }
 
-  // 2. Guardar Carrito en LocalStorage y refrescar interfaz
   function saveCart(cart) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
@@ -1152,7 +1060,6 @@
     updateUI();
   }
 
-  // 3. Agregar o Incrementar Producto
   function handleAddToCart(productId) {
     let cart = getCart();
     const box = document.querySelector(`.product-cart-action-box[data-product-id='${productId}']`);
@@ -1174,7 +1081,6 @@
     saveCart(cart);
   }
 
-  // 4. Disminuir o Incrementar Cantidad
   function changeQty(productId, delta) {
     let cart = getCart();
     const index = cart.findIndex(item => String(item.id) === String(productId));
@@ -1188,23 +1094,54 @@
     }
   }
 
-  // 5. Abrir/Cerrar el Modal del Carrito
   function toggleCartModal() {
     document.getElementById('cart-modal-overlay')?.classList.toggle('open');
     document.getElementById('cart-drawer')?.classList.toggle('open');
   }
 
-  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
-  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
+  /* ACCIÓN: PROCEDER AL PAGO (DESPLIEGA EL MODAL DE CHECKOUT) */
+  function proceedToCheckout() {
+    const cart = getCart();
+    if (cart.length === 0) {
+      alert("Tu carrito está vacío. Agrega algunos productos antes de proceder al pago.");
+      return;
+    }
+
+    toggleCartModal(); // Cierra el slider/drawer del carrito
+
+    // Carga los productos dentro del modal de checkout
+    const itemsContainer = document.getElementById('checkout-items-list');
+    const totalElem = document.getElementById('checkout-total-amount');
+
+    if (itemsContainer) {
+      itemsContainer.innerHTML = cart.map(item => `
+        <div class="checkout-item-line">
+          <span>${item.qty}x ${item.name}</span>
+          <strong>$${(item.price * item.qty).toFixed(2)}</strong>
+        </div>
+      `).join('');
+    }
+
+    if (totalElem) {
+      const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      totalElem.textContent = `$${grandTotal.toFixed(2)}`;
+    }
+
+    // Muestra el modal de checkout
+    document.getElementById('checkout-modal-overlay')?.classList.add('open');
+  }
+
+  function closeCheckoutModal() {
+    document.getElementById('checkout-modal-overlay')?.classList.remove('open');
+  }
+
   function updateUI() {
     const cart = getCart();
     
-    // A. Actualizar el Contador Flotante
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
     const badge = document.getElementById('floating-cart-count');
     if (badge) badge.textContent = totalQty;
 
-    // B. Actualizar Botones/Contadores en las Tarjetas de Producto
     document.querySelectorAll('.product-cart-action-box').forEach(box => {
       const productId = String(box.dataset.productId);
       const item = cart.find(i => String(i.id) === productId);
@@ -1226,7 +1163,6 @@
       }
     });
 
-    // C. Renderizar Elementos en el Drawer/Modal Lateral (CON CANTIDAD Y SUB-TOTAL)
     const container = document.getElementById('cart-drawer-items');
     const totalElem = document.getElementById('cart-drawer-total');
     
@@ -1267,13 +1203,12 @@
   }
 
   function initLandingPage() {
-    setupLandingScript(); // Inicializa carruseles, filtros, breadcrumbs y eventos del menú
-    updateUI();           // Carga y pinta el carrito desde localStorage
+    setupLandingScript();
+    updateUI();
   }
 
-  // Escuchamos los eventos de carga de navegador y de Rails (Turbo / Turbolinks)
   ['DOMContentLoaded', 'turbo:load', 'turbolinks:load'].forEach(eventName => {
-    document.removeEventListener(eventName, initLandingPage); // Evita duplicar escuchadores
+    document.removeEventListener(eventName, initLandingPage);
     document.addEventListener(eventName, initLandingPage);
   });
 </script>

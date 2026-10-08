@@ -17,7 +17,7 @@
 <!-- NAVEGACIÓN PRINCIPAL -->
 <nav class="main-nav">
   <div class="logo-container">
-    <%= link_to root_path, class: "logo-link" do %>
+    <%= link_to portal_home_path, class: "logo-link" do %>
       <%= image_tag "logo-blanco.png", alt: "Logo Bimers", class: "navbar-logo-img" %>
     <% end %>
   </div>
@@ -27,11 +27,43 @@
   </button>
 
   <ul class="nav-links" id="nav-menu">
-    <li><%= link_to "Home", portal_home_path, data: { turbo: false } %></li>
-    <li><a href="#servicios-taller" data-turbo="false">Mis compras</a></li>
+    <li><%= link_to "Inicio", portal_home_path, data: { turbo: false } %></li>
+    <li><a href="#tienda" data-turbo="false">Catálogo</a></li>
+    <li><a href="#" data-turbo="false">Mis compras</a></li>
+    
+    <!-- ÁREA DE PERFIL Y DROPDOWN DE USUARIO -->
+    <li class="nav-item-profile">
+      <div class="profile-dropdown-wrapper">
+        <button type="button" class="profile-trigger-btn" id="profile-dropdown-btn">
+          <% if current_user.respond_to?(:avatar_url) && current_user.avatar_url.present? %>
+            <img src="<%= current_user.avatar_url %>" alt="Avatar" class="profile-avatar-img">
+          <% elsif current_user.respond_to?(:avatar) && current_user.avatar.attached? %>
+            <%= image_tag current_user.avatar, class: "profile-avatar-img", alt: "Avatar" %>
+          <% else %>
+            <div class="profile-avatar-placeholder">
+              <i class="fa-solid fa-user"></i>
+            </div>
+          <% end %>
+          <span class="profile-username"><%= current_user.try(:first_name) || current_user.try(:name) || "Mi Cuenta" %></span>
+          <i class="fa-solid fa-chevron-down profile-arrow"></i>
+        </button>
 
-    <li class="nav-item-auth">
-      <%= link_to "Cerrar sesion", portal_signup_path, class: "btn-nav-primary", data: { turbo: false } %>
+        <div class="profile-dropdown-menu" id="profile-dropdown-menu">
+          <a href="<%= defined?(edit_user_registration_path) ? edit_user_registration_path : '#' %>" class="dropdown-item">
+            <i class="fa-solid fa-key"></i> Cambiar contraseña
+          </a>
+          <hr class="dropdown-divider">
+          <% if defined?(destroy_user_session_path) %>
+            <%= link_to destroy_user_session_path, method: :delete, data: { turbo_method: :delete }, class: "dropdown-item dropdown-item-danger" do %>
+              <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            <% end %>
+          <% else %>
+            <a href="#" class="dropdown-item dropdown-item-danger">
+              <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            </a>
+          <% end %>
+        </div>
+      </div>
     </li>
   </ul>
 </nav>
@@ -70,7 +102,6 @@
      ESTILOS BASE / ESCRITORIO (PANTALLAS GRANDES >= 992px)
      ========================================================================== */
 
-  /* Barra superior visible en escritorio */
   .top-bar {
     display: flex;
     justify-content: space-between;
@@ -84,7 +115,6 @@
     position: relative;
   }
 
-  /* Ocultar botón hamburguesa en escritorio */
   .mobile-toggle {
     display: none;
     background: transparent;
@@ -94,7 +124,6 @@
     cursor: pointer;
   }
 
-  /* Menú horizontal predeterminado para escritorio */
   @media (min-width: 992px) {
     .nav-links {
       display: flex !important;
@@ -109,7 +138,7 @@
     }
 
     .nav-links li a {
-      color: inherit; /* Mantiene el color original en escritorio */
+      color: inherit;
     }
   }
 
@@ -118,70 +147,117 @@
     align-items: center;
   }
 
-  .nav-links .nav-item-auth {
-    margin-left: 4px;
-  }
-
   /* ==========================================================================
-     BOTONES DE AUTENTICACIÓN (INICIAR SESIÓN / CREAR CUENTA)
+     ESTILOS DEL COMPONENTE PERFIL Y DROPDOWN
      ========================================================================== */
 
-  .nav-links a.btn-nav-outline,
-  .nav-links li.nav-item-auth a.btn-nav-outline,
-  a.btn-nav-outline {
-    display: inline-block !important;
-    padding: 5px 12px !important;
-    background-color: #ffffff !important;
-    color: #003399 !important;
-    border: 1.5px solid #003399 !important;
-    border-radius: 5px !important;
-    font-size: 0.80rem !important;
-    font-weight: 700 !important;
+  .nav-item-profile {
+    position: relative;
+  }
+
+  .profile-dropdown-wrapper {
+    position: relative;
+  }
+
+  .profile-trigger-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 4px 12px 4px 6px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .profile-trigger-btn:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  .profile-avatar-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .profile-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #003399;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+
+  .profile-username {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .profile-arrow {
+    font-size: 0.7rem;
+    color: #64748b;
+    transition: transform 0.2s ease;
+  }
+
+  .profile-dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: 200px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    z-index: 1000;
+  }
+
+  .profile-dropdown-menu.show {
+    display: block;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    color: #334155 !important;
     text-decoration: none !important;
-    line-height: 1.1 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-    transition: all 0.2s ease-in-out !important;
+    transition: background 0.2s ease;
   }
 
-  .nav-links a.btn-nav-outline:hover,
-  .nav-links li.nav-item-auth a.btn-nav-outline:hover,
-  a.btn-nav-outline:hover {
-    background-color: #003399 !important;
-    color: #ffffff !important;
-    border-color: #003399 !important;
+  /* Sobrescribir el estilo de hover en la etiqueta <a> y en los íconos internos */
+  .profile-dropdown-menu a.dropdown-item:hover,
+  .profile-dropdown-menu a.dropdown-item:hover i,
+  .profile-dropdown-menu a.dropdown-item:focus,
+  .profile-dropdown-menu a.dropdown-item:focus i {
+    color: #0f172a !important; /* Texto e icono oscuro */
+    background-color: #f1f5f9 !important; /* Fondo suave */
   }
 
-  .nav-links a.btn-nav-primary,
-  .nav-links li.nav-item-auth a.btn-nav-primary,
-  a.btn-nav-primary {
-    display: inline-block !important;
-    padding: 5px 12px !important;
-    background-color: #ffffff !important;
-    color: #003399 !important;
-    border: 1.5px solid #003399 !important;
-    border-radius: 5px !important;
-    font-size: 0.80rem !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;
-    line-height: 1.1 !important;
-    box-shadow: 0 1px 3px rgba(76, 224, 253, 0.12) !important;
-    transition: all 0.2s ease-in-out !important;
+  /* Para el botón de Cerrar Sesión en hover */
+  .profile-dropdown-menu a.dropdown-item-danger:hover,
+  .profile-dropdown-menu a.dropdown-item-danger:hover i,
+  .profile-dropdown-menu a.dropdown-item-danger:focus,
+  .profile-dropdown-menu a.dropdown-item-danger:focus i {
+    color: #991b1b !important; /* Texto e icono rojo oscuro */
+    background-color: #fef2f2 !important; /* Fondo rojo claro */
   }
 
-  .nav-links a.btn-nav-primary:hover,
-  .nav-links li.nav-item-auth a.btn-nav-primary:hover,
-  a.btn-nav-primary:hover {
-    background-color: #003399 !important;
-    color: #ffffff !important;
-    border-color: #003399 !important;
-  }
-
-  .nav-links a.btn-nav-outline::after,
-  .nav-links a.btn-nav-primary::after,
-  .nav-links a.btn-nav-outline::before,
-  .nav-links a.btn-nav-primary::before {
-    display: none !important;
-    content: none !important;
+  .dropdown-divider {
+    margin: 6px 0;
+    border: 0;
+    border-top: 1px solid #e2e8f0;
   }
 
   /* ==========================================================================
@@ -189,18 +265,15 @@
      ========================================================================== */
 
   @media (max-width: 991px) {
-    /* Ocultar barra superior con datos de contacto */
     .top-bar {
       display: none !important;
     }
 
-    /* Mostrar icono de tres barras */
     .mobile-toggle {
       display: block !important;
       color: #ffffff !important;
     }
 
-    /* Menú desplegable móvil */
     .nav-links {
       display: none;
       flex-direction: column;
@@ -208,7 +281,7 @@
       top: 100%;
       left: 0;
       width: 100%;
-      background-color: #0d1527 !important; /* Azul oscuro */
+      background-color: #0d1527 !important;
       padding: 20px 0;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
       z-index: 999;
@@ -222,15 +295,14 @@
       align-items: center;
     }
 
-    /* FORZAR TEXTO BLANCO EN TODOS LOS ENLACES DEL MENÚ DESPLEGABLE */
     .nav-links li {
       width: 100%;
       text-align: center;
       justify-content: center;
     }
 
-    .nav-links li a:not(.btn-nav-outline):not(.btn-nav-primary) {
-      color: #ffffff !important;
+    .nav-links li a:not(.dropdown-item) {
+      color: #0c0c0c !important;
       font-size: 0.95rem;
       font-weight: 600;
       text-decoration: none;
@@ -239,21 +311,15 @@
       width: 100%;
     }
 
-    .nav-links li a:not(.btn-nav-outline):not(.btn-nav-primary):hover {
-      color: #38bdf8 !important; /* Azul celeste al interactuar */
-    }
-
-    /* Ajustar botones de autenticación dentro del dropdown móvil */
-    .nav-links .nav-item-auth {
-      margin-left: 0;
-      width: 80%;
+    .nav-item-profile {
+      width: 100%;
       display: flex;
       justify-content: center;
     }
 
-    .nav-links .nav-item-auth a {
-      width: 100%;
-      text-align: center;
+    .profile-dropdown-menu {
+      right: 50%;
+      transform: translateX(50%);
     }
   }
 
@@ -431,12 +497,14 @@
   }
 </style>
 
-<!-- SCRIPT PARA INTERACCIÓN DEL MENÚ MOBILE (Soporta Turbo/Turbolinks) -->
+<!-- SCRIPT DE INTERACCIÓN DROPDOWN PERFIL Y MENÚ MÓVIL -->
 <script>
   (function() {
-    function initMenuToggle() {
+    function initHeaderScripts() {
       var toggleBtn = document.getElementById('menu-toggle');
       var navMenu = document.getElementById('nav-menu');
+      var profileBtn = document.getElementById('profile-dropdown-btn');
+      var profileMenu = document.getElementById('profile-dropdown-menu');
 
       if (toggleBtn && navMenu) {
         toggleBtn.onclick = function(e) {
@@ -444,17 +512,29 @@
           navMenu.classList.toggle('active');
         };
 
-        // Cerrar menú al hacer clic en un enlace del menú
-        var links = navMenu.querySelectorAll('a');
+        var links = navMenu.querySelectorAll('a:not(.dropdown-item)');
         links.forEach(function(link) {
           link.onclick = function() {
             navMenu.classList.remove('active');
           };
         });
       }
+
+      if (profileBtn && profileMenu) {
+        profileBtn.onclick = function(e) {
+          e.stopPropagation();
+          profileMenu.classList.toggle('show');
+        };
+
+        document.addEventListener('click', function(e) {
+          if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+            profileMenu.classList.remove('show');
+          }
+        });
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', initMenuToggle);
-    document.addEventListener('turbo:load', initMenuToggle);
+    document.addEventListener('DOMContentLoaded', initHeaderScripts);
+    document.addEventListener('turbo:load', initHeaderScripts);
   })();
 </script>

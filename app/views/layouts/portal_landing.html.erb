@@ -27,3 +27,460 @@
 
 </body>
 </html>
+
+<script>
+  window.scrollServices = function(direction) {
+    const slider = document.getElementById('services-cards-slider');
+    if (!slider) return;
+
+    const cardWidth = 604;
+    slider.scrollBy({
+      left: direction * cardWidth,
+      behavior: 'smooth'
+    });
+  };
+
+  function setupLandingScript() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+
+    if (menuToggle && navMenu) {
+      menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    }
+
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+
+    window.showSlide = function(index) {
+      if (!slides.length) return;
+      slides.forEach(slide => slide.classList.remove('active'));
+      if (index >= slides.length) currentSlide = 0;
+      if (index < 0) currentSlide = slides.length - 1;
+      slides[currentSlide].classList.add('active');
+    };
+
+    window.moveSlide = function(step) {
+      currentSlide += step;
+      window.showSlide(currentSlide);
+    };
+
+    function startHeroAutoplay() {
+      if (window.heroCarouselInterval) {
+        clearInterval(window.heroCarouselInterval);
+      }
+      if (slides.length > 1) {
+        window.heroCarouselInterval = setInterval(function () {
+          window.moveSlide(1);
+        }, 5000);
+      }
+    }
+
+    startHeroAutoplay();
+
+    document.querySelectorAll('.hero-carousel .carousel-btn').forEach(function (btn) {
+      btn.addEventListener('click', startHeroAutoplay);
+    });
+
+    const categoriesGrid = document.getElementById("categories-grid");
+    const breadcrumb = document.getElementById("category-breadcrumb");
+    
+    if (categoriesGrid && breadcrumb) {
+      let navigationHistory = [{ id: 'root', name: 'Categorías Principales' }];
+
+      function renderCurrentLevel(parentId) {
+        const allWrappers = categoriesGrid.querySelectorAll(".category-card-wrapper");
+        let countVisible = 0;
+
+        allWrappers.forEach(wrapper => {
+          if (wrapper.dataset.parentId === parentId) {
+            wrapper.style.display = 'flex';
+            countVisible++;
+          } else {
+            wrapper.style.display = 'none';
+          }
+        });
+
+        let noCatMsg = document.getElementById("no-categories-msg");
+        if (countVisible === 0) {
+          if (!noCatMsg) {
+            noCatMsg = document.createElement("div");
+            noCatMsg.id = "no-categories-msg";
+            noCatMsg.style.cssText = "width: 100%; text-align: center; padding: 40px; color: #6c757d;";
+            noCatMsg.innerHTML = '<i class="fa-solid fa-folder-open" style="font-size: 2.5rem; margin-bottom: 10px;"></i><p>No hay subcategorías disponibles en este nivel.</p>';
+            categoriesGrid.appendChild(noCatMsg);
+          }
+        } else if (noCatMsg) {
+          noCatMsg.remove();
+        }
+
+        renderBreadcrumb();
+      }
+
+      function renderBreadcrumb() {
+        breadcrumb.innerHTML = "";
+        navigationHistory.forEach((item, index) => {
+          const isLast = index === navigationHistory.length - 1;
+          const li = document.createElement("li");
+          li.className = `breadcrumb-item ${isLast ? "active" : ""}`;
+          
+          if (isLast && index > 0) {
+            // Si estamos en un nivel profundo y es el activo
+            li.textContent = item.name;
+          } else {
+            // Si es un enlace del breadcrumb (incluyendo 'Categorías Principales')
+            const a = document.createElement("a");
+            a.href = "#servicios";
+            a.innerHTML = index === 0 ? '<i class="fa-solid fa-folder"></i> Categorías Principales' : item.name;
+            a.style.cursor = "pointer";
+            
+            a.addEventListener("click", function(e) {
+              e.preventDefault();
+              
+              // 1. Recortamos el historial hasta el nivel seleccionado
+              navigationHistory = navigationHistory.slice(0, index + 1);
+              renderCurrentLevel(item.id);
+
+              // 2. Novedad: Si hace clic en 'Categorías Principales' (index 0), reseteamos el filtro a "Todas"
+              if (index === 0) {
+                const catSelect = document.getElementById('category-select');
+                if (catSelect) {
+                  catSelect.value = 'all'; // Selecciona "Todas las categorías"
+                  if (typeof window.filterProducts === 'function') {
+                    window.filterProducts(); // Vuelve a mostrar todos los productos cargados
+                  }
+                }
+              }
+            });
+            li.appendChild(a);
+          }
+          breadcrumb.appendChild(li);
+        });
+      }
+
+      categoriesGrid.onclick = function(e) {
+        const btn = e.target.closest(".view-subcategories-btn");
+        if (btn) {
+          e.stopPropagation();
+          const catId = btn.dataset.id;
+          const catName = btn.dataset.name;
+
+          navigationHistory.push({ id: catId, name: catName });
+          renderCurrentLevel(catId);
+        }
+      };
+
+      renderCurrentLevel("root");
+    }
+
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let filteredCards = [];
+
+    window.filterCategory = function(catSlug) {
+      const catSelect = document.getElementById('category-select');
+      if (catSelect) {
+        catSelect.value = catSlug;
+        window.filterProducts();
+        
+        const tiendaSection = document.getElementById('tienda');
+        if (tiendaSection) {
+          tiendaSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    };
+
+    window.filterProducts = function() {
+      // Función auxiliar para insensibilidad a tildes y mayúsculas/minúsculas
+      const normalizeText = (str) => 
+        (str || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+      const searchVal = normalizeText(document.getElementById('search-input')?.value);
+      const selectedCategory = document.getElementById('category-select')?.value || 'all';
+      const selectedBrand = document.getElementById('brand-select')?.value || 'all';
+      const selectedType = document.getElementById('type-select')?.value || 'all';
+      const selectedSort = document.getElementById('sort-select')?.value || 'default';
+      
+      const allCards = Array.from(document.querySelectorAll('.product-card'));
+      const productsGrid = document.getElementById('products-grid');
+
+      filteredCards = allCards.filter(card => {
+        const cardCategory = card.dataset.category;
+        const cardBrand = card.dataset.brand;
+        const cardType = card.dataset.type;
+        const cardName = normalizeText(card.dataset.name);
+
+        const matchesCategory = (selectedCategory === 'all' || cardCategory === selectedCategory);
+        const matchesBrand = (selectedBrand === 'all' || cardBrand === selectedBrand);
+        const matchesType = (selectedType === 'all' || cardType === selectedType);
+        const matchesSearch = cardName.includes(searchVal);
+
+        return matchesCategory && matchesBrand && matchesType && matchesSearch;
+      });
+
+      filteredCards.sort((a, b) => {
+        const priceA = parseFloat(a.dataset.price) || 0;
+        const priceB = parseFloat(b.dataset.price) || 0;
+        const nameA = a.dataset.name || '';
+        const nameB = b.dataset.name || '';
+
+        switch (selectedSort) {
+          case 'price-asc':
+            return priceA - priceB;
+          case 'price-desc':
+            return priceB - priceA;
+          case 'name-asc':
+            return nameA.localeCompare(nameB);
+          case 'name-desc':
+            return nameB.localeCompare(nameA);
+          default:
+            return 0;
+        }
+      });
+
+      filteredCards.forEach(card => productsGrid.appendChild(card));
+      allCards.forEach(card => card.style.display = 'none');
+
+      let noProductsMsg = document.getElementById('no-products-empty-msg');
+      if (filteredCards.length === 0) {
+        if (!noProductsMsg && productsGrid) {
+          noProductsMsg = document.createElement('div');
+          noProductsMsg.id = 'no-products-empty-msg';
+          noProductsMsg.className = 'no-products-msg';
+          noProductsMsg.innerHTML = `
+            <i class="fa-solid fa-box-open"></i>
+            <p>No se encontraron productos para esta búsqueda o filtro.</p>
+          `;
+          productsGrid.appendChild(noProductsMsg);
+        }
+      } else if (noProductsMsg) {
+        noProductsMsg.remove();
+      }
+
+      currentPage = 1;
+      renderPage();
+    };
+
+    function renderPage() {
+      const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
+      filteredCards.forEach(card => card.style.display = 'none');
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const pageItems = filteredCards.slice(startIndex, endIndex);
+
+      pageItems.forEach(card => card.style.display = 'flex');
+      renderPaginationControls(totalPages);
+    }
+
+    function renderPaginationControls(totalPages) {
+      const paginationContainer = document.getElementById('pagination-container');
+      if (!paginationContainer) return;
+
+      paginationContainer.innerHTML = '';
+
+      if (totalPages <= 1) return;
+
+      const prevBtn = document.createElement('button');
+      prevBtn.className = 'page-btn';
+      prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      prevBtn.disabled = (currentPage === 1);
+      prevBtn.onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderPage();
+          scrollToTienda();
+        }
+      };
+      paginationContainer.appendChild(prevBtn);
+
+      for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.onclick = () => {
+          currentPage = i;
+          renderPage();
+          scrollToTienda();
+        };
+        paginationContainer.appendChild(pageBtn);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'page-btn';
+      nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      nextBtn.disabled = (currentPage === totalPages);
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderPage();
+          scrollToTienda();
+        }
+      };
+      paginationContainer.appendChild(nextBtn);
+    }
+
+    function scrollToTienda() {
+      const tiendaSection = document.getElementById('tienda');
+      if (tiendaSection) {
+        tiendaSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    window.filterProducts();
+  }
+
+  // --- SISTEMA DE GESTIÓN DEL CARRITO (PERSISTENCIA Y TIEMPO REAL) ---
+
+  const STORAGE_KEY = 'bimers_cart_data';
+
+  // 1. Obtener Carrito guardado
+  function getCart() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error("Error al leer localStorage:", e);
+      return [];
+    }
+  }
+
+  // 2. Guardar Carrito en LocalStorage y refrescar interfaz
+  function saveCart(cart) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+      console.error("Error al guardar en localStorage:", e);
+    }
+    updateUI();
+  }
+
+  // 3. Agregar o Incrementar Producto
+  function handleAddToCart(productId) {
+    let cart = getCart();
+    const box = document.querySelector(`.product-cart-action-box[data-product-id='${productId}']`);
+    
+    if (!box) return;
+
+    const name = box.dataset.productName;
+    const price = parseFloat(box.dataset.productPrice);
+    const img = box.dataset.productImg;
+
+    const existingIndex = cart.findIndex(item => String(item.id) === String(productId));
+
+    if (existingIndex > -1) {
+      cart[existingIndex].qty += 1;
+    } else {
+      cart.push({ id: String(productId), name: name, price: price, img: img, qty: 1 });
+    }
+
+    saveCart(cart);
+  }
+
+  // 4. Disminuir o Incrementar Cantidad
+  function changeQty(productId, delta) {
+    let cart = getCart();
+    const index = cart.findIndex(item => String(item.id) === String(productId));
+
+    if (index > -1) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      saveCart(cart);
+    }
+  }
+
+  // 5. Abrir/Cerrar el Modal del Carrito
+  function toggleCartModal() {
+    document.getElementById('cart-modal-overlay')?.classList.toggle('open');
+    document.getElementById('cart-drawer')?.classList.toggle('open');
+  }
+
+  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
+  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
+  function updateUI() {
+    const cart = getCart();
+    
+    // A. Actualizar el Contador Flotante
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const badge = document.getElementById('floating-cart-count');
+    if (badge) badge.textContent = totalQty;
+
+    // B. Actualizar Botones/Contadores en las Tarjetas de Producto
+    document.querySelectorAll('.product-cart-action-box').forEach(box => {
+      const productId = String(box.dataset.productId);
+      const item = cart.find(i => String(i.id) === productId);
+
+      if (item && item.qty > 0) {
+        box.innerHTML = `
+          <div class="card-qty-selector">
+            <button type="button" class="btn-qty" onclick="changeQty('${productId}', -1)">-</button>
+            <span class="qty-num">${item.qty}</span>
+            <button type="button" class="btn-qty" onclick="changeQty('${productId}', 1)">+</button>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <button class="btn-buy btn-add-to-cart" type="button" aria-label="Agregar al carrito" onclick="handleAddToCart('${productId}')">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </button>
+        `;
+      }
+    });
+
+    // C. Renderizar Elementos en el Drawer/Modal Lateral (CON CANTIDAD Y SUB-TOTAL)
+    const container = document.getElementById('cart-drawer-items');
+    const totalElem = document.getElementById('cart-drawer-total');
+    
+    if (container) {
+      if (cart.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:30px;">Tu carrito está vacío.</p>`;
+      } else {
+        container.innerHTML = cart.map(item => {
+          const itemSubtotal = (item.price * item.qty).toFixed(2);
+          const itemUnitPrice = item.price.toFixed(2);
+
+          return `
+            <div class="cart-item-row">
+              <img src="${item.img}" alt="${item.name}">
+              <div class="cart-item-info">
+                <h4 class="cart-item-title">${item.name}</h4>
+                <div class="cart-item-details">
+                  <span class="cart-item-qty-badge">Cant: <strong>${item.qty}</strong></span>
+                  <span class="cart-item-unit-price">($${itemUnitPrice} c/u)</span>
+                </div>
+                <span class="cart-item-price">$${itemSubtotal}</span>
+              </div>
+              <div class="cart-qty-controls">
+                <button type="button" class="btn-qty" onclick="changeQty('${item.id}', -1)">-</button>
+                <span class="qty-display">${item.qty}</span>
+                <button type="button" class="btn-qty" onclick="changeQty('${item.id}', 1)">+</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    if (totalElem) {
+      const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      totalElem.textContent = `$${grandTotal.toFixed(2)}`;
+    }
+  }
+
+  function initLandingPage() {
+    setupLandingScript(); // Inicializa carruseles, filtros, breadcrumbs y eventos del menú
+    updateUI();           // Carga y pinta el carrito desde localStorage
+  }
+
+  // Escuchamos los eventos de carga de navegador y de Rails (Turbo / Turbolinks)
+  ['DOMContentLoaded', 'turbo:load', 'turbolinks:load'].forEach(eventName => {
+    document.removeEventListener(eventName, initLandingPage); // Evita duplicar escuchadores
+    document.addEventListener(eventName, initLandingPage);
+  });
+</script>
