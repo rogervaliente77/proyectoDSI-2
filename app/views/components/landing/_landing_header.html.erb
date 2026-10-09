@@ -71,6 +71,33 @@
   </div>
 </div>
 
+<!-- MODAL DE REQUERIR SESIÓN PARA PAGAR -->
+<div id="auth-required-modal-overlay" class="auth-modal-overlay" onclick="closeAuthRequiredModal()">
+  <div class="auth-modal-card" onclick="event.stopPropagation()">
+    <div class="auth-modal-header">
+      <h3><i class="fa-solid fa-lock"></i> Iniciar Sesión Requerido</h3>
+      <button type="button" class="close-auth-modal-btn" onclick="closeAuthRequiredModal()">&times;</button>
+    </div>
+    <div class="auth-modal-body">
+      <div class="auth-modal-icon">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h4>Necesitas una cuenta para finalizar la compra</h4>
+      <p>Si ya tienes una cuenta en nuestro portal, por favor inicia sesión. Si aún no tienes una, puedes crear una cuenta nueva en el sitio para procesar tu pedido de forma rápida y segura.</p>
+      
+      <div class="auth-modal-actions">
+        <%= link_to portal_login_path(checkout: true), class: "btn-auth-modal btn-auth-login", data: { turbo: false } do %>
+          <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
+        <% end %>
+
+        <%= link_to portal_signup_path(checkout: true), class: "btn-auth-modal btn-auth-signup", data: { turbo: false } do %>
+          <i class="fa-solid fa-user-plus"></i> Crear Cuenta
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
   /* ==========================================================================
      ESTILOS BASE / ESCRITORIO (PANTALLAS GRANDES >= 992px)

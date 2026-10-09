@@ -25,6 +25,9 @@
   <% end %>
 
   <%= simple_form_for @user, url: portal_signup_path, method: :post, data: { turbo: false } do |form| %>
+    <% if params[:checkout].present? || session[:checkout].present? %>
+      <input type="hidden" name="checkout" value="true">
+    <% end %> 
 
     <div class="form-section-title">Información Personal</div>
     <div class="form-grid form-grid-3">

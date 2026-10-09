@@ -1529,9 +1529,22 @@
     }
   }
 
+  function checkAutoCheckout() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('checkout') === 'true') {
+      // Abre el modal de checkout automáticamente
+      proceedToCheckout();
+
+      // Opcional: Limpia el parámetro 'checkout' de la URL sin recargar la página
+      const cleanUrl = window.location.pathname + window.location.search.replace(/[\?&]checkout=true/, '').replace(/^&/, '?');
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }
+
   function initLandingPage() {
     setupLandingScript();
     updateUI();
+    checkAutoCheckout(); // Evalúa si debe abrir el modal al cargar la vista
   }
 
   ['DOMContentLoaded', 'turbo:load', 'turbolinks:load'].forEach(eventName => {

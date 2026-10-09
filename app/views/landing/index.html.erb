@@ -941,6 +941,132 @@
   .main-nav .nav-links li a:hover {
     color: #ffffff !important;
   }
+
+
+  /* ==========================================================================
+     MODAL REQUERIR SESIÓN PARA COMPRAR
+     ========================================================================== */
+  .auth-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1060;
+  }
+
+  .auth-modal-overlay.open {
+    display: flex;
+  }
+
+  .auth-modal-card {
+    background: #ffffff;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 14px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: authModalFadeIn 0.25s ease-out;
+  }
+
+  .auth-modal-header {
+    background: #0f172a;
+    color: #ffffff;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .auth-modal-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .close-auth-modal-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .close-auth-modal-btn:hover {
+    color: #ffffff;
+  }
+
+  .auth-modal-body {
+    padding: 25px 20px;
+    text-align: center;
+  }
+
+  .auth-modal-icon {
+    font-size: 2.8rem;
+    color: #0d6efd;
+    margin-bottom: 12px;
+  }
+
+  .auth-modal-body h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: #0f172a;
+  }
+
+  .auth-modal-body p {
+    font-size: 0.88rem;
+    color: #64748b;
+    margin-bottom: 22px;
+    line-height: 1.4;
+  }
+
+  .auth-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-auth-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+  }
+
+  .btn-auth-login {
+    background: #0d6efd;
+    color: #ffffff !important;
+  }
+
+  .btn-auth-login:hover {
+    background: #0b5ed7;
+  }
+
+  .btn-auth-signup {
+    background: #f1f5f9;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1;
+  }
+
+  .btn-auth-signup:hover {
+    background: #e2e8f0;
+  }
+
+  @keyframes authModalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
 </style>
 
 <!-- JAVASCRIPT CORREGIDO -->
@@ -1387,6 +1513,33 @@
       const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
       totalElem.textContent = `$${grandTotal.toFixed(2)}`;
     }
+  }
+
+  function proceedToCheckout() {
+    const cart = getCart();
+    if (cart.length === 0) {
+      alert("Tu carrito está vacío. Agrega algunos productos antes de proceder al pago.");
+      return;
+    }
+
+    // Cerramos el drawer lateral del carrito si está abierto
+    if (typeof toggleCartModal === 'function') {
+      const drawer = document.getElementById('cart-drawer');
+      if (drawer && drawer.classList.contains('open')) {
+        toggleCartModal();
+      }
+    }
+
+    // Abrir el modal que solicita inicio de sesión / registro con parametro checkout=true
+    openAuthRequiredModal();
+  }
+
+  function openAuthRequiredModal() {
+    document.getElementById('auth-required-modal-overlay')?.classList.add('open');
+  }
+
+  function closeAuthRequiredModal() {
+    document.getElementById('auth-required-modal-overlay')?.classList.remove('open');
   }
 
   function initLandingPage() {

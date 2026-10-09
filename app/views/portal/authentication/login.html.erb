@@ -17,7 +17,10 @@
   <div id="error-message" class="alert alert-danger" style="display: none;"></div>
 
   <%= simple_form_for :user, url: portal_new_login_path, method: :post, html: { class: "login-form-body", id: "login-form" }, data: { turbo: false } do |form| %>
-    
+    <% if params[:checkout].present? || session[:checkout].present? %>
+      <input type="hidden" name="checkout" value="true">
+    <% end %>
+
     <div class="login-field-group">
       <label for="user_email" class="login-label">Correo Electrónico <span class="req">*</span></label>
       <%= form.input_field :email, 
