@@ -10,12 +10,13 @@ class Sale
   field :tipo_impuesto, type: String, default: "gravado"
   field :forma_pago, type: String
 
+  field :online_order, type: Boolean, default: false
+  field :status_logs, type: Array, default: [] # [{ status: '...', timestamp: '...', comment: '...' }]
   field :delivery_method, type: String
   field :was_delivered, type: Boolean, default: false
   field :delivered_at, type: DateTime
 
   field :condicion_tributaria, type: String, default: "gravado" # <-- Agrega esta línea
-  field :tipo_impuesto, type: String, default: "gravado"
 
   # Relaciones
   belongs_to :client, optional: true           # Opcional para externas/público general
@@ -34,6 +35,18 @@ class Sale
   validates :code, uniqueness: true, allow_blank: true
 
   before_create :set_defaults
+
+  def update_status_with_log(new_status, user_id = nil, comment = nil)
+    self.status = new_status
+    self.status_logs ||= []
+    self.status_logs << {
+      status: new_status,
+      changed_at: Time.current,
+      user_id: user_id,
+      comment: comment
+    }
+    save
+  end
 
   private
 

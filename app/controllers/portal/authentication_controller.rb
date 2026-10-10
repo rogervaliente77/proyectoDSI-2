@@ -10,7 +10,7 @@ module Portal
     end
 
     def new_login
-      binding.pry
+      #binding.pry
       if params[:user].blank?
         redirect_to admin_login_path, alert: "No ingresó datos, ingrese los datos en el formulario", status: :see_other
         return

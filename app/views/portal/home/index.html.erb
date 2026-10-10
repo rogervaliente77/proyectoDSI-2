@@ -1443,23 +1443,62 @@
   }
 
   function confirmPurchase() {
-    const selectedDelivery = document.querySelector('input[name="delivery_method"]:checked')?.value;
-    const selectedPayment = document.querySelector('input[name="payment_method"]:checked')?.value;
-
-    if (selectedDelivery === 'delivery') {
-      const address = document.getElementById('shipping_address')?.value.trim();
-      if (!address) {
-        alert("Por favor ingresa tu dirección de entrega.");
-        document.getElementById('shipping_address')?.focus();
-        return;
-      }
+    const cart = getCart();
+    if (cart.length === 0) {
+      alert("Tu carrito está vacío.");
+      return;
     }
 
-    alert("¡Pedido realizado con éxito! Nos pondremos en contacto contigo.");
-    
-    // Vaciar el carrito tras confirmación
-    saveCart([]);
-    closeCheckoutModal();
+    const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'pickup';
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
+    const shippingAddress = deliveryMethod === 'delivery' ? document.getElementById('shipping_address')?.value.trim() : '';
+
+    if (deliveryMethod === 'delivery' && !shippingAddress) {
+      alert("Por favor ingresa tu dirección de entrega.");
+      document.getElementById('shipping_address')?.focus();
+      return;
+    }
+
+    // Preparar el payload con los items del carrito y opciones seleccionadas
+    const payload = {
+      delivery_method: deliveryMethod,
+      payment_method: paymentMethod,
+      shipping_address: shippingAddress,
+      items: cart.map(item => ({
+        product_id: item.id,
+        quantity: item.qty,
+        unit_price: item.price
+      }))
+    };
+
+    // Obtener el token CSRF de Rails para peticiones POST seguras
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    // Enviar solicitud AJAX al backend
+    fetch('/portal/cart/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(result => {
+      if (result.status === 200 && result.body.success) {
+        alert("¡Pedido realizado con éxito! Código de orden: " + result.body.code);
+        saveCart([]); // Vaciar el carrito local
+        closeCheckoutModal();
+        window.location.href = '/portal/home'; // Redirigir o refrescar
+      } else {
+        alert("Error al procesar la compra: " + (result.body.error || "Inténtalo de nuevo."));
+      }
+    })
+    .catch(error => {
+      console.error("Error en la petición de checkout:", error);
+      alert("Ocurrió un error inesperado al procesar tu orden.");
+    });
   }
 
   function updateUI() {

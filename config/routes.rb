@@ -23,12 +23,16 @@ Rails.application.routes.draw do
     resources :addresses, only: [:show,:update,:destroy]
       
     # Carrito y compras
+    # resource :cart, only: [:show] do
+    #   post 'add/:id', to: 'carts#add', as: 'add'
+    #   post 'increase/:id', to: 'carts#increase', as: 'increase'
+    #   post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
+    #   delete 'remove/:id', to: 'carts#remove', as: 'remove'
+    #   post 'apply_discount_code', to: 'carts#apply_discount_code', as: 'apply_discount_code'
+    # end
+
     resource :cart, only: [:show] do
-      post 'add/:id', to: 'carts#add', as: 'add'
-      post 'increase/:id', to: 'carts#increase', as: 'increase'
-      post 'decrease/:id', to: 'carts#decrease', as: 'decrease'
-      delete 'remove/:id', to: 'carts#remove', as: 'remove'
-      post 'apply_discount_code', to: 'carts#apply_discount_code', as: 'apply_discount_code'
+      post :checkout, to: 'carts#create_order'
     end
 
     # Checkout
