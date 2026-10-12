@@ -19,7 +19,7 @@ module Portal
       end
 
       # 2. Localizar Sucursal, Caja y Cajero Virtuales (E-commerce)
-      sucursal = Sucursal.first # O una sucursal asignada por defecto
+      sucursal = Sucursal.first
       caja     = Caja.find_by(nombre: "Caja Web") || Caja.first
       cajero   = Cajero.find_by(nombre: "Cajero Sistema") || Cajero.first
 
@@ -52,13 +52,17 @@ module Portal
         }
       end
 
-      # 4. Construir la Venta (Sale) con el prefijo y estatus en línea
+      # 4. Determinar si es transferencia para asignar el estatus inicial correcto
+      payment_method = params[:payment_method]
+      initial_status = (payment_method == 'transfer') ? 'pending_payment_comprob' : 'confirmed'
+
+      # 5. Construir la Venta (Sale)
       @sale = Sale.new(
         online_order: true,
-        status: "confirmed", # o "pending" según prefieras iniciarla
+        status: initial_status,
         sold_at: Time.current,
         total_amount: total_amount,
-        forma_pago: params[:payment_method],
+        forma_pago: payment_method,
         delivery_method: params[:delivery_method],
         was_delivered: false,
         tipo_impuesto: "gravado",
@@ -81,12 +85,21 @@ module Portal
       @sale.code = "WEB-#{date_str}-#{(count_today + 1).to_s.rjust(3, '0')}"
 
       if @sale.save
-        # Registrar bitácora de estado inicial
-        @sale.update_status_with_log("confirmed", current_user.id, "Pedido realizado en línea por el cliente.")
+        # Registrar bitácora de estado inicial según el método de pago
+        log_comment = if payment_method == 'transfer'
+                        "Pedido creado en línea. Pendiente de comprobante de transferencia."
+                      else
+                        "Pedido realizado en línea con pago en efectivo (contra entrega)."
+                      end
 
-        # Reutilizar el método de registro de movimientos de caja y bitácoras de stock
-        registrar_movimiento_caja_online(@sale, client)
-        create_product_histories_online(@sale, current_user.id)
+        @sale.update_status_with_log(initial_status, current_user.id, log_comment)
+
+        # Si es pago en efectivo (confirmed), aplicamos caja e inventario de inmediato.
+        # Si es transferencia (pending_payment_comprob), se omiten hasta que el taller valide el comprobante.
+        if payment_method != 'transfer'
+          registrar_movimiento_caja_online(@sale, client)
+          create_product_histories_online(@sale, current_user.id)
+        end
 
         render json: { success: true, code: @sale.code }, status: :ok
       else

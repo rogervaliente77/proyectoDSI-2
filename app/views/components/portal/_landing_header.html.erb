@@ -28,8 +28,7 @@
 
   <ul class="nav-links" id="nav-menu">
     <li><%= link_to "Inicio", portal_home_path, data: { turbo: false } %></li>
-    <li><a href="#tienda" data-turbo="false">Catálogo</a></li>
-    <li><a href="#" data-turbo="false">Mis compras</a></li>
+    <li><%= link_to "Mis compras", portal_purchases_path, data: { turbo: false } %></li>
     
     <!-- ÁREA DE PERFIL Y DROPDOWN DE USUARIO -->
     <li class="nav-item-profile">

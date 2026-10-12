@@ -19,4 +19,5 @@ class Client
   field :municipio, type: String         # Código Hacienda (ej: "03" Chalchuapa)
 
   has_many :client_cars, dependent: :destroy
+  has_one :user, class_name: "User", dependent: :nullify
 end

@@ -312,8 +312,11 @@
         </div>
 
         <div id="address-field-container" class="address-field-container" style="display: none;">
-          <label for="shipping_address">Dirección de Entrega:</label>
-          <input type="text" id="shipping_address" class="checkout-input" placeholder="Ej: Av. Principal, Res. Los Pinos #12">
+          <label><i class="fa-solid fa-location-dot" style="color: #0284c7;"></i> Dirección de Entrega Registrada:</label>
+          <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; font-size: 0.880rem; color: #0f172a; font-weight: 500;">
+            <%= @client&.direccion.presence || "No tienes una dirección registrada en tu perfil." %>
+          </div>
+          <input type="hidden" id="shipping_address" value="<%= @client&.direccion %>">
         </div>
       </div>
 
@@ -1451,13 +1454,25 @@
 
     const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'pickup';
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
-    const shippingAddress = deliveryMethod === 'delivery' ? document.getElementById('shipping_address')?.value.trim() : '';
+    const shippingAddress = deliveryMethod === 'delivery' ? "<%= j(@client&.direccion) %>" : '';
 
-    if (deliveryMethod === 'delivery' && !shippingAddress) {
-      alert("Por favor ingresa tu dirección de entrega.");
-      document.getElementById('shipping_address')?.focus();
+    if (deliveryMethod === 'delivery' && !shippingAddress.trim()) {
+      alert("No tienes una dirección registrada en tu perfil para realizar el envío. Actualiza tus datos.");
       return;
     }
+
+    // 1. Alerta de confirmación previa antes de enviar
+    if (!confirm("¿Estás seguro de que deseas confirmar esta compra?")) {
+      return;
+    }
+
+    // 2. Obtener el botón de confirmación y bloquearlo con animación de carga
+    const confirmBtn = document.querySelector('.btn-confirm-order');
+    const originalBtnHTML = confirmBtn.innerHTML;
+    confirmBtn.disabled = true;
+    confirmBtn.style.opacity = "0.7";
+    confirmBtn.style.cursor = "not-allowed";
+    confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Procesando...`;
 
     // Preparar el payload con los items del carrito y opciones seleccionadas
     const payload = {
@@ -1487,10 +1502,11 @@
     .then(response => response.json().then(data => ({ status: response.status, body: data })))
     .then(result => {
       if (result.status === 200 && result.body.success) {
-        alert("¡Pedido realizado con éxito! Código de orden: " + result.body.code);
-        saveCart([]); // Vaciar el carrito local
+        saveCart([]); // Vaciar el carrito local primero
         closeCheckoutModal();
-        window.location.href = '/portal/home'; // Redirigir o refrescar
+        
+        // Mostrar alerta modal moderna de éxito
+        showSuccessAlert(result.body.code);
       } else {
         alert("Error al procesar la compra: " + (result.body.error || "Inténtalo de nuevo."));
       }
@@ -1498,7 +1514,51 @@
     .catch(error => {
       console.error("Error en la petición de checkout:", error);
       alert("Ocurrió un error inesperado al procesar tu orden.");
+    })
+    .finally(() => {
+      // Restaurar el botón en caso de error o cierre
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = "1";
+      confirmBtn.style.cursor = "pointer";
+      confirmBtn.innerHTML = originalBtnHTML;
     });
+  }
+
+  function showSuccessAlert(orderCode) {
+    // Crear o inyectar un contenedor de alerta moderna si no existe
+    let alertOverlay = document.getElementById('success-order-overlay');
+    if (!alertOverlay) {
+      alertOverlay = document.createElement('div');
+      alertOverlay.id = 'success-order-overlay';
+      alertOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center; z-index: 1070;
+      `;
+      alertOverlay.innerHTML = `
+        <div style="background: #ffffff; width: 90%; max-width: 420px; border-radius: 14px; padding: 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
+          <div style="font-size: 3.5rem; color: #10b981; margin-bottom: 15px;">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h3 style="color: #0f172a; font-size: 1.3rem; margin-bottom: 10px; font-weight: 800;">¡Pedido Exitoso!</h3>
+          <p style="color: #64748b; font-size: 0.92rem; margin-bottom: 20px;">
+            Tu orden <strong id="success-code" style="color: #0f172a;"></strong> ha sido registrada correctamente.
+          </p>
+          <button id="btn-goto-purchases" style="width: 100%; background: #0d6efd; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.2s;">
+            Ver Mis Compras <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(alertOverlay);
+    }
+
+    document.getElementById('success-code').textContent = orderCode;
+    alertOverlay.style.display = 'flex';
+
+    // Redirección al hacer clic en el botón hacia la vista de mis compras del portal
+    document.getElementById('btn-goto-purchases').onclick = function() {
+      window.location.href = '/portal/purchases'; // Ruta configurada para "Mis compras"
+    };
   }
 
   function updateUI() {

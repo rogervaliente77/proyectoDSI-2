@@ -1,11 +1,15 @@
 class Portal::PurchasesController < ApplicationController
   before_action :set_current_user
+  before_action :set_config
   before_action :set_header_variables  # <-- Esto es nuevo
-  layout "dashboard"
+  layout "portal_landing"
 
   def index
-    # Traer todas las compras del usuario
-    @purchases = Sale.where(client_id: @current_user.id).order(sold_at: :desc)
+    if @current_user.client.present?
+      @sales = Sale.where(client_id: @current_user.client.id).order_by(sold_at: :desc)
+    else
+      @sales = []
+    end
   end
 
   def schedule_appointment
@@ -67,5 +71,10 @@ class Portal::PurchasesController < ApplicationController
     else
       @offer_products = []
     end
+  end
+
+  def set_config
+    # Ajusta según cómo obtienes las configuraciones globales (ej. Config.first, SystemSetting.first, etc.)
+    @config = SiteConfiguration.first || SiteConfiguration.new
   end
 end

@@ -35,6 +35,13 @@ Rails.application.routes.draw do
       post :checkout, to: 'carts#create_order'
     end
 
+    #purchases
+    get "/purchases", to: "purchases#index"
+
+    resources :purchases, only: [:index, :show] do
+      post :upload_proof, to: 'purchases#upload_proof'
+    end
+
     # Checkout
     get "checkout", to: "carts#checkout", as: 'checkout'
     post "checkout", to: "carts#create_purchase", as: 'create_purchase'

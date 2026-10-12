@@ -26,6 +26,7 @@ class User
   # Relacionamientos (ajústalos a tus modelos Mongoid)
   has_many :user_sessions, class_name: "UserSession", inverse_of: :user
   belongs_to :role
+  belongs_to :client, class_name: "Client", optional: true
   has_one :cajero
 
   def cliente?

@@ -110,14 +110,17 @@ module Portal
         user.update(enabled: true)
 
         client_data = session[:pending_client_data] || {}
-        Client.find_or_create_by(email: user.email) do |client|
-          client.nombre       = user.full_name
-          client.telefono     = client_data["phone_number"] || user.phone_number
-          client.direccion    = client_data["direccion"]
-          client.departamento = client_data["departamento"]
-          client.municipio    = client_data["municipio"]
-          client.is_active    = true
+        client = Client.find_or_create_by(email: user.email) do |c|
+          c.nombre       = user.full_name
+          c.telefono     = client_data["phone_number"] || user.phone_number
+          c.direccion    = client_data["direccion"]
+          c.departamento = client_data["departamento"]
+          c.municipio    = client_data["municipio"]
+          c.is_active    = true
         end
+
+        # 2. Ahora sí podemos usar client.id con total seguridad
+        user.update(client_id: client.id)
 
         session.delete(:pending_client_data)
 
