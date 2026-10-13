@@ -324,8 +324,8 @@
       <div class="checkout-section">
         <h4 class="checkout-subtitle"><i class="fa-solid fa-credit-card"></i> Método de Pago</h4>
         <div class="options-grid">
-          <label class="option-card active" onclick="selectPaymentOption('cash', this)">
-            <input type="radio" name="payment_method" value="cash" checked style="display:none;">
+          <label class="option-card active" onclick="selectPaymentOption('EFECTIVO', this)">
+            <input type="radio" name="payment_method" value="EFECTIVO" checked style="display:none;">
             <i class="fa-solid fa-money-bill-wave option-icon"></i>
             <div>
               <strong>Efectivo (Pago Contra Entrega)</strong>
@@ -333,8 +333,8 @@
             </div>
           </label>
 
-          <label class="option-card" onclick="selectPaymentOption('transfer', this)">
-            <input type="radio" name="payment_method" value="transfer" style="display:none;">
+          <label class="option-card" onclick="selectPaymentOption('TRANSFERENCIA', this)">
+            <input type="radio" name="payment_method" value="TRANSFERENCIA" style="display:none;">
             <i class="fa-solid fa-building-columns option-icon"></i>
             <div>
               <strong>Transferencia Bancaria</strong>
@@ -1441,7 +1441,7 @@
 
     const transferInfo = document.getElementById('transfer-details-info');
     if (transferInfo) {
-      transferInfo.style.display = (method === 'transfer') ? 'block' : 'none';
+      transferInfo.style.display = (method === 'TRANSFERENCIA') ? 'block' : 'none';
     }
   }
 
@@ -1453,7 +1453,7 @@
     }
 
     const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'pickup';
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'EFECTIVO';
     const shippingAddress = deliveryMethod === 'delivery' ? "<%= j(@client&.direccion) %>" : '';
 
     if (deliveryMethod === 'delivery' && !shippingAddress.trim()) {

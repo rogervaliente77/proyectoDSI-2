@@ -150,6 +150,7 @@ Rails.application.routes.draw do
       end
     end
 
+    #FACTURAS DE PROVEEDOR
     resources :supplier_invoices do
       member do
         get :history
@@ -159,6 +160,9 @@ Rails.application.routes.draw do
 
     #TIPOS DE CARRO
     resources :car_types
+
+    #MENSAJERO
+    resources :delivery_drivers, only: [:index, :new, :create, :edit, :update]
 
     # PRODUCTOS
     get "/productos", to: "products#index"
@@ -244,8 +248,13 @@ Rails.application.routes.draw do
         get :descargar_comprobante
       end
     end
-  end
 
+    resources :online_sales, only: [:index, :show] do
+      member do
+        patch :update_status
+      end
+    end
+  end
 
   # Health check y landing
   get "up", to: "rails/health#show", as: :rails_health_check

@@ -24,7 +24,6 @@ class Delivery
   field :rejected_at, type: DateTime
   field :returned_to_warehouse_at, type: DateTime
   
-
   belongs_to :sale
   belongs_to :delivery_driver, optional: true
 

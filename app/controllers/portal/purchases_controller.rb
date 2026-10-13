@@ -84,6 +84,18 @@ class Portal::PurchasesController < ApplicationController
         "Comprobante de transferencia subido y almacenado en el servidor."
       )
 
+      @sale = Sale.find(sale.id)
+
+      ActionCable.server.broadcast("admin_online_sales", { 
+        action: "upload_proof", 
+        sale_id: @sale.id.to_s, 
+        code: @sale.code,
+        client_name: @sale.client_name,
+        total_amount: @sale.total_amount,
+        delivery_method: @sale.delivery_method,
+        status: @sale.status
+      })
+
       redirect_to portal_purchases_path, notice: "Comprobante subido exitosamente. En proceso de revisión."
     else
       redirect_to portal_purchases_path, alert: "Por favor selecciona un archivo válido."

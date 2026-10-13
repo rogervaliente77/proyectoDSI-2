@@ -1,0 +1,252 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Admin / Órdenes en Línea</h1>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <!-- Card Header -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Gestión y Seguimiento de Pedidos Web</h6>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+
+          <% if flash[:notice] %>
+            <div class="alert alert-success"><%= flash[:notice] %></div>
+          <% elsif flash[:alert] %>
+            <div class="alert alert-danger"><%= flash[:alert] %></div>
+          <% end %>
+
+          <div class="table-responsive">
+            <table class="table table-bordered" id="onlineSalesTable">
+              <thead class="thead-light">
+                <tr>
+                  <th>No</th>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Total</th>
+                  <th>Pago</th>
+                  <th>Entrega</th>
+                  <th>Estado Pedido</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @online_sales.each_with_index do |sale, index| %>
+                  <% 
+                    is_pending = sale.status == 'pending_payment_comprob' || sale.status == 'pending_check_payment_comprob'
+                  %>
+                  <tr id="sale-row-<%= sale.id %>" class="<%= 'pulse-animation-row' if is_pending %>">
+                    <td><%= index + 1 %></td>
+                    <td><strong><%= sale.code %></strong></td>
+                    <td><%= sale.client_name %></td>
+                    <td>$<%= '%.2f' % sale.total_amount %></td>
+                    <td>
+                      <span class="badge badge-<%= sale.payment_status == 'paid' ? 'success' : 'warning' %>">
+                        <%= sale.payment_status.titleize %>
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge badge-secondary">
+                        <%= sale.delivery_method == 'delivery' ? 'Domicilio' : 'Pickup' %>
+                      </span>
+                    </td>
+                    <td>
+                      <span id="badge-status-<%= sale.id %>" class="badge badge-info">
+                        <%= sale.status.titleize %>
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#timelineModal-<%= sale.id %>">
+                        <i class="fas fa-timeline"></i> <span>Ver Estado</span>
+                      </button>
+                    </td>
+                  </tr>
+
+                  <!-- MODAL DE LÍNEA DE TIEMPO Y GESTIÓN -->
+                  <div class="modal fade" id="timelineModal-<%= sale.id %>" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                      <div class="modal-content shadow">
+                        <div class="modal-header bg-dark text-white">
+                          <h5 class="modal-title font-weight-bold">Seguimiento de Orden: <%= sale.code %></h5>
+                          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          
+                          <% if sale.transfer_proof_path.present? %>
+                            <div class="mb-4 p-3 bg-light border rounded">
+                              <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-receipt text-primary"></i> Comprobante de Transferencia:</h6>
+                              <a href="<%= sale.transfer_proof_path %>" target="_blank" class="btn btn-sm btn-info shadow-sm" data-turbolinks="false">
+                                <i class="fas fa-eye"></i> Ver Comprobante Subido
+                              </a>
+                            </div>
+                          <% end %>
+
+                          <div class="timeline-container mb-4">
+                            <h6 class="font-weight-bold text-dark mb-3">Historial de Estados</h6>
+                            <ul class="list-group" id="timeline-list-<%= sale.id %>">
+                              <% (sale.status_logs || []).reverse.each do |log| %>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <span class="font-weight-bold text-primary"><%= log['status']&.titleize %></span>
+                                    <p class="mb-0 text-muted small"><%= log['comment'] %></p>
+                                  </div>
+                                  <small class="text-secondary"><%= Time.parse(log['changed_at'].to_s).strftime("%d/%m/%Y %H:%M") %></small>
+                                </li>
+                              <% end %>
+                            </ul>
+                          </div>
+
+                          <!-- ACCIONES DE GESTIÓN ADMINISTRATIVA -->
+                          <div class="p-3 bg-light rounded border">
+                            <h6 class="font-weight-bold text-dark mb-2">Actualizar Estado de la Orden</h6>
+                            <%= form_with url: update_status_admin_online_sale_path(sale), method: :patch, local: true, class: "form-row align-items-center" do %>
+                              <div class="col-md-8 mb-2 mb-md-0">
+                                <select name="new_status" class="form-control form-control-sm">
+                                  <option value="confirmed">Aprobar y Confirmar Orden</option>
+                                  <option value="completed">Completar / Entregar</option>
+                                  <option value="cancelled">Cancelar Orden</option>
+                                </select>
+                              </div>
+                              <div class="col-md-4">
+                                <button type="submit" class="btn btn-success btn-sm btn-block shadow-sm">Aplicar Cambio</button>
+                              </div>
+                            <% end %>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.container-fluid -->
+
+<!-- ESTILOS DE ANIMACIÓN DE PULSO PARA FILAS PENDIENTES -->
+<style>
+  @keyframes pulseGlowTable {
+    0% { background-color: rgba(254, 243, 199, 0.5); }
+    50% { background-color: rgba(254, 193, 7, 0.4); }
+    100% { background-color: rgba(254, 243, 199, 0.5); }
+  }
+  .pulse-animation-row {
+    animation: pulseGlowTable 1.5s infinite ease-in-out;
+  }
+</style>
+
+<!-- Contenedor para Alertas Flotantes en Tiempo Real -->
+<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@rails/actioncable@7.1.2/app/assets/javascripts/actioncable.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const consumer = ActionCable.createConsumer();
+    
+    // Función para mostrar una alerta visual flotante (Toast)
+    function showFloatingAlert(title, message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `alert alert-${type} shadow-lg border-left-primary py-2 px-3 m-0`;
+      toast.style.minWidth = '280px';
+      toast.style.transition = 'all 0.5s ease';
+      toast.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <strong><i class="fas fa-bell mr-1"></i> ${title}</strong>
+          <button type="button" class="close ml-2" onclick="this.parentElement.parentElement.remove()">&times;</button>
+        </div>
+        <p class="mb-0 small">${message}</p>
+      `;
+
+      container.appendChild(toast);
+
+      // Auto eliminar la alerta después de 6 segundos
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+      }, 6000);
+    }
+
+    consumer.subscriptions.create({ channel: "SaleChannel" }, {
+      received(data) {
+        console.log("WebSocket recibido en Admin:", data);
+        
+        if (data.action === "new_sale") {
+          // 1. Lanzar la alerta flotante en pantalla
+          showFloatingAlert("¡Nueva Orden / Acción Web!", `Pedido <b>${data.code}</b> de ${data.client_name || 'Cliente'} por $${parseFloat(data.total_amount || 0).toFixed(2)}`, "warning");
+
+          // 2. Verificar si ya existe la fila para actualizarla o crearla
+          let existingRow = document.getElementById(`sale-row-${data.sale_id}`);
+          if (existingRow) {
+            existingRow.classList.add('pulse-animation-row');
+            let badge = document.getElementById(`badge-status-${data.sale_id}`);
+            if (badge && data.status) {
+              badge.textContent = data.status.replace(/_/g, ' ').toUpperCase();
+            }
+            return;
+          }
+
+          // Si no existe, la insertamos dinámicamente arriba con la animación de pulso
+          const tbody = document.querySelector("#onlineSalesTable tbody");
+          if (!tbody) {
+            // Si la tabla está vacía o recarga necesaria, hacemos recarga suave
+            window.location.reload();
+            return;
+          }
+
+          const newRow = document.createElement("tr");
+          newRow.id = `sale-row-${data.sale_id}`;
+          newRow.className = "pulse-animation-row";
+          
+          const statusText = data.status ? data.status.replace(/_/g, ' ').toUpperCase() : 'PENDING';
+
+          newRow.innerHTML = `
+            <td>-</td>
+            <td><strong>${data.code}</strong></td>
+            <td>${data.client_name || 'Cliente Web'}</td>
+            <td>$${parseFloat(data.total_amount || 0).toFixed(2)}</td>
+            <td><span class="badge badge-warning">Pending</span></td>
+            <td><span class="badge badge-secondary">${data.delivery_method === 'delivery' ? 'Domicilio' : 'Pickup'}</span></td>
+            <td><span id="badge-status-${data.sale_id}" class="badge badge-info">${statusText}</span></td>
+            <td>
+              <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#timelineModal-${data.sale_id}">
+                <i class="fas fa-timeline"></i> <span>Ver Estado</span>
+              </button>
+            </td>
+          `;
+
+          tbody.prepend(newRow);
+        } else if (data.sale_id && data.status) {
+          showFloatingAlert("Actualización de Pedido", `La orden ${data.sale_id} cambió a: ${data.status.toUpperCase()}`, "success");
+
+          const statusBadge = document.getElementById(`badge-status-${data.sale_id}`);
+          if (statusBadge) {
+            statusBadge.textContent = data.status.replace(/_/g, ' ').toUpperCase();
+          }
+
+          const saleRow = document.getElementById(`sale-row-${data.sale_id}`);
+          if (saleRow && ['completed', 'confirmed', 'cancelled'].includes(data.status)) {
+            saleRow.classList.remove('pulse-animation-row');
+          }
+        }
+      }
+    });
+  });
+</script>

@@ -4,6 +4,11 @@ module Portal
 
     def create_order
       items = params[:items] || []
+
+      unless business_hours?
+        render json: { success: false, error: "Lo sentimos, nuestro horario de atención en línea es de Lunes a Sábado de 8:00 AM a 5:00 PM." }, status: :unprocessable_entity
+        return
+      end
       
       if items.empty?
         render json: { success: false, error: "El carrito está vacío" }, status: :unprocessable_entity
@@ -54,7 +59,7 @@ module Portal
 
       # 4. Determinar si es transferencia para asignar el estatus inicial correcto
       payment_method = params[:payment_method]
-      initial_status = (payment_method == 'transfer') ? 'pending_payment_comprob' : 'confirmed'
+      initial_status = (payment_method == 'TRANSFERENCIA') ? 'pending_payment_comprob' : 'confirmed'
 
       # 5. Construir la Venta (Sale)
       @sale = Sale.new(
@@ -85,8 +90,31 @@ module Portal
       @sale.code = "WEB-#{date_str}-#{(count_today + 1).to_s.rjust(3, '0')}"
 
       if @sale.save
+
+        ActionCable.server.broadcast("admin_online_sales", { 
+          action: "new_sale", 
+          sale_id: @sale.id.to_s, 
+          code: @sale.code,
+          client_name: client.nombre,
+          total_amount: @sale.total_amount,
+          delivery_method: @sale.delivery_method,
+          status: @sale.status
+        })
+
+        if @sale.delivery_method == 'delivery'
+          Delivery.create!(
+            sale: @sale,
+            sale_code: @sale.code,
+            client_name: client.nombre,
+            client_id: client.id,
+            delivery_address: client.direccion,
+            delivery_status: 'unassigned',
+            package_status: 'in_warehouse'
+          )
+        end
+
         # Registrar bitácora de estado inicial según el método de pago
-        log_comment = if payment_method == 'transfer'
+        log_comment = if payment_method == 'TRANSFERENCIA'
                         "Pedido creado en línea. Pendiente de comprobante de transferencia."
                       else
                         "Pedido realizado en línea con pago en efectivo (contra entrega)."
@@ -96,7 +124,7 @@ module Portal
 
         # Si es pago en efectivo (confirmed), aplicamos caja e inventario de inmediato.
         # Si es transferencia (pending_payment_comprob), se omiten hasta que el taller valide el comprobante.
-        if payment_method != 'transfer'
+        if payment_method != 'TRANSFERENCIA'
           registrar_movimiento_caja_online(@sale, client)
           create_product_histories_online(@sale, current_user.id)
         end
@@ -171,6 +199,15 @@ module Portal
           user_id: user_id
         )
       end
+    end
+
+    def business_hours?
+      now = Time.current
+      # Lunes (1) a Sábado (6), de 8:00 AM a 5:00 PM (17:00)
+      working_days = (1..6).include?(now.wday)
+      working_hours = (8...18).include?(now.hour)
+
+      working_days && working_hours
     end
   end
 end

@@ -4,14 +4,16 @@ class Sale
 
   field :sold_at, type: DateTime
   field :client_name, type: String              # Permite digitación manual o autocompletada
-  field :status, type: String, default: "completed"
   field :total_amount, type: Float
   field :code, type: String
   field :tipo_impuesto, type: String, default: "gravado"
   field :forma_pago, type: String
 
-  field :online_order, type: Boolean, default: false
+  field :status, type: String, default: "completed"
   field :status_logs, type: Array, default: [] # [{ status: '...', timestamp: '...', comment: '...' }]
+  field :payment_status, type: String, default: "pending"
+
+  field :online_order, type: Boolean, default: false
   field :delivery_method, type: String
   field :was_delivered, type: Boolean, default: false
   field :delivered_at, type: DateTime
@@ -36,16 +38,27 @@ class Sale
 
   before_create :set_defaults
 
-  def update_status_with_log(new_status, user_id = nil, comment = nil)
+  def update_status_with_log(new_status, user_id = nil, comment = nil, new_payment_status = nil)
     self.status = new_status
+    self.payment_status = new_payment_status if new_payment_status.present?
+    
     self.status_logs ||= []
     self.status_logs << {
       status: new_status,
+      payment_status: self.payment_status,
       changed_at: Time.current,
       user_id: user_id,
       comment: comment
     }
     save
+    
+    # Broadcast por ActionCable para actualizar vistas en tiempo real
+    SaleChannel.broadcast_to(self, { 
+      sale_id: self.id.to_s, 
+      status: self.status, 
+      payment_status: self.payment_status,
+      logs: self.status_logs 
+    })
   end
 
   private
