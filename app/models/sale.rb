@@ -15,8 +15,8 @@ class Sale
   field :delivery_method, type: String
   field :was_delivered, type: Boolean, default: false
   field :delivered_at, type: DateTime
-
   field :condicion_tributaria, type: String, default: "gravado" # <-- Agrega esta línea
+  field :transfer_proof_path, type: String
 
   # Relaciones
   belongs_to :client, optional: true           # Opcional para externas/público general
@@ -30,7 +30,6 @@ class Sale
   has_many :devoluciones, class_name: "Devolucion", inverse_of: :sale, dependent: :destroy
   has_one :head_movimiento_caja, class_name: "HeadMovimientoCaja", dependent: :nullify
   has_one :delivery
-  #has_one_attached :transfer_proof
 
   accepts_nested_attributes_for :product_sales, allow_destroy: true
   validates :code, uniqueness: true, allow_blank: true

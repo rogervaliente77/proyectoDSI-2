@@ -50,7 +50,45 @@ class Portal::PurchasesController < ApplicationController
   def refresh_delivery_status
     @sale = Sale.find(params[:purchase_id])
     render partial: "portal/purchases/delivery_status_real_time", locals: { sale: @sale }
-  end  
+  end
+
+  def upload_proof
+    sale = Sale.find(params[:purchase_id])
+    uploaded_file = params[:transfer_proof] # Viene del input type="file"
+
+    if uploaded_file.present?
+      # 1. Definir el directorio de destino en el servidor (ej. public/uploads/comprobantes)
+      upload_dir = Rails.root.join('public', 'uploads', 'comprobantes')
+      FileUtils.mkdir_p(upload_dir) unless Dir.exist?(upload_dir)
+
+      # 2. Generar un nombre único para evitar colisiones
+      file_extension = File.extname(uploaded_file.original_filename)
+      unique_filename = "comprobante_#{sale.code}_#{SecureRandom.hex(4)}#{file_extension}"
+      file_path = upload_dir.join(unique_filename)
+
+      # 3. Escribir el archivo físicamente en el disco del servidor Ubuntu
+      File.open(file_path, 'wb') do |file|
+        file.write(uploaded_file.read)
+      end
+
+      # 4. Guardar la ruta relativa en la base de datos y actualizar estatus
+      relative_path = "/uploads/comprobantes/#{unique_filename}"
+      sale.update(
+        transfer_proof_path: relative_path,
+        status: 'pending_check_payment_comprob'
+      )
+
+      sale.update_status_with_log(
+        'pending_check_payment_comprob', 
+        current_user.id, 
+        "Comprobante de transferencia subido y almacenado en el servidor."
+      )
+
+      redirect_to portal_purchases_path, notice: "Comprobante subido exitosamente. En proceso de revisión."
+    else
+      redirect_to portal_purchases_path, alert: "Por favor selecciona un archivo válido."
+    end
+  end
 
   private
 
