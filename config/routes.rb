@@ -252,6 +252,7 @@ Rails.application.routes.draw do
     resources :online_sales, only: [:index, :show] do
       member do
         patch :update_status
+        patch :acknowledge
       end
     end
   end

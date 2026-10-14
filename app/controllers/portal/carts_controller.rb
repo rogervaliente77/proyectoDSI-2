@@ -64,6 +64,7 @@ module Portal
       # 5. Construir la Venta (Sale)
       @sale = Sale.new(
         online_order: true,
+        admin_acknowledged: false,
         status: initial_status,
         sold_at: Time.current,
         total_amount: total_amount,

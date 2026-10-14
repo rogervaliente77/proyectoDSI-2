@@ -19,6 +19,7 @@ class Sale
   field :delivered_at, type: DateTime
   field :condicion_tributaria, type: String, default: "gravado" # <-- Agrega esta línea
   field :transfer_proof_path, type: String
+  field :admin_acknowledged, type: Boolean, default: false
 
   # Relaciones
   belongs_to :client, optional: true           # Opcional para externas/público general

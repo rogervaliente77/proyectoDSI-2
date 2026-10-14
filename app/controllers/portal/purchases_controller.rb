@@ -12,45 +12,45 @@ class Portal::PurchasesController < ApplicationController
     end
   end
 
-  def schedule_appointment
-    @sale = Sale.find(params[:purchase_id])
-    @client = User.find(@sale.client_id)
-  end
+  # def schedule_appointment
+  #   @sale = Sale.find(params[:purchase_id])
+  #   @client = User.find(@sale.client_id)
+  # end
 
-  def confirm_appointment
-    @sale = Sale.find(params[:delivery][:sale_id])
-    @client = User.find(@sale.client_id)
+  # def confirm_appointment
+  #   @sale = Sale.find(params[:delivery][:sale_id])
+  #   @client = User.find(@sale.client_id)
 
-    # binding.pry
-    @delivery = Delivery.new(delivery_params)
-    @delivery.client_id = @client.id
-    @delivery.client_name = @client.full_name
-    @delivery.sale_code = @sale.code
-    @delivery.has_appointment = true
+  #   # binding.pry
+  #   @delivery = Delivery.new(delivery_params)
+  #   @delivery.client_id = @client.id
+  #   @delivery.client_name = @client.full_name
+  #   @delivery.sale_code = @sale.code
+  #   @delivery.has_appointment = true
 
-    # binding.pry
-    if @delivery.save
-      flash[:success] = "Cita agendada correctamente"
-      redirect_to portal_purchase_estado_entrega_path(@sale)
-    else
-      flash[:error] = "Hubo un error al agendar la cita: #{@delivery.errors.full_messages.join(', ')}"
-      redirect_to portal_purchase_schedule_appointment_path(@sale)
-    end
+  #   # binding.pry
+  #   if @delivery.save
+  #     flash[:success] = "Cita agendada correctamente"
+  #     redirect_to portal_purchase_estado_entrega_path(@sale)
+  #   else
+  #     flash[:error] = "Hubo un error al agendar la cita: #{@delivery.errors.full_messages.join(', ')}"
+  #     redirect_to portal_purchase_schedule_appointment_path(@sale)
+  #   end
     
-  end
+  # end
 
-  def delivery_status_real_time
-    @sale = Sale.find(params[:purchase_id])
-  end
+  # def delivery_status_real_time
+  #   @sale = Sale.find(params[:purchase_id])
+  # end
 
-  def update_delivery_status
+  # def update_delivery_status
      
-  end
+  # end
 
-  def refresh_delivery_status
-    @sale = Sale.find(params[:purchase_id])
-    render partial: "portal/purchases/delivery_status_real_time", locals: { sale: @sale }
-  end
+  # def refresh_delivery_status
+  #   @sale = Sale.find(params[:purchase_id])
+  #   render partial: "portal/purchases/delivery_status_real_time", locals: { sale: @sale }
+  # end
 
   def upload_proof
     sale = Sale.find(params[:purchase_id])
@@ -87,13 +87,13 @@ class Portal::PurchasesController < ApplicationController
       @sale = Sale.find(sale.id)
 
       ActionCable.server.broadcast("admin_online_sales", { 
-        action: "upload_proof", 
+        action: "update_status", 
         sale_id: @sale.id.to_s, 
         code: @sale.code,
         client_name: @sale.client_name,
-        total_amount: @sale.total_amount,
-        delivery_method: @sale.delivery_method,
-        status: @sale.status
+        status: @sale.status,
+        forma_pago: @sale.forma_pago,
+        delivery_method: @sale.delivery_method
       })
 
       redirect_to portal_purchases_path, notice: "Comprobante subido exitosamente. En proceso de revisión."

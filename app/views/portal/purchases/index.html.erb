@@ -39,31 +39,21 @@
         </div>
       </div>
 
-      <!-- LÍNEA DE TIEMPO VISUAL CON ICONOS DINÁMICOS Y ANIMACIÓN BREATHE -->
+      <!-- LÍNEA DE TIEMPO VISUAL CON 5 PASOS Y ANIMACIÓN BREATHE -->
       <% 
         is_transfer = latest_sale.forma_pago == 'TRANSFERENCIA'
-        status = latest_sale.status
-        delivery_status = latest_sale.delivery&.delivery_status || 'unassigned'
+        is_pickup = latest_sale.delivery_method == 'pickup'
+        st = latest_sale.status
 
-        # Pasos lógicos
-        step1_active = true
-        step2_active = is_transfer ? ['pending_check_payment_comprob', 'confirmed', 'completed', 'in_route', 'delivered'].include?(status) : true
-        step3_active = ['confirmed', 'completed', 'in_route', 'delivered'].include?(status) || status == 'completed'
-        step4_active = ['in_route', 'delivered'].include?(delivery_status) || status == 'completed'
-        step5_active = delivery_status == 'delivered' || status == 'completed'
+        # Pasos secuenciales lógicos basados en Sale status
+        s1 = true
+        s2 = ['pending_check_payment_comprob', 'confirmed', 'preparing', 'assigned', 'on_route', 'on_place', 'delivered', 'pending_to_pickup'].include?(st)
+        s3 = ['confirmed', 'preparing', 'assigned', 'on_route', 'on_place', 'delivered', 'pending_to_pickup'].include?(st)
+        s4 = ['assigned', 'on_route', 'on_place', 'pending_to_pickup', 'delivered'].include?(st)
+        s5 = ['delivered'].include?(st)
 
-        # ¿Cuál es el paso actual exacto para aplicarle la animación "breathe"?
-        current_step = if delivery_status == 'delivered' || status == 'completed'
-                         5
-                       elsif delivery_status == 'in_route'
-                         4
-                       elsif step3_active
-                         3
-                       elsif step2_active && is_transfer
-                         2
-                       else
-                         1
-                       end
+        # Paso actual exacto para el efecto breathe
+        current_step = if s5; 5 elsif s4; 4 elsif s3; 3 elsif s2; 2 else 1 end
       %>
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 25px;">
         <h4 style="font-size: 0.9rem; font-weight: 700; color: #334155; margin-bottom: 15px;"><i class="fa-solid fa-timeline text-primary mr-1"></i> Progreso del Pedido</h4>
@@ -71,41 +61,39 @@
           
           <!-- Paso 1 -->
           <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 1 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step1_active ? '#0d6efd' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <div class="<%= 'breathe-animation' if current_step == 1 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s1 ? '#0d6efd' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
               <i class="fa-solid <%= is_transfer ? 'fa-file-arrow-up' : 'fa-receipt' %>"></i>
             </div>
             <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_transfer ? 'Subir Comprobante' : 'Registrada' %></span>
           </div>
 
-          <!-- Paso 2 (Solo Transferencia) -->
-          <% if is_transfer %>
-            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-              <div class="<%= 'breathe-animation' if current_step == 2 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step2_active ? '#0284c7' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-                <i class="fa-solid fa-magnifying-glass-dollar"></i>
-              </div>
-              <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Revisando Pago</span>
+          <!-- Paso 2 -->
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
+            <div class="<%= 'breathe-animation' if current_step == 2 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s2 ? '#0284c7' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+              <i class="fa-solid <%= is_transfer ? 'fa-magnifying-glass-dollar' : 'fa-box-open' %>"></i>
             </div>
-          <% end %>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_transfer ? 'Revisando Pago' : 'Preparación' %></span>
+          </div>
 
           <!-- Paso 3 -->
           <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 3 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step3_active ? '#d97706' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid fa-box-open"></i>
+            <div class="<%= 'breathe-animation' if current_step == 3 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s3 ? '#d97706' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+              <i class="fa-solid <%= is_pickup ? 'fa-store' : 'fa-user-check' %>"></i>
             </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Aprobada</span>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_pickup ? 'Listo Taller' : 'Asignado' %></span>
           </div>
 
-          <!-- Paso 4: En Camino -->
+          <!-- Paso 4 -->
           <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 4 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step4_active ? '#7c3aed' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid fa-truck-fast"></i>
+            <div class="<%= 'breathe-animation' if current_step == 4 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s4 ? '#7c3aed' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+              <i class="fa-solid <%= is_pickup ? 'fa-clock' : 'fa-truck-fast' %>"></i>
             </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">En Camino</span>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_pickup ? 'En Espera' : 'En Camino' %></span>
           </div>
 
-          <!-- Paso 5: Entregado -->
+          <!-- Paso 5 -->
           <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 5 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step5_active ? '#059669' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+            <div class="<%= 'breathe-animation' if current_step == 5 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s5 ? '#059669' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
               <i class="fa-solid fa-circle-check"></i>
             </div>
             <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Entregado</span>
@@ -133,6 +121,7 @@
           <%= form_with url: portal_purchase_upload_proof_path(latest_sale), method: :post, local: true, html: { id: "proof-upload-form", multipart: true, style: "display: flex; flex-direction: column; gap: 12px; width: 100%;" } do %>
             <input type="file" id="transfer-proof-input" name="transfer_proof" accept="image/png, image/jpeg, image/jpg, image/webp" required style="font-size: 0.85rem; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box;">
 
+            <!-- PREVISUALIZACIÓN DE IMAGEN ANTES DE SUBIR -->
             <div id="image-preview-container" style="display: none; text-align: center; margin-top: 5px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
               <span style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 8px;">Vista previa de la imagen a subir:</span>
               <img id="image-preview" src="#" alt="Previsualización" style="max-height: 180px; max-width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; object-fit: contain; margin-bottom: 8px;">
@@ -166,7 +155,7 @@
         </div>
       <% end %>
 
-      <!-- Detalle de productos -->
+      <!-- Detalle de productos de la compra actual -->
       <div style="margin-bottom: 15px;">
         <h4 style="font-size: 0.95rem; color: #334155; margin-bottom: 10px; font-weight: 700;">Productos en este pedido:</h4>
         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
@@ -267,7 +256,7 @@
   </div>
 </div>
 
-<!-- SCRIPTS DE WEBSOCKETS Y DESPLIEGUE DE HISTORIAL -->
+<!-- SCRIPTS DE WEBSOCKETS Y PREVISUALIZACIÓN -->
 <script src="https://cdn.jsdelivr.net/npm/@rails/actioncable@7.1.2/app/assets/javascripts/actioncable.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -284,7 +273,6 @@
       });
     }
 
-    // Input de comprobante y previsualización
     const fileInput = document.getElementById("transfer-proof-input");
     const previewContainer = document.getElementById("image-preview-container");
     const previewImage = document.getElementById("image-preview");
@@ -335,7 +323,6 @@
     }
   });
 
-  // Función para desplegar u ocultar compras anteriores en el historial
   function togglePastSale(saleId) {
     const detailsDiv = document.getElementById(`details-sale-${saleId}`);
     const icon = document.getElementById(`icon-sale-${saleId}`);
