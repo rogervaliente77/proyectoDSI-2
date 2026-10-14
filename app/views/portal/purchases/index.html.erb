@@ -10,7 +10,7 @@
     %>
 
     <!-- 1. COMPRA ACTUAL / RECIENTE -->
-    <div class="latest-purchase-card" style="background: #ffffff; border: 2px solid #0d6efd; border-radius: 14px; padding: 25px; box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1); margin-bottom: 40px; position: relative;">
+    <div id="latest-purchase-card-wrapper" data-sale-id="<%= latest_sale.id %>" style="background: #ffffff; border: 2px solid #0d6efd; border-radius: 14px; padding: 25px; box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1); margin-bottom: 40px; position: relative;">
       
       <!-- Overlay de Carga durante la Subida -->
       <div id="upload-spinner-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.92); border-radius: 12px; z-index: 10; flex-direction: column; justify-content: center; align-items: center; gap: 15px;">
@@ -33,9 +33,84 @@
                            else '#059669'
                            end
           %>
-          <span style="font-weight: 700; font-size: 0.88rem; color: <%= status_color %>;">
+          <span id="current-status-text" style="font-weight: 700; font-size: 0.88rem; color: <%= status_color %>;">
             Estado: <%= latest_sale.status.titleize %>
           </span>
+        </div>
+      </div>
+
+      <!-- LÍNEA DE TIEMPO VISUAL CON ICONOS DINÁMICOS Y ANIMACIÓN BREATHE -->
+      <% 
+        is_transfer = latest_sale.forma_pago == 'TRANSFERENCIA'
+        status = latest_sale.status
+        delivery_status = latest_sale.delivery&.delivery_status || 'unassigned'
+
+        # Pasos lógicos
+        step1_active = true
+        step2_active = is_transfer ? ['pending_check_payment_comprob', 'confirmed', 'completed', 'in_route', 'delivered'].include?(status) : true
+        step3_active = ['confirmed', 'completed', 'in_route', 'delivered'].include?(status) || status == 'completed'
+        step4_active = ['in_route', 'delivered'].include?(delivery_status) || status == 'completed'
+        step5_active = delivery_status == 'delivered' || status == 'completed'
+
+        # ¿Cuál es el paso actual exacto para aplicarle la animación "breathe"?
+        current_step = if delivery_status == 'delivered' || status == 'completed'
+                         5
+                       elsif delivery_status == 'in_route'
+                         4
+                       elsif step3_active
+                         3
+                       elsif step2_active && is_transfer
+                         2
+                       else
+                         1
+                       end
+      %>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 25px;">
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: #334155; margin-bottom: 15px;"><i class="fa-solid fa-timeline text-primary mr-1"></i> Progreso del Pedido</h4>
+        <div style="display: flex; justify-content: space-between; position: relative; align-items: center; max-width: 900px; margin: 0 auto; flex-wrap: wrap; gap: 10px;">
+          
+          <!-- Paso 1 -->
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
+            <div class="<%= 'breathe-animation' if current_step == 1 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step1_active ? '#0d6efd' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+              <i class="fa-solid <%= is_transfer ? 'fa-file-arrow-up' : 'fa-receipt' %>"></i>
+            </div>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_transfer ? 'Subir Comprobante' : 'Registrada' %></span>
+          </div>
+
+          <!-- Paso 2 (Solo Transferencia) -->
+          <% if is_transfer %>
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
+              <div class="<%= 'breathe-animation' if current_step == 2 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step2_active ? '#0284c7' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+                <i class="fa-solid fa-magnifying-glass-dollar"></i>
+              </div>
+              <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Revisando Pago</span>
+            </div>
+          <% end %>
+
+          <!-- Paso 3 -->
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
+            <div class="<%= 'breathe-animation' if current_step == 3 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step3_active ? '#d97706' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+              <i class="fa-solid fa-box-open"></i>
+            </div>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Aprobada</span>
+          </div>
+
+          <!-- Paso 4: En Camino -->
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
+            <div class="<%= 'breathe-animation' if current_step == 4 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step4_active ? '#7c3aed' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+              <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">En Camino</span>
+          </div>
+
+          <!-- Paso 5: Entregado -->
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
+            <div class="<%= 'breathe-animation' if current_step == 5 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= step5_active ? '#059669' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Entregado</span>
+          </div>
+
         </div>
       </div>
 
@@ -58,11 +133,9 @@
           <%= form_with url: portal_purchase_upload_proof_path(latest_sale), method: :post, local: true, html: { id: "proof-upload-form", multipart: true, style: "display: flex; flex-direction: column; gap: 12px; width: 100%;" } do %>
             <input type="file" id="transfer-proof-input" name="transfer_proof" accept="image/png, image/jpeg, image/jpg, image/webp" required style="font-size: 0.85rem; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box;">
 
-            <!-- PREVISUALIZACIÓN DE IMAGEN ANTES DE SUBIR -->
             <div id="image-preview-container" style="display: none; text-align: center; margin-top: 5px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
               <span style="font-size: 0.8rem; color: #64748b; display: block; margin-bottom: 8px;">Vista previa de la imagen a subir:</span>
               <img id="image-preview" src="#" alt="Previsualización" style="max-height: 180px; max-width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; object-fit: contain; margin-bottom: 8px;">
-              
               <div>
                 <button type="button" id="btn-view-selected-preview" style="background: #0284c7; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                   <i class="fa-solid fa-magnifying-glass"></i> Ver en pantalla completa
@@ -85,24 +158,22 @@
               <p style="margin: 2px 0 0 0; font-size: 0.85rem;">Hemos recibido tu captura. El taller está verificando la transferencia para aprobar tu pedido.</p>
             </div>
           </div>
-
-          <!-- MUESTRA EL BOTÓN SI EXISTE EL CAMPO transfer_proof_path -->
           <% if latest_sale.respond_to?(:transfer_proof_path) && latest_sale.transfer_proof_path.present? %>
-            <button type="button" onclick="openProofModal('<%= latest_sale.transfer_proof_path %>')" style="background: #1e40af; color: #ffffff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);">
+            <button type="button" onclick="openProofModal('<%= latest_sale.transfer_proof_path %>')" style="background: #1e40af; color: #ffffff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-file-image"></i> Ver Comprobante
             </button>
           <% end %>
         </div>
       <% end %>
 
-      <!-- Detalle de productos de la compra actual -->
+      <!-- Detalle de productos -->
       <div style="margin-bottom: 15px;">
         <h4 style="font-size: 0.95rem; color: #334155; margin-bottom: 10px; font-weight: 700;">Productos en este pedido:</h4>
         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
           <% latest_sale.product_sales.each do |ps| %>
             <li style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #475569; background: #f8fafc; padding: 8px 12px; border-radius: 6px;">
               <span><strong><%= ps.quantity %>x</strong> <%= ps.product&.name || "Producto" %></span>
-              <span style="font-weight: 700; color: #0f172a;">$<%= '%.2f' % (ps.subtotal || (ps.quantity * ps.unit_price)) %></span>
+              <span style="font-weight: 700; color: #0f172a;">$<%= '%.2f' % (ps.subtotal || 0.0) %></span>
             </li>
           <% end %>
         </ul>
@@ -112,16 +183,6 @@
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <span style="font-size: 0.85rem; color: #64748b;">
             Método de pago: <strong><%= latest_sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
-            
-            <!-- SI YA FUE APROBADA O PROCESADA Y ES TRANSFERENCIA, MUESTRA EL BOTÓN SI EXISTE ADJUNTO -->
-            <% if latest_sale.forma_pago == 'TRANSFERENCIA' && latest_sale.status != 'pending_payment_comprob' && latest_sale.status != 'pending_check_payment_comprob' %>
-              <% approved_proof_url = latest_sale.try(:transfer_proof_url) || latest_sale.try(:transfer_proof)&.url %>
-              <% if approved_proof_url.present? %>
-                <button type="button" onclick="openProofModal('<%= approved_proof_url %>')" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; margin-left: 8px;">
-                  <i class="fa-solid fa-eye"></i> Ver Comprobante
-                </button>
-              <% end %>
-            <% end %>
           </span>
           <span style="font-size: 0.85rem; color: #64748b;">Entrega: <strong><%= latest_sale.delivery_method == 'delivery' ? 'Envío a Domicilio' : 'Recoger en Taller' %></strong></span>
         </div>
@@ -129,32 +190,45 @@
       </div>
     </div>
 
-    <!-- 2. HISTORIAL DE COMPRAS ANTERIORES -->
+    <!-- 2. HISTORIAL DE COMPRAS ANTERIORES DESPLEGABLES -->
     <% if past_sales.present? && past_sales.any? %>
       <h3 style="color: #334155; font-size: 1.1rem; font-weight: 700; margin-bottom: 15px;">Compras Anteriores</h3>
       <div style="display: flex; flex-direction: column; gap: 12px;">
-        <% past_sales.each do |sale| %>
-          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <div>
-              <strong style="color: #0f172a; font-size: 0.95rem;"><%= sale.code %></strong>
-              <span style="font-size: 0.82rem; color: #64748b; margin-left: 12px;"><%= sale.sold_at.strftime("%d/%m/%Y") %></span>
-              <span style="font-size: 0.78rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; margin-left: 10px;"><%= sale.delivery_method == 'delivery' ? 'Delivery' : 'Pickup' %></span>
+        <% past_sales.each_with_index do |sale, idx| %>
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            
+            <!-- Cabecera Compacta (Visible a primera impresión) -->
+            <div onclick="togglePastSale('<%= sale.id %>')" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; cursor: pointer; background: #fafafa; transition: background 0.2s;">
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <i id="icon-sale-<%= sale.id %>" class="fa-solid fa-chevron-right" style="font-size: 0.8rem; color: #64748b; transition: transform 0.3s;"></i>
+                <div>
+                  <strong style="color: #0f172a; font-size: 0.95rem;"><%= sale.code %></strong>
+                  <span style="font-size: 0.82rem; color: #64748b; margin-left: 12px;"><%= sale.sold_at.strftime("%d/%m/%Y %H:%M") %></span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <span style="font-size: 0.78rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;"><%= sale.delivery_method == 'delivery' ? 'Delivery' : 'Pickup' %></span>
+                <span style="font-size: 0.85rem; font-weight: 600; color: #059669;"><%= sale.status.titleize %></span>
+                <strong style="color: #0f172a;">$<%= '%.2f' % sale.total_amount %></strong>
+              </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-              <span style="font-size: 0.85rem; font-weight: 600; color: #059669;"><%= sale.status.titleize %></span>
-              
-              <!-- VER COMPROBANTE EN HISTORIAL SOLO SI ES TRANSFERENCIA Y EXISTE -->
-              <% if sale.forma_pago == 'TRANSFERENCIA' %>
-                <% past_proof_url = sale.try(:transfer_proof_url) || sale.try(:transfer_proof)&.url %>
-                <% if past_proof_url.present? %>
-                  <button type="button" onclick="openProofModal('<%= past_proof_url %>')" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                    <i class="fa-solid fa-file-image"></i> Comprobante
-                  </button>
-                <% end %>
-              <% end %>
 
-              <strong style="color: #0f172a;">$<%= '%.2f' % sale.total_amount %></strong>
+            <!-- Contenido Desplegable Oculto -->
+            <div id="details-sale-<%= sale.id %>" style="display: none; padding: 20px; border-top: 1px solid #e2e8f0; background: #ffffff;">
+              <h5 style="font-size: 0.88rem; font-weight: 700; color: #334155; margin-bottom: 10px;">Productos del pedido:</h5>
+              <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; display: flex; flex-direction: column; gap: 6px;">
+                <% sale.product_sales.each do |ps| %>
+                  <li style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                    <span><strong><%= ps.quantity %>x</strong> <%= ps.product&.name || "Producto" %></span>
+                    <span style="font-weight: 700; color: #0f172a;">$<%= '%.2f' % (ps.subtotal || 0.0) %></span>
+                  </li>
+                <% end %>
+              </ul>
+              <div style="font-size: 0.85rem; color: #64748b;">
+                Método de pago: <strong><%= sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
+              </div>
             </div>
+
           </div>
         <% end %>
       </div>
@@ -168,21 +242,49 @@
   <% end %>
 </div>
 
-<!-- MODAL LIGHTBOX PARA VISUALIZAR COMPROBANTES (NUEVOS O YA EXISTENTES) -->
+<!-- ESTILOS DE ANIMACIÓN BREATHE -->
+<style>
+  @keyframes breathePulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
+    70% { transform: scale(1.12); box-shadow: 0 0 0 10px rgba(13, 110, 253, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+  }
+  .breathe-animation {
+    animation: breathePulse 2s infinite ease-in-out;
+  }
+</style>
+
+<!-- MODAL LIGHTBOX -->
 <div id="proof-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
-  <div style="background: #fff; border-radius: 12px; padding: 20px; max-width: 650px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);">
+  <div style="background: #fff; border-radius: 12px; padding: 20px; max-width: 650px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
       <strong style="color: #0f172a; font-size: 1rem;"><i class="fa-solid fa-image" style="color: #0284c7; margin-right: 6px;"></i> Visualizador de Comprobante</strong>
       <button type="button" onclick="closeProofModal()" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer; color: #64748b;"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div style="overflow-y: auto; text-align: center; padding: 5px;">
-      <img id="modal-proof-img" src="" alt="Comprobante de Pago" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: contain;">
+      <img id="modal-proof-img" src="" alt="Comprobante" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: contain;">
     </div>
   </div>
 </div>
 
+<!-- SCRIPTS DE WEBSOCKETS Y DESPLIEGUE DE HISTORIAL -->
+<script src="https://cdn.jsdelivr.net/npm/@rails/actioncable@7.1.2/app/assets/javascripts/actioncable.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const saleWrapper = document.getElementById("latest-purchase-card-wrapper");
+    const saleId = saleWrapper ? saleWrapper.getAttribute("data-sale-id") : null;
+
+    if (saleId) {
+      const consumer = ActionCable.createConsumer();
+      consumer.subscriptions.create({ channel: "SaleChannel", sale_id: saleId }, {
+        received(data) {
+          console.log("Actualización en tiempo real recibida para el cliente:", data);
+          window.location.reload();
+        }
+      });
+    }
+
+    // Input de comprobante y previsualización
     const fileInput = document.getElementById("transfer-proof-input");
     const previewContainer = document.getElementById("image-preview-container");
     const previewImage = document.getElementById("image-preview");
@@ -194,20 +296,16 @@
 
     let selectedImageSrc = "";
 
-    // 1. Mostrar vista previa y habilitar botón de pantalla completa
     if (fileInput) {
       fileInput.addEventListener("change", function (e) {
         const file = e.target.files[0];
-
         if (file) {
           if (!file.type.startsWith("image/")) {
-            alert("Por favor selecciona únicamente un archivo de imagen (JPG, PNG, WEBP).");
+            alert("Por favor selecciona únicamente un archivo de imagen.");
             fileInput.value = "";
             previewContainer.style.display = "none";
-            selectedImageSrc = "";
             return;
           }
-
           const reader = new FileReader();
           reader.onload = function (e) {
             selectedImageSrc = e.target.result;
@@ -215,41 +313,43 @@
             previewContainer.style.display = "block";
           };
           reader.readAsDataURL(file);
-        } else {
-          previewContainer.style.display = "none";
-          selectedImageSrc = "";
         }
       });
     }
 
-    // 2. Abrir la imagen recién seleccionada en el modal al presionar "Ver en pantalla completa"
     if (btnViewSelected) {
       btnViewSelected.addEventListener("click", function () {
-        if (selectedImageSrc) {
-          openProofModal(selectedImageSrc);
-        }
+        if (selectedImageSrc) openProofModal(selectedImageSrc);
       });
     }
 
-    // 3. Activar spinner al enviar el formulario
     if (uploadForm) {
       uploadForm.addEventListener("submit", function () {
-        if (spinnerOverlay) {
-          spinnerOverlay.style.display = "flex";
-        }
+        if (spinnerOverlay) spinnerOverlay.style.display = "flex";
         if (btnSubmit) {
           btnSubmit.disabled = true;
           btnSubmit.style.opacity = "0.7";
-          btnSubmit.style.cursor = "not-allowed";
         }
-        if (btnText) {
-          btnText.textContent = "Subiendo archivo...";
-        }
+        if (btnText) btnText.textContent = "Subiendo archivo...";
       });
     }
   });
 
-  // Funciones globales para el modal lightbox
+  // Función para desplegar u ocultar compras anteriores en el historial
+  function togglePastSale(saleId) {
+    const detailsDiv = document.getElementById(`details-sale-${saleId}`);
+    const icon = document.getElementById(`icon-sale-${saleId}`);
+    if (detailsDiv) {
+      if (detailsDiv.style.display === "none" || detailsDiv.style.display === "") {
+        detailsDiv.style.display = "block";
+        if (icon) icon.style.transform = "rotate(90deg)";
+      } else {
+        detailsDiv.style.display = "none";
+        if (icon) icon.style.transform = "rotate(0deg)";
+      }
+    }
+  }
+
   function openProofModal(imageUrl) {
     const modal = document.getElementById("proof-modal");
     const modalImg = document.getElementById("modal-proof-img");
@@ -261,8 +361,6 @@
 
   function closeProofModal() {
     const modal = document.getElementById("proof-modal");
-    if (modal) {
-      modal.style.display = "none";
-    }
+    if (modal) modal.style.display = "none";
   }
 </script>
