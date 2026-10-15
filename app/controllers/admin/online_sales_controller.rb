@@ -16,19 +16,18 @@ module Admin
     def update_status
       @sale = Sale.find(params[:id])
       new_status = params[:new_status]
-
+    
       # Determinamos reglas de pago según el nuevo estatus
       payment_update = @sale.payment_status
-      if ['confirmed', 'paid', 'delivered'].include?(new_status) && @sale.forma_pago == 'TRANSFERENCIA'
+      if ['payment_approved', 'paid', 'delivered'].include?(new_status) && @sale.forma_pago == 'TRANSFERENCIA'
         payment_update = 'paid'
       elsif new_status == 'delivered' && @sale.forma_pago != 'TRANSFERENCIA'
         payment_update = 'paid' # Contra entrega pagada al entregar
       end
-
+    
       comment = "Estado actualizado a: #{new_status.titleize}"
-
+    
       if @sale.update_status_with_log(new_status, current_user.id, comment, payment_update)
-        # Broadcast global para actualizar interfaces de admin y cliente en tiempo real
         ActionCable.server.broadcast("admin_online_sales", { 
           action: "update_status", 
           sale_id: @sale.id.to_s, 
@@ -36,7 +35,7 @@ module Admin
           status: @sale.status,
           payment_status: @sale.payment_status
         })
-
+    
         redirect_to admin_online_sales_path, notice: "La orden #{@sale.code} fue actualizada correctamente."
       else
         redirect_to admin_online_sales_path, alert: "No se pudo actualizar el estado de la orden."

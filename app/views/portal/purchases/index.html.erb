@@ -1,3 +1,7 @@
+### 3. Vista del Portal del Cliente (`portal/purchases/index.html.erb`)
+*(Muestra el estatus del pago en la esquina superior derecha, gestiona `payment_approved` y el historial desplegable)*[cite: 8]
+
+```erb
 <div class="my-purchases-container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
   <h2 style="color: #0f172a; font-weight: 900; margin-bottom: 25px; text-transform: uppercase;">
     <i class="fa-solid fa-bag-shopping" style="color: #0d6efd; margin-right: 10px;"></i> Mis Compras
@@ -27,78 +31,51 @@
         <div style="text-align: right;">
           <span style="font-size: 0.85rem; color: #64748b; display: block;">Fecha: <%= latest_sale.sold_at.strftime("%d/%m/%Y %H:%M") %></span>
           <% 
-            status_color = case latest_sale.status
-                           when 'pending_payment_comprob' then '#d97706'
-                           when 'pending_check_payment_comprob' then '#0284c7'
-                           else '#059669'
-                           end
+            payment_status_color = latest_sale.payment_status == 'paid' ? '#059669' : '#d97706'
           %>
-          <span id="current-status-text" style="font-weight: 700; font-size: 0.88rem; color: <%= status_color %>;">
-            Estado: <%= latest_sale.status.titleize %>
+          <span id="current-status-text" style="font-weight: 700; font-size: 0.88rem; color: <%= payment_status_color %>;">
+            Pago: <%= latest_sale.payment_status.titleize %>
           </span>
         </div>
       </div>
 
-      <!-- LÍNEA DE TIEMPO VISUAL CON 5 PASOS Y ANIMACIÓN BREATHE -->
+      <!-- ESTADO ACTUAL Y PROGRESO DINÁMICO -->
       <% 
-        is_transfer = latest_sale.forma_pago == 'TRANSFERENCIA'
-        is_pickup = latest_sale.delivery_method == 'pickup'
         st = latest_sale.status
-
-        # Pasos secuenciales lógicos basados en Sale status
-        s1 = true
-        s2 = ['pending_check_payment_comprob', 'confirmed', 'preparing', 'assigned', 'on_route', 'on_place', 'delivered', 'pending_to_pickup'].include?(st)
-        s3 = ['confirmed', 'preparing', 'assigned', 'on_route', 'on_place', 'delivered', 'pending_to_pickup'].include?(st)
-        s4 = ['assigned', 'on_route', 'on_place', 'pending_to_pickup', 'delivered'].include?(st)
-        s5 = ['delivered'].include?(st)
-
-        # Paso actual exacto para el efecto breathe
-        current_step = if s5; 5 elsif s4; 4 elsif s3; 3 elsif s2; 2 else 1 end
+        status_info = case st
+                      when 'cancelled'
+                        { title: "Orden Cancelada", desc: "Este pedido ha sido cancelado por la administración.", icon: "fa-ban", bg: "#ffeeec", color: "#dc3545", border: "#f5c6cb" }
+                      when 'pending_payment_comprob'
+                        { title: "Pendiente de Comprobante", desc: "Por favor realiza tu transferencia y sube el comprobante.", icon: "fa-file-arrow-up", bg: "#fffbeb", color: "#d97706", border: "#fde68a" }
+                      when 'pending_check_payment_comprob'
+                        { title: "Comprobante en Revisión", desc: "Hemos recibido tu captura. El taller está verificando la transferencia.", icon: "fa-magnifying-glass-dollar", bg: "#eff6ff", color: "#0284c7", border: "#bfdbfe" }
+                      when 'payment_approved'
+                        { title: "Pago Aprobado", desc: "Tu pago ha sido verificado y aprobado con éxito.", icon: "fa-circle-check", bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" }
+                      when 'preparing'
+                        { title: "En Preparación", desc: "Tu orden se encuentra en proceso de preparación.", icon: "fa-box-open", bg: "#fdf4ff", color: "#9333ea", border: "#f3e8ff" }
+                      when 'pending_to_pickup'
+                        { title: "Listo para Recoger", desc: "Tu pedido está listo. Puedes pasar retirándolo por el taller.", icon: "fa-store", bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" }
+                      when 'assigned'
+                        { title: "Mensajero Asignado", desc: "Se ha asignado un motorista para llevar tu pedido.", icon: "fa-user-check", bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" }
+                      when 'on_route'
+                        { title: "En Camino", desc: "Tu pedido va en camino a la dirección de entrega.", icon: "fa-truck-fast", bg: "#f5f3ff", color: "#7c3aed", border: "#ddd6fe" }
+                      when 'on_place'
+                        { title: "En el Lugar de Destino", desc: "El repartidor ha llegado al punto de entrega.", icon: "fa-location-dot", bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" }
+                      when 'delivered', 'completed', 'picked_up'
+                        { title: "Entregado con Éxito", desc: "Tu pedido ha sido completado y entregado.", icon: "fa-circle-check", bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" }
+                      else
+                        { title: st.titleize, desc: "Actualizando estado del pedido...", icon: "fa-clock", bg: "#f8fafc", color: "#475569", border: "#e2e8f0" }
+                      end
       %>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 25px;">
-        <h4 style="font-size: 0.9rem; font-weight: 700; color: #334155; margin-bottom: 15px;"><i class="fa-solid fa-timeline text-primary mr-1"></i> Progreso del Pedido</h4>
-        <div style="display: flex; justify-content: space-between; position: relative; align-items: center; max-width: 900px; margin: 0 auto; flex-wrap: wrap; gap: 10px;">
-          
-          <!-- Paso 1 -->
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 1 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s1 ? '#0d6efd' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid <%= is_transfer ? 'fa-file-arrow-up' : 'fa-receipt' %>"></i>
-            </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_transfer ? 'Subir Comprobante' : 'Registrada' %></span>
-          </div>
 
-          <!-- Paso 2 -->
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 2 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s2 ? '#0284c7' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid <%= is_transfer ? 'fa-magnifying-glass-dollar' : 'fa-box-open' %>"></i>
-            </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_transfer ? 'Revisando Pago' : 'Preparación' %></span>
-          </div>
-
-          <!-- Paso 3 -->
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 3 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s3 ? '#d97706' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid <%= is_pickup ? 'fa-store' : 'fa-user-check' %>"></i>
-            </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_pickup ? 'Listo Taller' : 'Asignado' %></span>
-          </div>
-
-          <!-- Paso 4 -->
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 4 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s4 ? '#7c3aed' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid <%= is_pickup ? 'fa-clock' : 'fa-truck-fast' %>"></i>
-            </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;"><%= is_pickup ? 'En Espera' : 'En Camino' %></span>
-          </div>
-
-          <!-- Paso 5 -->
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 90px;">
-            <div class="<%= 'breathe-animation' if current_step == 5 %>" style="width: 38px; height: 38px; border-radius: 50%; background: <%= s5 ? '#059669' : '#cbd5e1' %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; margin-bottom: 6px;">
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <span style="font-size: 0.72rem; font-weight: 700; color: #0f172a;">Entregado</span>
-          </div>
-
+      <div style="background: <%= status_info[:bg] %>; border: 1px solid <%= status_info[:border] %>; border-radius: 10px; padding: 20px; margin-bottom: 25px; display: flex; align-items: center; gap: 18px;">
+        <div class="breathe-animation" style="width: 48px; height: 48px; border-radius: 50%; background: <%= status_info[:color] %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <i class="fa-solid <%= status_info[:icon] %>"></i>
+        </div>
+        <div>
+          <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: <%= status_info[:color] %>; display: block; margin-bottom: 2px;">Progreso Actual</span>
+          <h4 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 3px 0;"><%= status_info[:title] %></h4>
+          <p style="margin: 0; font-size: 0.85rem; color: #334155;"><%= status_info[:desc] %></p>
         </div>
       </div>
 
@@ -186,7 +163,7 @@
         <% past_sales.each_with_index do |sale, idx| %>
           <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             
-            <!-- Cabecera Compacta (Visible a primera impresión) -->
+            <!-- Cabecera Compacta -->
             <div onclick="togglePastSale('<%= sale.id %>')" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; cursor: pointer; background: #fafafa; transition: background 0.2s;">
               <div style="display: flex; align-items: center; gap: 15px;">
                 <i id="icon-sale-<%= sale.id %>" class="fa-solid fa-chevron-right" style="font-size: 0.8rem; color: #64748b; transition: transform 0.3s;"></i>
@@ -197,7 +174,7 @@
               </div>
               <div style="display: flex; align-items: center; gap: 15px;">
                 <span style="font-size: 0.78rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;"><%= sale.delivery_method == 'delivery' ? 'Delivery' : 'Pickup' %></span>
-                <span style="font-size: 0.85rem; font-weight: 600; color: #059669;"><%= sale.status.titleize %></span>
+                <span style="font-size: 0.85rem; font-weight: 600; color: <%= sale.status == 'cancelled' ? '#dc3545' : '#059669' %>;"><%= sale.status.titleize %></span>
                 <strong style="color: #0f172a;">$<%= '%.2f' % sale.total_amount %></strong>
               </div>
             </div>

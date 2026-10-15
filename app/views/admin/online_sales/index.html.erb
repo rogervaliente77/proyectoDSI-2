@@ -117,8 +117,8 @@
                               <div class="col-md-8 mb-2 mb-md-0">
                                 <select name="new_status" class="form-control form-control-sm">
                                   <% if sale.status == 'pending_check_payment_comprob' %>
-                                    <option value="confirmed">Aprobar Pago y Confirmar Orden</option>
-                                  <% elsif sale.status == 'confirmed' || sale.status == 'preparing' %>
+                                    <option value="payment_approved">Aprobar Pago (Payment Approved)</option>
+                                  <% elsif sale.status == 'payment_approved' || sale.status == 'preparing' %>
                                     <% if sale.delivery_method == 'pickup' %>
                                       <option value="pending_to_pickup">Listo para Recoger en Taller (Pending to Pickup)</option>
                                     <% else %>
@@ -170,7 +170,6 @@
 <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@rails/actioncable@7.1.2/app/assets/javascripts/actioncable.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@rails/actioncable@7.1.2/app/assets/javascripts/actioncable.js"></script>
 <script>
   function acknowledgeSale(saleId) {
     fetch(`/admin/online_sales/${saleId}/acknowledge`, {
@@ -178,7 +177,6 @@
       headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
     }).then(response => {
       if (response.ok) {
-        // Registramos en el navegador que esta orden ya fue atendida
         localStorage.setItem(`acknowledged_${saleId}`, 'true');
         
         const ringtone = document.getElementById('persistent-ringtone');
@@ -195,7 +193,6 @@
     const ringtone = document.getElementById('persistent-ringtone');
     const shortBell = document.getElementById('short-bell');
 
-    // Validamos si hay filas pendientes y si alguna NO ha sido silenciada en este navegador
     const pendingRows = document.querySelectorAll('.pulse-animation-row');
     if (pendingRows.length > 0 && ringtone) {
       let shouldRing = false;
@@ -230,7 +227,6 @@
 
       container.appendChild(toast);
 
-      // Duración de 60 segundos (1 minuto)
       setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 500);
@@ -243,11 +239,11 @@
         if (data.action === "new_sale") {
           if (ringtone) ringtone.play().catch(e => {});
           showFloatingAlert("¡Nueva Orden En Línea!", `Pedido <b>${data.code}</b> por $${parseFloat(data.total_amount || 0).toFixed(2)}`, "warning");
-          setTimeout(() => window.location.reload(), 2000);
+          setTimeout(() => window.location.reload(), 10000);
         } else {
           if (shortBell) shortBell.play().catch(e => {});
           showFloatingAlert("Actualización de Pedido", `La orden ${data.code || ''} cambió de estado.`, "success");
-          setTimeout(() => window.location.reload(), 2000);
+          setTimeout(() => window.location.reload(), 10000);
         }
       }
     });
