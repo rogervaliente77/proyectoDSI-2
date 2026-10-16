@@ -6,7 +6,7 @@ module Portal
 
     def index
       @client = Client.find(current_user.client_id)
-      @products = Product.all.includes(:category, :marca)
+      @products = Product.where(:quantity.gt => 0).includes(:category, :marca)
       @categories = Category.all
       @marcas = Marca.all
 

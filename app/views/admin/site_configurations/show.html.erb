@@ -260,6 +260,22 @@
               </div>
             </div>
 
+            <!-- SECCION PARA INFORMACION DE LA CUENTA BANCARIA -->
+            <h5 class="text-dark fw-bold font-weight-bold mb-3 border-bottom pb-2 mt-4">
+              <i class="fas fa-envelope-open-text me-2 text-primary"></i>Datos e informacion de la cuenta bancaria para recibir pagos
+            </h5>
+            <div class="row mb-3 mt-3">
+              <div class="col-md-6 mb-3">
+                <%= f.input :company_bank_account_name, label: "Titulo a mostrar de la cuenta", input_html: { class: "form-control" } %>
+              </div>
+              <div class="col-md-6 mb-3">
+                <%= f.input :company_bank_account_holder, label: "A nombre de", input_html: { class: "form-control" } %>
+              </div>
+              <div class="col-md-6 mb-3">
+                <%= f.input :company_bank_account, label: "Numero de cuenta", input_html: { class: "form-control" } %>
+              </div>
+            </div>
+
             <!-- BOTÓN GUARDAR CONFIGURACIÓN GENERAL -->
             <div class="row mt-4">
               <div class="col-md-12 text-end">

@@ -19,8 +19,11 @@
   <!-- Renderizado desde app/views/components/landing/_landing_header.html.erb -->
   <%= render "components/portal/landing_header" %>
 
-  <!-- Renderizado de la vista principal app/views/landing/index.html.erb -->
-  <%= yield %>
+  <!-- Contenedor envolvente para forzar que el footer baje cuando falte contenido -->
+  <div class="page-wrapper">
+    <!-- Renderizado de la vista principal app/views/landing/index.html.erb -->
+    <%= yield %>
+  </div>
 
   <!-- Renderizado desde app/views/components/landing/_landing_footer.html.erb -->
   <%= render "components/portal/landing_footer" %>
@@ -126,10 +129,8 @@
           li.className = `breadcrumb-item ${isLast ? "active" : ""}`;
           
           if (isLast && index > 0) {
-            // Si estamos en un nivel profundo y es el activo
             li.textContent = item.name;
           } else {
-            // Si es un enlace del breadcrumb (incluyendo 'Categorías Principales')
             const a = document.createElement("a");
             a.href = "#servicios";
             a.innerHTML = index === 0 ? '<i class="fa-solid fa-folder"></i> Categorías Principales' : item.name;
@@ -138,17 +139,15 @@
             a.addEventListener("click", function(e) {
               e.preventDefault();
               
-              // 1. Recortamos el historial hasta el nivel seleccionado
               navigationHistory = navigationHistory.slice(0, index + 1);
               renderCurrentLevel(item.id);
 
-              // 2. Novedad: Si hace clic en 'Categorías Principales' (index 0), reseteamos el filtro a "Todas"
               if (index === 0) {
                 const catSelect = document.getElementById('category-select');
                 if (catSelect) {
-                  catSelect.value = 'all'; // Selecciona "Todas las categorías"
+                  catSelect.value = 'all';
                   if (typeof window.filterProducts === 'function') {
-                    window.filterProducts(); // Vuelve a mostrar todos los productos cargados
+                    window.filterProducts();
                   }
                 }
               }
@@ -192,7 +191,6 @@
     };
 
     window.filterProducts = function() {
-      // Función auxiliar para insensibilidad a tildes y mayúsculas/minúsculas
       const normalizeText = (str) => 
         (str || "")
           .toLowerCase()
@@ -334,11 +332,8 @@
     window.filterProducts();
   }
 
-  // --- SISTEMA DE GESTIÓN DEL CARRITO (PERSISTENCIA Y TIEMPO REAL) ---
-
   const STORAGE_KEY = 'bimers_cart_data';
 
-  // 1. Obtener Carrito guardado
   function getCart() {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -349,7 +344,6 @@
     }
   }
 
-  // 2. Guardar Carrito en LocalStorage y refrescar interfaz
   function saveCart(cart) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
@@ -359,7 +353,6 @@
     updateUI();
   }
 
-  // 3. Agregar o Incrementar Producto
   function handleAddToCart(productId) {
     let cart = getCart();
     const box = document.querySelector(`.product-cart-action-box[data-product-id='${productId}']`);
@@ -381,7 +374,6 @@
     saveCart(cart);
   }
 
-  // 4. Disminuir o Incrementar Cantidad
   function changeQty(productId, delta) {
     let cart = getCart();
     const index = cart.findIndex(item => String(item.id) === String(productId));
@@ -395,23 +387,18 @@
     }
   }
 
-  // 5. Abrir/Cerrar el Modal del Carrito
   function toggleCartModal() {
     document.getElementById('cart-modal-overlay')?.classList.toggle('open');
     document.getElementById('cart-drawer')?.classList.toggle('open');
   }
 
-  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
-  // 6. Actualizar la Interfaz de Usuario (UI) recuperando los datos
   function updateUI() {
     const cart = getCart();
     
-    // A. Actualizar el Contador Flotante
     const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
     const badge = document.getElementById('floating-cart-count');
     if (badge) badge.textContent = totalQty;
 
-    // B. Actualizar Botones/Contadores en las Tarjetas de Producto
     document.querySelectorAll('.product-cart-action-box').forEach(box => {
       const productId = String(box.dataset.productId);
       const item = cart.find(i => String(i.id) === productId);
@@ -433,7 +420,6 @@
       }
     });
 
-    // C. Renderizar Elementos en el Drawer/Modal Lateral (CON CANTIDAD Y SUB-TOTAL)
     const container = document.getElementById('cart-drawer-items');
     const totalElem = document.getElementById('cart-drawer-total');
     
@@ -474,13 +460,12 @@
   }
 
   function initLandingPage() {
-    setupLandingScript(); // Inicializa carruseles, filtros, breadcrumbs y eventos del menú
-    updateUI();           // Carga y pinta el carrito desde localStorage
+    setupLandingScript();
+    updateUI();
   }
 
-  // Escuchamos los eventos de carga de navegador y de Rails (Turbo / Turbolinks)
   ['DOMContentLoaded', 'turbo:load', 'turbolinks:load'].forEach(eventName => {
-    document.removeEventListener(eventName, initLandingPage); // Evita duplicar escuchadores
+    document.removeEventListener(eventName, initLandingPage);
     document.addEventListener(eventName, initLandingPage);
   });
 </script>

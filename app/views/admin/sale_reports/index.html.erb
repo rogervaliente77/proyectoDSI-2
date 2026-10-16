@@ -1,0 +1,250 @@
+<!-- Inclusión de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container-fluid">
+  <!-- Encabezado -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-chart-line text-primary mr-2"></i>Centro de Reportería y Métricas</h1>
+  </div>
+
+  <!-- Tarjeta de Controles y Filtros -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 bg-primary text-white">
+      <h6 class="m-0 font-weight-bold"><i class="fas fa-filter mr-1"></i> Filtros de Reporte</h6>
+    </div>
+    <div class="card-body">
+      <form id="report-filter-form" class="form-row align-items-end">
+        <div class="form-group col-md-3">
+          <label class="font-weight-bold text-dark small">Tipo de Reporte:</label>
+          <select id="report_type" class="form-control form-control-sm">
+            <option value="general">Ventas Generales (Canales)</option>
+            <option value="top_products">Top 10 Productos Más Vendidos</option>
+            <option value="payment_methods">Desglose por Métodos de Pago</option>
+            <option value="logistics">Logística de Entregas (Online)</option>
+            <option value="by_cashier">Ventas por Cajero / Usuario</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-2">
+          <label class="font-weight-bold text-dark small">Canal de Venta:</label>
+          <select id="sale_channel" class="form-control form-control-sm">
+            <option value="all">Todos los Canales</option>
+            <option value="online">Solo En Línea</option>
+            <option value="manual">Solo Manuales (Taller)</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-2">
+          <label class="font-weight-bold text-dark small">Fecha Inicio:</label>
+          <input type="date" id="start_date" class="form-control form-control-sm" value="<%= 30.days.ago.to_date %>">
+        </div>
+
+        <div class="form-group col-md-2">
+          <label class="font-weight-bold text-dark small">Fecha Fin:</label>
+          <input type="date" id="end_date" class="form-control form-control-sm" value="<%= Date.today %>">
+        </div>
+
+        <div class="form-group col-md-3">
+          <button type="submit" class="btn btn-primary btn-sm btn-block shadow-sm">
+            <i class="fas fa-search mr-1"></i> Generar Reporte
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Indicador de Carga (Spinner) -->
+  <div id="loading-spinner" class="text-center my-5" style="display: none;">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+      <span class="sr-only">Cargando datos...</span>
+    </div>
+    <p class="mt-2 text-muted font-weight-bold">Procesando métricas...</p>
+  </div>
+
+  <!-- Área de Resultados (Oculta por defecto hasta presionar Generar) -->
+  <div id="report-results" style="display: none;">
+    
+    <!-- Tarjetas de Resumen KPI -->
+    <div class="row mb-4" id="kpi-summary-cards"></div>
+
+    <!-- Pestañas de Visualización: Tabla vs Gráfico -->
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary" id="report-title-display">Resultados del Reporte</h6>
+        <ul class="nav nav-pills card-header-pills" id="view-tabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active btn-sm" id="tab-table" data-toggle="tab" href="#content-table" role="tab"><i class="fas fa-table mr-1"></i> Tabla</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link btn-sm" id="tab-chart" data-toggle="tab" href="#content-chart" role="tab"><i class="fas fa-chart-bar mr-1"></i> Gráfico</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card-body">
+        <div class="tab-content">
+          <!-- Vista de Tabla -->
+          <div class="tab-pane fade show active" id="content-table" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped" id="report-table">
+                <thead class="thead-dark" id="report-table-head"></thead>
+                <tbody id="report-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Vista de Gráfico -->
+          <div class="tab-pane fade" id="content-chart" role="tabpanel">
+            <div class="chart-area" style="position: relative; height:350px; width:100%">
+              <canvas id="myReportChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let reportChart = null;
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("report-filter-form");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      fetchReportData();
+    });
+
+    function fetchReportData() {
+      const reportType = document.getElementById("report_type").value;
+      const saleChannel = document.getElementById("sale_channel").value;
+      const startDate = document.getElementById("start_date").value;
+      const endDate = document.getElementById("end_date").value;
+
+      document.getElementById("loading-spinner").style.display = "block";
+      document.getElementById("report-results").style.display = "none";
+
+      const url = `/admin/sale_reports/sales_data?report_type=${reportType}&sale_channel=${saleChannel}&start_date=${startDate}&end_date=${endDate}&only_completed=true`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("loading-spinner").style.display = "none";
+          document.getElementById("report-results").style.display = "block";
+
+          renderSummaryKPIs(data);
+          renderTable(data);
+          renderChart(data);
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("loading-spinner").style.display = "none";
+          alert("Error al obtener los datos del reporte.");
+        });
+    }
+
+    function renderSummaryKPIs(data) {
+      const container = document.getElementById("kpi-summary-cards");
+      container.innerHTML = "";
+
+      if (data.summary) {
+        container.innerHTML = `
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Recaudado</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">${data.summary.grand_total}</div>
+                  </div>
+                  <div class="col-auto"><i class="fas fa-dollar-sign fa-2x text-gray-300"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Órdenes</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">${data.summary.total_count}</div>
+                  </div>
+                  <div class="col-auto"><i class="fas fa-shopping-bag fa-2x text-gray-300"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function renderTable(data) {
+      const thead = document.getElementById("report-table-head");
+      const tbody = document.getElementById("report-table-body");
+
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (!data.rows || data.rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron registros para el rango seleccionado.</td></tr>`;
+        return;
+      }
+
+      if (data.report_type === "general") {
+        thead.innerHTML = `<tr><th>Fecha</th><th>Transacciones</th><th>Total En Línea</th><th>Total Manual</th><th>Total General</th></tr>`;
+        data.rows.forEach(r => {
+          tbody.innerHTML += `<tr><td>${r.date}</td><td>${r.total_transactions}</td><td>${r.online_amount}</td><td>${r.manual_amount}</td><td class="font-weight-bold text-success">${r.total_amount}</td></tr>`;
+        });
+      } else if (data.report_type === "top_products") {
+        thead.innerHTML = `<tr><th>Producto</th><th>Unidades Vendidas</th><th>Monto Total Generado</th></tr>`;
+        data.rows.forEach(r => {
+          tbody.innerHTML += `<tr><td>${r.product_name}</td><td>${r.quantity}</td><td class="font-weight-bold text-primary">${r.subtotal}</td></tr>`;
+        });
+      } else if (data.report_type === "payment_methods") {
+        thead.innerHTML = `<tr><th>Método de Pago</th><th>Cantidad de Transacciones</th><th>Total Acumulado</th></tr>`;
+        data.rows.forEach(r => {
+          tbody.innerHTML += `<tr><td>${r.method}</td><td>${r.count}</td><td class="font-weight-bold text-info">${r.total}</td></tr>`;
+        });
+      } else if (data.report_type === "logistics") {
+        thead.innerHTML = `<tr><th>Método de Entrega</th><th>Total de Pedidos</th><th>Monto Total</th></tr>`;
+        data.rows.forEach(r => {
+          tbody.innerHTML += `<tr><td>${r.method}</td><td>${r.count}</td><td class="font-weight-bold text-primary">${r.total_amount}</td></tr>`;
+        });
+      } else if (data.report_type === "by_cashier") {
+        thead.innerHTML = `<tr><th>Cajero / Usuario</th><th>Transacciones Realizadas</th><th>Total Recaudado</th></tr>`;
+        data.rows.forEach(r => {
+          tbody.innerHTML += `<tr><td>${r.cashier}</td><td>${r.count}</td><td class="font-weight-bold text-success">${r.total}</td></tr>`;
+        });
+      }
+    }
+
+    function renderChart(data) {
+      const ctx = document.getElementById("myReportChart").getContext("2d");
+
+      if (reportChart) {
+        reportChart.destroy();
+      }
+
+      let chartType = 'bar';
+      if (data.report_type === 'payment_methods' || data.report_type === 'logistics') {
+        chartType = 'doughnut';
+      }
+
+      reportChart = new Chart(ctx, {
+        type: chartType,
+        data: data.chart_data,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' }
+          }
+        }
+      });
+    }
+  });
+</script>

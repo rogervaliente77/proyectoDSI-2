@@ -5,6 +5,7 @@ class Portal::PurchasesController < ApplicationController
   layout "portal_landing"
 
   def index
+    @client = Client.find(current_user.client_id)
     if @current_user.client.present?
       @sales = Sale.where(client_id: @current_user.client.id).order_by(sold_at: :desc)
     else
@@ -100,6 +101,18 @@ class Portal::PurchasesController < ApplicationController
     else
       redirect_to portal_purchases_path, alert: "Por favor selecciona un archivo válido."
     end
+  end
+
+  def download_ticket
+    @sale = Sale.find(params[:id])
+    pdf_data = SaleTicketPdf.new(@sale).render
+    
+    send_data pdf_data,
+              filename: "ticket_#{@sale.code}.pdf",
+              type: 'application/pdf',
+              disposition: 'inline'
+  rescue Mongoid::Errors::DocumentNotFound
+    redirect_to portal_purchases_path, alert: "Pedido no encontrado."
   end
 
   private

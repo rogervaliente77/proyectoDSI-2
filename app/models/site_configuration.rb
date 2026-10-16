@@ -49,6 +49,12 @@ class SiteConfiguration
   field :footer_company_description, type: String
   field :footer_services, type: String
 
+  #Configurar cuenta del banco para recibir pagos
+  field :company_bank_account_name, type: String #Banco agricola cuenta corriente
+  field :company_bank_account, type: String #Account code
+  field :company_bank_account_holder, type: String #Company name
+
+
   # Mapeos globales cargados para TODAS las plantillas
   # Ej: { "sucursal" => { "model" => "Branch", "find_by" => "first" },
   #       "promocion" => { "model" => "Promotion", "find_by" => "where", "field" => "active", "value" => true } }

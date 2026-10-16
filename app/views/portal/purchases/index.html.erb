@@ -1,9 +1,5 @@
-### 3. Vista del Portal del Cliente (`portal/purchases/index.html.erb`)
-*(Muestra el estatus del pago en la esquina superior derecha, gestiona `payment_approved` y el historial desplegable)*[cite: 8]
-
-```erb
-<div class="my-purchases-container" style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
-  <h2 style="color: #0f172a; font-weight: 900; margin-bottom: 25px; text-transform: uppercase;">
+<div class="my-purchases-container" style="max-width: 1000px; margin: 30px auto; padding: 0 15px;">
+  <h2 class="purchases-title" style="color: #0f172a; font-weight: 900; margin-bottom: 25px; text-transform: uppercase;">
     <i class="fa-solid fa-bag-shopping" style="color: #0d6efd; margin-right: 10px;"></i> Mis Compras
   </h2>
 
@@ -14,27 +10,28 @@
     %>
 
     <!-- 1. COMPRA ACTUAL / RECIENTE -->
-    <div id="latest-purchase-card-wrapper" data-sale-id="<%= latest_sale.id %>" style="background: #ffffff; border: 2px solid #0d6efd; border-radius: 14px; padding: 25px; box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1); margin-bottom: 40px; position: relative;">
+    <div id="latest-purchase-card-wrapper" data-sale-id="<%= latest_sale.id %>" class="main-purchase-card" style="background: #ffffff; border: 2px solid #0d6efd; border-radius: 14px; padding: 20px; box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1); margin-bottom: 35px; position: relative;">
       
       <!-- Overlay de Carga durante la Subida -->
-      <div id="upload-spinner-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.92); border-radius: 12px; z-index: 10; flex-direction: column; justify-content: center; align-items: center; gap: 15px;">
+      <div id="upload-spinner-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.94); border-radius: 12px; z-index: 10; flex-direction: column; justify-content: center; align-items: center; gap: 15px; padding: 20px; text-align: center;">
         <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2.8rem; color: #d97706;"></i>
         <strong style="color: #0f172a; font-size: 1rem;">Subiendo comprobante, por favor espera...</strong>
         <p style="margin: 0; font-size: 0.85rem; color: #64748b;">Guardando en el servidor...</p>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <!-- Cabecera del Pedido Reciente -->
+      <div class="purchase-header-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div>
-          <span style="background: #dbeafe; color: #1e40af; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Compra más reciente</span>
-          <h3 style="color: #0f172a; font-size: 1.4rem; font-weight: 800; margin: 8px 0 0 0;"><%= latest_sale.code %></h3>
+          <span style="background: #dbeafe; color: #1e40af; font-size: 0.72rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Compra más reciente</span>
+          <h3 style="color: #0f172a; font-size: 1.3rem; font-weight: 800; margin: 6px 0 0 0;"><%= latest_sale.code %></h3>
         </div>
-        <div style="text-align: right;">
-          <span style="font-size: 0.85rem; color: #64748b; display: block;">Fecha: <%= latest_sale.sold_at.strftime("%d/%m/%Y %H:%M") %></span>
+        <div class="purchase-header-status" style="text-align: right;">
+          <span style="font-size: 0.82rem; color: #64748b; display: block;">Fecha: <%= latest_sale.sold_at.strftime("%d/%m/%Y %H:%M") %></span>
           <% 
             payment_status_color = latest_sale.payment_status == 'paid' ? '#059669' : '#d97706'
           %>
           <span id="current-status-text" style="font-weight: 700; font-size: 0.88rem; color: <%= payment_status_color %>;">
-            Pago: <%= latest_sale.payment_status.titleize %>
+            Pago: <%= format_sale_payment_status(latest_sale.payment_status) %>
           </span>
         </div>
       </div>
@@ -56,7 +53,7 @@
                       when 'pending_to_pickup'
                         { title: "Listo para Recoger", desc: "Tu pedido está listo. Puedes pasar retirándolo por el taller.", icon: "fa-store", bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" }
                       when 'assigned'
-                        { title: "Mensajero Asignado", desc: "Se ha asignado un motorista para llevar tu pedido.", icon: "fa-user-check", bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" }
+                        { title: "Mensajero Asignado", desc: "Se ha asignado un repartidor para llevar tu pedido.", icon: "fa-user-check", bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" }
                       when 'on_route'
                         { title: "En Camino", desc: "Tu pedido va en camino a la dirección de entrega.", icon: "fa-truck-fast", bg: "#f5f3ff", color: "#7c3aed", border: "#ddd6fe" }
                       when 'on_place'
@@ -64,39 +61,70 @@
                       when 'delivered', 'completed', 'picked_up'
                         { title: "Entregado con Éxito", desc: "Tu pedido ha sido completado y entregado.", icon: "fa-circle-check", bg: "#ecfdf5", color: "#059669", border: "#a7f3d0" }
                       else
-                        { title: st.titleize, desc: "Actualizando estado del pedido...", icon: "fa-clock", bg: "#f8fafc", color: "#475569", border: "#e2e8f0" }
+                        { title: format_sale_status(st), desc: "Actualizando estado del pedido...", icon: "fa-clock", bg: "#f8fafc", color: "#475569", border: "#e2e8f0" }
                       end
       %>
 
-      <div style="background: <%= status_info[:bg] %>; border: 1px solid <%= status_info[:border] %>; border-radius: 10px; padding: 20px; margin-bottom: 25px; display: flex; align-items: center; gap: 18px;">
-        <div class="breathe-animation" style="width: 48px; height: 48px; border-radius: 50%; background: <%= status_info[:color] %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+      <div class="status-banner-card" style="background: <%= status_info[:bg] %>; border: 1px solid <%= status_info[:border] %>; border-radius: 10px; padding: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px;">
+        <div class="breathe-animation status-icon-wrapper" style="width: 48px; height: 48px; border-radius: 50%; background: <%= status_info[:color] %>; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
           <i class="fa-solid <%= status_info[:icon] %>"></i>
         </div>
-        <div>
+        <div class="status-banner-text">
           <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: <%= status_info[:color] %>; display: block; margin-bottom: 2px;">Progreso Actual</span>
-          <h4 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 3px 0;"><%= status_info[:title] %></h4>
-          <p style="margin: 0; font-size: 0.85rem; color: #334155;"><%= status_info[:desc] %></p>
+          <h4 style="font-size: 1.08rem; font-weight: 800; color: #0f172a; margin: 0 0 3px 0;"><%= status_info[:title] %></h4>
+          <p style="margin: 0; font-size: 0.85rem; color: #334155; line-height: 1.4;"><%= status_info[:desc] %></p>
         </div>
       </div>
 
-      <!-- ALERTA SI ES TRANSFERENCIA Y FALTA COMPROBANTE -->
-      <% if latest_sale.forma_pago == 'TRANSFERENCIA' && latest_sale.status == 'pending_payment_comprob' %>
-        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-          <div style="display: flex; align-items: center; gap: 12px; color: #92400e; margin-bottom: 12px;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem;"></i>
+      <!-- BOTÓN DE DESCARGA DE TICKET / COMPROBANTE SI EL PAGO ESTÁ APROBADO -->
+      <% if ['payment_approved', 'preparing', 'pending_to_pickup', 'assigned', 'on_route', 'on_place', 'delivered', 'completed', 'picked_up'].include?(latest_sale.status) || latest_sale.payment_status == 'paid' %>
+        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: #065f46;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-file-pdf" style="font-size: 1.5rem; color: #059669; flex-shrink: 0;"></i>
             <div>
-              <strong>Pago por Transferencia Pendiente de Comprobante</strong>
-              <p style="margin: 2px 0 0 0; font-size: 0.85rem;">Por favor realiza la transferencia por el monto total y sube tu captura para continuar.</p>
+              <strong style="font-size: 0.95rem; display: block;">¡Pago Aprobado con Éxito!</strong>
+              <p style="margin: 2px 0 0 0; font-size: 0.84rem; color: #047857;">Ya puedes visualizar o descargar tu comprobante de venta o ticket oficial.</p>
             </div>
           </div>
-          <div style="background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #fef3c7; font-size: 0.88rem; color: #1e293b; margin-bottom: 15px;">
-            <strong>Banco Agrícola - Cuenta Corriente:</strong> #123-456789-0<br>
-            <strong>A nombre de:</strong> BIMERS MOTOR CARS
+          
+          <%= link_to download_ticket_portal_purchase_path(latest_sale), target: "_blank", rel: "noopener", style: "background: #059669; color: #ffffff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);" do %>
+            <i class="fa-solid fa-print"></i> Ver / Descargar Ticket
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- ALERTA SI ES TRANSFERENCIA Y FALTA COMPROBANTE -->
+      <% if latest_sale.forma_pago == 'TRANSFERENCIA' && latest_sale.status == 'pending_payment_comprob' %>
+        <div class="transfer-alert-box" style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+          
+          <div class="transfer-alert-header" style="display: flex; align-items: center; gap: 12px; color: #92400e; margin-bottom: 12px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; flex-shrink: 0;"></i>
+            <div>
+              <strong style="font-size: 0.95rem; display: block;">Pago por Transferencia Pendiente de Comprobante</strong>
+              <p style="margin: 2px 0 0 0; font-size: 0.84rem; line-height: 1.35;">Por favor realiza la transferencia por el monto total y sube tu captura para continuar.</p>
+            </div>
+          </div>
+
+          <div class="bank-details-card" style="background: #ffffff; padding: 12px 14px; border-radius: 8px; border: 1px solid #fef3c7; font-size: 0.86rem; color: #1e293b; margin-bottom: 16px; line-height: 1.5;">
+            <% if @config&.company_bank_account_name.present? || @config&.company_bank_account.present? || @config&.company_bank_account_holder.present? %>
+              <strong><%= @config.company_bank_account_name %>:</strong> <%= @config.company_bank_account %><br>
+              <strong>A nombre de:</strong> <%= @config.company_bank_account_holder %>
+            <% else %>
+              <span style="color: #64748b;">No hay datos de cuenta bancaria configurados en el sistema.</span>
+            <% end %>
           </div>
 
           <!-- Formulario para subir el comprobante -->
           <%= form_with url: portal_purchase_upload_proof_path(latest_sale), method: :post, local: true, html: { id: "proof-upload-form", multipart: true, style: "display: flex; flex-direction: column; gap: 12px; width: 100%;" } do %>
-            <input type="file" id="transfer-proof-input" name="transfer_proof" accept="image/png, image/jpeg, image/jpg, image/webp" required style="font-size: 0.85rem; background: #fff; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box;">
+            
+            <!-- INPUT CUSTOMIZADO MEJORADO -->
+            <div class="custom-file-upload-wrapper">
+              <input type="file" id="transfer-proof-input" name="transfer_proof" accept="image/png, image/jpeg, image/jpg, image/webp" required style="display: none;">
+              <label for="transfer-proof-input" class="custom-file-label" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #ffffff; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 14px; cursor: pointer; text-align: center; transition: all 0.2s ease;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.4rem; color: #d97706;"></i>
+                <span id="file-chosen-text" style="font-size: 0.88rem; font-weight: 600; color: #475569;">Seleccionar imagen de comprobante</span>
+              </label>
+            </div>
 
             <!-- PREVISUALIZACIÓN DE IMAGEN ANTES DE SUBIR -->
             <div id="image-preview-container" style="display: none; text-align: center; margin-top: 5px; background: #ffffff; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1;">
@@ -109,19 +137,19 @@
               </div>
             </div>
 
-            <button type="submit" id="btn-submit-proof" style="background: #d97706; color: #fff; border: none; padding: 12px 16px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <button type="submit" id="btn-submit-proof" style="background: #d97706; color: #fff; border: none; padding: 12px 16px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; width: 100%; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(217, 119, 6, 0.2);">
               <i class="fa-solid fa-upload"></i> <span id="btn-text">Subir Comprobante</span>
             </button>
           <% end %>
         </div>
 
       <% elsif latest_sale.forma_pago == 'TRANSFERENCIA' && latest_sale.status == 'pending_check_payment_comprob' %>
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: #1e40af;">
+        <div class="transfer-alert-box" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: #1e40af;">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fa-solid fa-circle-info" style="font-size: 1.3rem;"></i>
+            <i class="fa-solid fa-circle-info" style="font-size: 1.3rem; flex-shrink: 0;"></i>
             <div>
-              <strong>Comprobante en revisión</strong>
-              <p style="margin: 2px 0 0 0; font-size: 0.85rem;">Hemos recibido tu captura. El taller está verificando la transferencia para aprobar tu pedido.</p>
+              <strong style="font-size: 0.92rem;">Comprobante en revisión</strong>
+              <p style="margin: 2px 0 0 0; font-size: 0.84rem; line-height: 1.35;">Hemos recibido tu captura. El taller está verificando la transferencia para aprobar tu pedido.</p>
             </div>
           </div>
           <% if latest_sale.respond_to?(:transfer_proof_path) && latest_sale.transfer_proof_path.present? %>
@@ -134,10 +162,10 @@
 
       <!-- Detalle de productos de la compra actual -->
       <div style="margin-bottom: 15px;">
-        <h4 style="font-size: 0.95rem; color: #334155; margin-bottom: 10px; font-weight: 700;">Productos en este pedido:</h4>
+        <h4 style="font-size: 0.92rem; color: #334155; margin-bottom: 10px; font-weight: 700;">Productos en este pedido:</h4>
         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
           <% latest_sale.product_sales.each do |ps| %>
-            <li style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #475569; background: #f8fafc; padding: 8px 12px; border-radius: 6px;">
+            <li style="display: flex; justify-content: space-between; font-size: 0.88rem; color: #475569; background: #f8fafc; padding: 8px 12px; border-radius: 6px;">
               <span><strong><%= ps.quantity %>x</strong> <%= ps.product&.name || "Producto" %></span>
               <span style="font-weight: 700; color: #0f172a;">$<%= '%.2f' % (ps.subtotal || 0.0) %></span>
             </li>
@@ -147,12 +175,12 @@
 
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 15px; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <span style="font-size: 0.85rem; color: #64748b;">
+          <span style="font-size: 0.82rem; color: #64748b;">
             Método de pago: <strong><%= latest_sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
           </span>
-          <span style="font-size: 0.85rem; color: #64748b;">Entrega: <strong><%= latest_sale.delivery_method == 'delivery' ? 'Envío a Domicilio' : 'Recoger en Taller' %></strong></span>
+          <span style="font-size: 0.82rem; color: #64748b;">Entrega: <strong><%= latest_sale.delivery_method == 'delivery' ? 'Envío a Domicilio' : 'Recoger en Taller' %></strong></span>
         </div>
-        <span style="font-size: 1.2rem; font-weight: 800; color: #0f172a;">Total: <span style="color: #0d6efd;">$<%= '%.2f' % latest_sale.total_amount %></span></span>
+        <span style="font-size: 1.15rem; font-weight: 800; color: #0f172a;">Total: <span style="color: #0d6efd;">$<%= '%.2f' % latest_sale.total_amount %></span></span>
       </div>
     </div>
 
@@ -163,36 +191,72 @@
         <% past_sales.each_with_index do |sale, idx| %>
           <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             
-            <!-- Cabecera Compacta -->
-            <div onclick="togglePastSale('<%= sale.id %>')" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; cursor: pointer; background: #fafafa; transition: background 0.2s;">
-              <div style="display: flex; align-items: center; gap: 15px;">
+            <!-- Cabecera Compacta (Contraída) -->
+            <div onclick="togglePastSale('<%= sale.id %>')" style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; cursor: pointer; background: #fafafa; transition: background 0.2s;">
+              <div style="display: flex; align-items: center; gap: 12px;">
                 <i id="icon-sale-<%= sale.id %>" class="fa-solid fa-chevron-right" style="font-size: 0.8rem; color: #64748b; transition: transform 0.3s;"></i>
                 <div>
-                  <strong style="color: #0f172a; font-size: 0.95rem;"><%= sale.code %></strong>
-                  <span style="font-size: 0.82rem; color: #64748b; margin-left: 12px;"><%= sale.sold_at.strftime("%d/%m/%Y %H:%M") %></span>
+                  <strong style="color: #0f172a; font-size: 0.92rem;"><%= sale.code %></strong>
+                  <span style="font-size: 0.8rem; color: #64748b; margin-left: 8px; display: inline-block;"><%= sale.sold_at.strftime("%d/%m/%Y %H:%M") %></span>
                 </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 15px;">
-                <span style="font-size: 0.78rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;"><%= sale.delivery_method == 'delivery' ? 'Delivery' : 'Pickup' %></span>
-                <span style="font-size: 0.85rem; font-weight: 600; color: <%= sale.status == 'cancelled' ? '#dc3545' : '#059669' %>;"><%= sale.status.titleize %></span>
-                <strong style="color: #0f172a;">$<%= '%.2f' % sale.total_amount %></strong>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <!-- Método de entrega -->
+                <span style="font-size: 0.72rem; background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 4px; font-weight: 600;">
+                  <%= sale.delivery_method == 'delivery' ? 'Domicilio' : 'Pickup' %>
+                </span>
+                <!-- Estado de Pago (Helper) -->
+                <span style="font-size: 0.72rem; background: <%= sale.payment_status == 'paid' ? '#d1fae5' : '#fef3c7' %>; color: <%= sale.payment_status == 'paid' ? '#065f46' : '#92400e' %>; padding: 2px 7px; border-radius: 4px; font-weight: 600;">
+                  Pago: <%= format_sale_payment_status(sale.payment_status) %>
+                </span>
+                <!-- Estado del Pedido (Helper) -->
+                <span style="font-size: 0.78rem; font-weight: 700; color: <%= sale.status == 'cancelled' ? '#dc3545' : '#059669' %>;">
+                  <%= format_sale_status(sale.status) %>
+                </span>
+                <strong style="color: #0f172a; margin-left: 4px; font-size: 0.9rem;">$<%= '%.2f' % sale.total_amount %></strong>
               </div>
             </div>
 
-            <!-- Contenido Desplegable Oculto -->
-            <div id="details-sale-<%= sale.id %>" style="display: none; padding: 20px; border-top: 1px solid #e2e8f0; background: #ffffff;">
-              <h5 style="font-size: 0.88rem; font-weight: 700; color: #334155; margin-bottom: 10px;">Productos del pedido:</h5>
-              <ul style="list-style: none; padding: 0; margin: 0 0 15px 0; display: flex; flex-direction: column; gap: 6px;">
+            <!-- Contenido Desplegable (Expandido) -->
+            <div id="details-sale-<%= sale.id %>" style="display: none; padding: 16px; border-top: 1px solid #e2e8f0; background: #ffffff;">
+              <!-- Resumen detallado de estados dentro de la expansión -->
+              <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; background: #f8fafc; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.82rem;">
+                <div>
+                  <span style="color: #64748b; display: block; font-size: 0.72rem;">ESTADO DEL PEDIDO</span>
+                  <strong style="color: #0f172a;"><%= format_sale_status(sale.status) %></strong>
+                </div>
+                <div style="border-left: 1px solid #cbd5e1; padding-left: 12px;">
+                  <span style="color: #64748b; display: block; font-size: 0.72rem;">ESTADO DE PAGO</span>
+                  <strong style="color: #0f172a;"><%= format_sale_payment_status(sale.payment_status) %></strong>
+                </div>
+                <div style="border-left: 1px solid #cbd5e1; padding-left: 12px;">
+                  <span style="color: #64748b; display: block; font-size: 0.72rem;">MÉTODO DE ENTREGA</span>
+                  <strong style="color: #0f172a;"><%= sale.delivery_method == 'delivery' ? 'Envío a Domicilio' : 'Recoger en Taller' %></strong>
+                </div>
+                <div style="border-left: 1px solid #cbd5e1; padding-left: 12px;">
+                  <span style="color: #64748b; display: block; font-size: 0.72rem;">MÉTODO DE PAGO</span>
+                  <strong style="color: #0f172a;"><%= sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
+                </div>
+              </div>
+
+              <h5 style="font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 8px;">Productos del pedido:</h5>
+              <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px;">
                 <% sale.product_sales.each do |ps| %>
-                  <li style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #475569; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
+                  <li style="display: flex; justify-content: space-between; font-size: 0.84rem; color: #475569; background: #f8fafc; padding: 6px 10px; border-radius: 6px;">
                     <span><strong><%= ps.quantity %>x</strong> <%= ps.product&.name || "Producto" %></span>
                     <span style="font-weight: 700; color: #0f172a;">$<%= '%.2f' % (ps.subtotal || 0.0) %></span>
                   </li>
                 <% end %>
               </ul>
-              <div style="font-size: 0.85rem; color: #64748b;">
-                Método de pago: <strong><%= sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
-              </div>
+
+              <!-- BOTÓN DE DESCARGA DE TICKET SI EL PAGO ESTÁ APROBADO -->
+              <% if ['payment_approved', 'preparing', 'pending_to_pickup', 'assigned', 'on_route', 'on_place', 'delivered', 'completed', 'picked_up'].include?(sale.status) || sale.payment_status == 'paid' %>
+                <div style="border-top: 1px dashed #e2e8f0; padding-top: 12px; display: flex; justify-content: flex-end;">
+                  <%= link_to download_ticket_portal_purchase_path(sale), target: "_blank", rel: "noopener", style: "background: #059669; color: #ffffff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);" do %>
+                    <i class="fa-solid fa-print"></i> Descargar Ticket (PDF)
+                  <% end %>
+                </div>
+              <% end %>
             </div>
 
           </div>
@@ -201,30 +265,65 @@
     <% end %>
 
   <% else %>
-    <div style="text-align: center; background: #ffffff; padding: 50px; border-radius: 12px; border: 1px dashed #cbd5e1; color: #64748b;">
-      <i class="fa-solid fa-receipt" style="font-size: 3rem; margin-bottom: 15px; color: #94a3b8;"></i>
-      <p style="font-size: 1.05rem; font-weight: 500; margin: 0;">Aún no has realizado ninguna compra en línea.</p>
+    <div style="text-align: center; background: #ffffff; padding: 40px 20px; border-radius: 12px; border: 1px dashed #cbd5e1; color: #64748b;">
+      <i class="fa-solid fa-receipt" style="font-size: 2.8rem; margin-bottom: 12px; color: #94a3b8;"></i>
+      <p style="font-size: 1rem; font-weight: 500; margin: 0;">Aún no has realizado ninguna compra en línea.</p>
     </div>
   <% end %>
 </div>
 
-<!-- ESTILOS DE ANIMACIÓN BREATHE -->
+<!-- ESTILOS Y RESPONSIVIDAD PARA MÓVILES -->
 <style>
   @keyframes breathePulse {
     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
-    70% { transform: scale(1.12); box-shadow: 0 0 0 10px rgba(13, 110, 253, 0); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(13, 110, 253, 0); }
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
   }
   .breathe-animation {
     animation: breathePulse 2s infinite ease-in-out;
   }
+
+  .custom-file-label:hover {
+    border-color: #d97706 !important;
+    background: #fffdfa !important;
+  }
+
+  /* MEDIA QUERIES PARA PANTALLAS PEQUEÑAS (MÓVILES) */
+  @media (max-width: 576px) {
+    .my-purchases-container {
+      padding: 0 10px !important;
+      margin: 15px auto !important;
+    }
+    .main-purchase-card {
+      padding: 15px !important;
+    }
+    .purchase-header-row {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+    }
+    .purchase-header-status {
+      text-align: left !important;
+    }
+    .status-banner-card {
+      flex-direction: column !important;
+      text-align: center !important;
+      padding: 15px !important;
+    }
+    .transfer-alert-header {
+      flex-direction: column !important;
+      text-align: center !important;
+    }
+    .bank-details-card {
+      text-align: center !important;
+    }
+  }
 </style>
 
 <!-- MODAL LIGHTBOX -->
-<div id="proof-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
-  <div style="background: #fff; border-radius: 12px; padding: 20px; max-width: 650px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
-      <strong style="color: #0f172a; font-size: 1rem;"><i class="fa-solid fa-image" style="color: #0284c7; margin-right: 6px;"></i> Visualizador de Comprobante</strong>
+<div id="proof-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;">
+  <div style="background: #fff; border-radius: 12px; padding: 15px; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 0.95rem;"><i class="fa-solid fa-image" style="color: #0284c7; margin-right: 6px;"></i> Visualizador de Comprobante</strong>
       <button type="button" onclick="closeProofModal()" style="background: transparent; border: none; font-size: 1.3rem; cursor: pointer; color: #64748b;"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div style="overflow-y: auto; text-align: center; padding: 5px;">
@@ -251,6 +350,7 @@
     }
 
     const fileInput = document.getElementById("transfer-proof-input");
+    const fileChosenText = document.getElementById("file-chosen-text");
     const previewContainer = document.getElementById("image-preview-container");
     const previewImage = document.getElementById("image-preview");
     const btnViewSelected = document.getElementById("btn-view-selected-preview");
@@ -269,7 +369,11 @@
             alert("Por favor selecciona únicamente un archivo de imagen.");
             fileInput.value = "";
             previewContainer.style.display = "none";
+            if (fileChosenText) fileChosenText.textContent = "Seleccionar imagen de comprobante";
             return;
+          }
+          if (fileChosenText) {
+            fileChosenText.textContent = file.name;
           }
           const reader = new FileReader();
           reader.onload = function (e) {

@@ -75,7 +75,8 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
       :etiqueta_superior, :header_title_part1, :header_title_part2,
       :header_description, :services_title, :services_description,
       :categories_title, :categories_description, :footer_company_description,
-      :footer_services,
+      :footer_services, :company_bank_account_name, :company_bank_account,
+      :company_bank_account_type, :company_bank_account_holder,
       header_slides_attributes: [
         :id, :image_url, :public_id, :position, :_destroy,
         :badge_text, :title_part1, :title_part2, :description

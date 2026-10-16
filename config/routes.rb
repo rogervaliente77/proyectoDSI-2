@@ -39,7 +39,10 @@ Rails.application.routes.draw do
     get "/purchases", to: "purchases#index"
 
     resources :purchases, only: [:index, :show] do
-      post :upload_proof, to: 'purchases#upload_proof'
+      member do
+        get :download_ticket
+      end
+      post :upload_proof
     end
 
     # Checkout
@@ -253,6 +256,12 @@ Rails.application.routes.draw do
       member do
         patch :update_status
         patch :acknowledge
+      end
+    end
+
+    resources :sale_reports, only: [:index] do
+      collection do
+        get :sales_data # Endpoint AJAX para procesar los filtros y devolver JSON
       end
     end
   end

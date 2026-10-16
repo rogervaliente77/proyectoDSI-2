@@ -111,11 +111,114 @@
   </div>
 </div>
 
+<!-- MODAL DE FINALIZAR COMPRA (EXTRAÍDO DE HOME) -->
+<div id="checkout-modal-overlay" class="checkout-modal-overlay" onclick="closeCheckoutModal()">
+  <div class="checkout-modal" onclick="event.stopPropagation()">
+    <div class="checkout-header">
+      <h3><i class="fa-solid fa-file-invoice-dollar"></i> Finalizar Compra</h3>
+      <button type="button" class="close-checkout-btn" onclick="closeCheckoutModal()">&times;</button>
+    </div>
+
+    <div class="checkout-body">
+      <!-- RESUMEN DE ORDEN -->
+      <div class="checkout-section">
+        <h4 class="checkout-subtitle"><i class="fa-solid fa-list-check"></i> Resumen de tu Pedido</h4>
+        <div id="checkout-summary-list" class="checkout-summary-list">
+          <!-- Carga dinámicamente el contenido del carrito -->
+        </div>
+        <div class="checkout-total-banner">
+          <span>Total a pagar:</span>
+          <strong id="checkout-grand-total">$0.00</strong>
+        </div>
+      </div>
+
+      <!-- SELECCIÓN DE MÉTODO DE ENTREGA -->
+      <div class="checkout-section">
+        <h4 class="checkout-subtitle"><i class="fa-solid fa-truck-ram"></i> Tipo de Entrega</h4>
+        <div class="options-grid">
+          <label class="option-card active" onclick="selectDeliveryOption('pickup', this)">
+            <input type="radio" name="delivery_method" value="pickup" checked style="display:none;">
+            <i class="fa-solid fa-warehouse option-icon"></i>
+            <div>
+              <strong>Recoger en Taller</strong>
+              <p>Retiras en nuestro taller en El Salvador.</p>
+            </div>
+          </label>
+
+          <label class="option-card" onclick="selectDeliveryOption('delivery', this)">
+            <input type="radio" name="delivery_method" value="delivery" style="display:none;">
+            <i class="fa-solid fa-truck-fast option-icon"></i>
+            <div>
+              <strong>Envío a Domicilio</strong>
+              <p>Recibe tu repuesto directamente en tu casa.</p>
+            </div>
+          </label>
+        </div>
+
+        <div id="address-field-container" class="address-field-container" style="display: none;">
+          <label><i class="fa-solid fa-location-dot" style="color: #0284c7;"></i> Dirección de Entrega Registrada:</label>
+          <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; font-size: 0.880rem; color: #0f172a; font-weight: 500;">
+            <%= @client&.direccion.presence || "No tienes una dirección registrada en tu perfil." %>
+          </div>
+          <input type="hidden" id="shipping_address" value="<%= @client&.direccion %>">
+        </div>
+      </div>
+
+      <!-- SELECCIÓN DE MÉTODO DE PAGO -->
+      <div class="checkout-section">
+        <h4 class="checkout-subtitle"><i class="fa-solid fa-credit-card"></i> Método de Pago</h4>
+        <div class="options-grid">
+          <label class="option-card active" onclick="selectPaymentOption('EFECTIVO', this)">
+            <input type="radio" name="payment_method" value="EFECTIVO" checked style="display:none;">
+            <i class="fa-solid fa-money-bill-wave option-icon"></i>
+            <div>
+              <strong>Efectivo (Pago Contra Entrega)</strong>
+              <p>Pagas al recibir o al retirar en taller.</p>
+            </div>
+          </label>
+
+          <label class="option-card" onclick="selectPaymentOption('TRANSFERENCIA', this)">
+            <input type="radio" name="payment_method" value="TRANSFERENCIA" style="display:none;">
+            <i class="fa-solid fa-building-columns option-icon"></i>
+            <div>
+              <strong>Transferencia Bancaria</strong>
+              <p>Transferencia inmediata a nuestra cuenta.</p>
+            </div>
+          </label>
+        </div>
+
+        <div id="transfer-details-info" class="transfer-details-info" style="display: none;">
+          <div class="bank-alert">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+              <strong>Datos de Cuenta Bancaria:</strong>
+              <% if @config&.company_bank_account_name.present? || @config&.company_bank_account.present? || @config&.company_bank_account_holder.present? %>
+                <p style="margin: 2px 0 0 0; font-size: 0.85rem;">
+                  <%= @config.company_bank_account_name %>: <strong><%= @config.company_bank_account %></strong><br>
+                  A nombre de: <strong><%= @config.company_bank_account_holder %></strong>
+                </p>
+              <% else %>
+                <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #64748b;">Sin datos de cuenta bancaria configurados actualmente.</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="checkout-footer">
+      <button type="button" class="btn-cancel-checkout" onclick="closeCheckoutModal()">Cancelar</button>
+      <button type="button" class="btn-confirm-order" onclick="confirmPurchase()">
+        <i class="fa-solid fa-circle-check"></i> Confirmar Compra
+      </button>
+    </div>
+  </div>
+</div>
+
 <style>
   /* ==========================================================================
-     ESTILOS BASE / ESCRITORIO (PANTALLAS GRANDES >= 992px)
+     ESTILOS BASE / ESCRITORIO Y GENERALES DEL HEADER
      ========================================================================== */
-
   .top-bar {
     display: flex;
     justify-content: space-between;
@@ -161,399 +264,445 @@
     align-items: center;
   }
 
-  /* ==========================================================================
-     ESTILOS DEL COMPONENTE PERFIL Y DROPDOWN
-     ========================================================================== */
-
-  .nav-item-profile {
-    position: relative;
-  }
-
-  .profile-dropdown-wrapper {
-    position: relative;
-  }
-
+  /* Perfil y Dropdown */
+  .nav-item-profile { position: relative; }
+  .profile-dropdown-wrapper { position: relative; }
   .profile-trigger-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    padding: 4px 12px 4px 6px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 8px;
+    background: #ffffff; border: 1px solid #e2e8f0;
+    padding: 4px 12px 4px 6px; border-radius: 30px;
+    cursor: pointer; transition: all 0.2s ease;
   }
-
-  .profile-trigger-btn:hover {
-    background-color: #f8fafc;
-    border-color: #cbd5e1;
-  }
-
-  .profile-avatar-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
+  .profile-trigger-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+  .profile-avatar-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
   .profile-avatar-placeholder {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: #003399;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
+    width: 32px; height: 32px; border-radius: 50%;
+    background-color: #003399; color: #ffffff;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
   }
-
-  .profile-username {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #0f172a;
-  }
-
-  .profile-arrow {
-    font-size: 0.7rem;
-    color: #64748b;
-    transition: transform 0.2s ease;
-  }
-
+  .profile-username { font-size: 0.85rem; font-weight: 600; color: #0f172a; }
+  .profile-arrow { font-size: 0.7rem; color: #64748b; transition: transform 0.2s ease; }
+  
   .profile-dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: calc(100% + 8px);
-    width: 200px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    padding: 8px 0;
-    z-index: 1000;
+    display: none; position: absolute; right: 0; top: calc(100% + 8px);
+    width: 200px; background: #ffffff; border: 1px solid #e2e8f0;
+    border-radius: 8px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    padding: 8px 0; z-index: 1000;
   }
-
-  .profile-dropdown-menu.show {
-    display: block;
-  }
-
-  /* Estilos base de las opciones del dropdown */
+  .profile-dropdown-menu.show { display: block; }
   .profile-dropdown-menu a.dropdown-item,
-  .profile-dropdown-menu a.dropdown-item i {
-    color: #334155 !important;
-    text-decoration: none !important;
-  }
-
+  .profile-dropdown-menu a.dropdown-item i { color: #334155 !important; text-decoration: none !important; }
   .profile-dropdown-menu a.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    font-size: 0.85rem;
-    transition: background 0.2s ease, color 0.2s ease;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; font-size: 0.85rem; transition: background 0.2s ease, color 0.2s ease;
   }
-
-  /* --- OVERRIDE DE HOVER (Anula la regla .main-nav .nav-links li a:hover) --- */
-  
-  /* Hover opción Cambiar Contraseña y generales */
   .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:hover,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:hover i,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:focus,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:focus i {
-    color: #0f172a !important; /* Texto e icono azul/gris oscuro */
-    background-color: #f1f5f9 !important; /* Fondo gris claro */
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item:hover i {
+    color: #0f172a !important; background-color: #f1f5f9 !important;
   }
-
-  /* Hover opción Cerrar Sesión (Peligro) */
   .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger i {
-    color: #dc2626 !important;
-  }
-
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger i { color: #dc2626 !important; }
   .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:hover,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:hover i,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:focus,
-  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:focus i {
-    color: #991b1b !important; /* Texto e icono rojo oscuro */
-    background-color: #fef2f2 !important; /* Fondo rojo suave */
+  .main-nav .nav-links .profile-dropdown-menu a.dropdown-item-danger:hover i {
+    color: #991b1b !important; background-color: #fef2f2 !important;
   }
+  .dropdown-divider { margin: 6px 0; border: 0; border-top: 1px solid #e2e8f0; }
 
-  .dropdown-divider {
-    margin: 6px 0;
-    border: 0;
-    border-top: 1px solid #e2e8f0;
-  }
-
-  .main-nav .nav-links li a:not(.dropdown-item):hover {
-    color: #ffffff !important;
-  }
-
-  /* ==========================================================================
-     EXCLUSIVO PARA PANTALLAS PEQUEÑAS (< 992px)
-     ========================================================================== */
   @media (max-width: 991px) {
-    /* Ocultar barra superior con datos de contacto */
-    .top-bar {
-      display: none !important;
-    }
-
-    /* Mostrar icono de tres barras */
-    .mobile-toggle {
-      display: block !important;
-      color: #ffffff !important;
-    }
-
-    /* Menú desplegable móvil */
+    .top-bar { display: none !important; }
+    .mobile-toggle { display: block !important; color: #ffffff !important; }
     .nav-links {
-      display: none;
-      flex-direction: column;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background-color: #0d1527 !important; /* Azul oscuro */
-      padding: 20px 0;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-      z-index: 999;
-      margin: 0;
-      list-style: none;
+      display: none; flex-direction: column; position: absolute;
+      top: 100%; left: 0; width: 100%; background-color: #0d1527 !important;
+      padding: 20px 0; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); z-index: 999;
     }
-
-    .nav-links.active {
-      display: flex !important;
-      gap: 12px;
-      align-items: center;
+    .nav-links.active { display: flex !important; gap: 12px; align-items: center; }
+    .nav-links li { width: 100%; text-align: center; justify-content: center; }
+    .nav-links li a:not(.dropdown-item) {
+      color: #ffffff !important; font-size: 0.95rem; font-weight: 600; text-decoration: none; display: block; padding: 8px 0; width: 100%;
     }
-
-    .nav-links li {
-      width: 100%;
-      text-align: center;
-      justify-content: center;
-    }
-
-    /* FORZAR TEXTO BLANCO EN ENLACES DEL MENÚ NAVEGACIÓN (EXCLUYENDO BOTONES Y DROPDOWNS) */
-    .nav-links li a:not(.btn-nav-outline):not(.btn-nav-primary):not(.dropdown-item) {
-      color: #ffffff !important;
-      font-size: 0.95rem;
-      font-weight: 600;
-      text-decoration: none;
-      display: block;
-      padding: 8px 0;
-      width: 100%;
-    }
-
-    .nav-links li a:not(.btn-nav-outline):not(.btn-nav-primary):not(.dropdown-item):hover {
-      color: #38bdf8 !important; /* Azul celeste al interactuar */
-    }
-
-    /* RESTABLECER TEXTO OSCURO Y ESTILOS PARA LAS OPCIONES DEL MENÚ DESPLEGABLE DE PERFIL */
+    .nav-links li a:not(.dropdown-item):hover { color: #38bdf8 !important; }
     .profile-dropdown-menu a.dropdown-item {
-      color: #334155 !important;
-      background-color: transparent !important;
-      text-align: left !important;
-      padding: 10px 16px !important;
-      display: block !important;
-    }
-
-    .profile-dropdown-menu a.dropdown-item:hover,
-    .profile-dropdown-menu a.dropdown-item:focus {
-      color: #0f172a !important;
-      background-color: #f1f5f9 !important;
-    }
-
-    /* Ajustar botones de autenticación dentro del dropdown móvil */
-    .nav-links .nav-item-auth {
-      margin-left: 0;
-      width: 80%;
-      display: flex;
-      justify-content: center;
-    }
-
-    .nav-links .nav-item-auth a {
-      width: 100%;
-      text-align: center;
+      color: #334155 !important; background-color: transparent !important; text-align: left !important; padding: 10px 16px !important; display: block !important;
     }
   }
-  
 
-  /* ==========================================================================
-     CARRITO Y MODAL LATERAL
-     ========================================================================== */
-
+  /* Carrito y Drawer lateral */
   .floating-cart-btn {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 60px;
-    height: 60px;
-    background-color: #0d6efd;
-    color: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-    cursor: pointer;
-    z-index: 999;
+    position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px;
+    background-color: #0d6efd; color: #ffffff; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); cursor: pointer; z-index: 999;
     transition: transform 0.2s ease, background 0.2s ease;
   }
-
-  .floating-cart-btn:hover {
-    transform: scale(1.08);
-    background-color: #0b5ed7;
-  }
-
+  .floating-cart-btn:hover { transform: scale(1.08); background-color: #0b5ed7; }
   .cart-badge {
-    position: absolute;
-    top: -2px;
-    right: -2px;
-    background-color: #dc3545;
-    color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #ffffff;
+    position: absolute; top: -2px; right: -2px; background-color: #dc3545; color: #fff;
+    font-size: 0.75rem; font-weight: 700; width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; border: 2px solid #ffffff;
   }
-
   .cart-modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    z-index: 1000;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000;
   }
-
   .cart-drawer {
-    position: fixed;
-    top: 0; right: -400px;
-    width: 380px; max-width: 100%; height: 100%;
-    background: #ffffff;
-    z-index: 1001;
-    box-shadow: -4px 0 15px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-    transition: right 0.3s ease;
+    position: fixed; top: 0; right: -400px; width: 380px; max-width: 100%; height: 100%;
+    background: #ffffff; z-index: 1001; box-shadow: -4px 0 15px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column; transition: right 0.3s ease;
   }
-
   .cart-drawer.open { right: 0; }
   .cart-modal-overlay.open { display: block; }
-
   .cart-drawer-header {
-    padding: 18px 20px;
-    background: #0f172a;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 18px 20px; background: #0f172a; color: #fff; display: flex; justify-content: space-between; align-items: center;
   }
-
   .cart-drawer-header h3 { margin: 0; font-size: 1.1rem; }
   .cart-close-btn { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
-
-  .cart-drawer-items {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-  }
-
-  .cart-item-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .cart-item-row img {
-    width: 50px; height: 50px; object-fit: cover; border-radius: 6px;
-  }
-
+  .cart-drawer-items { flex: 1; overflow-y: auto; padding: 15px; }
+  .cart-item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+  .cart-item-row img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
   .cart-item-info { flex: 1; }
   .cart-item-title { font-size: 0.88rem; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; }
   .cart-item-price { font-size: 0.85rem; color: #0d6efd; font-weight: 600; }
-
-  .cart-qty-controls {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .btn-qty {
-    background: #e2e8f0;
-    border: none;
-    width: 24px; height: 24px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
+  .cart-qty-controls { display: flex; align-items: center; gap: 6px; }
+  .btn-qty { background: #e2e8f0; border: none; width: 24px; height: 24px; border-radius: 4px; font-weight: bold; cursor: pointer; }
   .btn-qty:hover { background: #cbd5e1; }
-
-  .cart-drawer-footer {
-    padding: 20px;
-    border-top: 1px solid #e2e8f0;
-    background: #f8fafc;
-  }
-
-  .cart-total-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin-bottom: 15px;
-    color: #0f172a;
-  }
-
+  .cart-drawer-footer { padding: 20px; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+  .cart-total-row { display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; margin-bottom: 15px; color: #0f172a; }
   .btn-checkout {
-    width: 100%;
-    padding: 12px;
-    background: #10b981;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
+    width: 100%; padding: 12px; background: #10b981; color: #fff; border: none; border-radius: 8px;
+    font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.2s ease;
   }
-
   .btn-checkout:hover { background: #059669; }
+  .cart-item-details { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #64748b; margin-bottom: 3px; }
+  .cart-item-qty-badge { background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
+  .cart-qty-controls .qty-display { font-weight: 700; font-size: 0.88rem; min-width: 18px; text-align: center; color: #0f172a; }
 
-  .cart-item-details {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: #64748b;
-    margin-bottom: 3px;
+  /* ==========================================================================
+     ESTILOS DEL MODAL DE FINALIZAR COMPRA (CHECKOUT)
+     ========================================================================== */
+  .checkout-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px);
+    display: none; align-items: center; justify-content: center; z-index: 1050;
   }
-
-  .cart-item-qty-badge {
-    background-color: #f1f5f9;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid #e2e8f0;
+  .checkout-modal-overlay.open { display: flex; }
+  .checkout-modal {
+    background: #ffffff; width: 100%; max-width: 580px; border-radius: 14px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; margin: 15px;
+    display: flex; flex-direction: column; max-height: 90vh;
   }
-
-  .cart-qty-controls .qty-display {
-    font-weight: 700;
-    font-size: 0.88rem;
-    min-width: 18px;
-    text-align: center;
-    color: #0f172a;
-  }
+  .checkout-header { background: #0f172a; color: #ffffff; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; }
+  .checkout-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .close-checkout-btn { background: transparent; border: none; color: #94a3b8; font-size: 1.6rem; cursor: pointer; line-height: 1; }
+  .close-checkout-btn:hover { color: #ffffff; }
+  .checkout-body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+  .checkout-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; }
+  .checkout-subtitle { margin: 0 0 12px 0; font-size: 0.92rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+  .checkout-summary-list { max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; margin-bottom: 10px; }
+  .checkout-summary-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #334155; padding: 4px 0; border-bottom: 1px dashed #e2e8f0; }
+  .checkout-total-banner { display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: #ffffff; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; margin-top: 6px; }
+  .checkout-total-banner strong { font-size: 1.15rem; color: #38bdf8; }
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px) { .options-grid { grid-template-columns: 1fr; } }
+  .option-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: #ffffff; border: 2px solid #cbd5e1; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; user-select: none; }
+  .option-card:hover { border-color: #94a3b8; }
+  .option-card.active { border-color: #0284c7; background: #f0f9ff; }
+  .option-icon { font-size: 1.25rem; color: #0284c7; margin-top: 2px; }
+  .option-card strong { display: block; font-size: 0.85rem; color: #0f172a; margin-bottom: 2px; }
+  .option-card p { margin: 0; font-size: 0.75rem; color: #64748b; line-height: 1.2; }
+  .address-field-container { margin-top: 12px; }
+  .address-field-container label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px; }
+  .bank-alert { display: flex; gap: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; color: #1e40af; font-size: 0.82rem; }
+  .bank-alert i { font-size: 1.1rem; margin-top: 2px; }
+  .bank-alert p { margin: 2px 0 0 0; line-height: 1.35; }
+  .checkout-footer { padding: 14px 20px; background: #f1f5f9; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; }
+  .btn-cancel-checkout { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 9px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .btn-confirm-order { background: #10b981; color: #ffffff; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .btn-confirm-order:hover { background: #059669; }
 </style>
 
-<!-- SCRIPT DE INTERACCIÓN DROPDOWN PERFIL Y MENÚ MÓVIL -->
+<!-- SCRIPT GENERAL DEL CARRITO Y CHECKOUT PARA TODO EL PORTAL -->
 <script>
+  const STORAGE_KEY = 'bimers_cart_data';
+
+  function getCart() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error("Error al leer localStorage:", e);
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+      console.error("Error al guardar en localStorage:", e);
+    }
+    updateUI();
+  }
+
+  function changeQty(productId, delta) {
+    let cart = getCart();
+    const index = cart.findIndex(item => String(item.id) === String(productId));
+
+    if (index > -1) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+      saveCart(cart);
+    }
+  }
+
+  function toggleCartModal() {
+    document.getElementById('cart-modal-overlay')?.classList.toggle('open');
+    document.getElementById('cart-drawer')?.classList.toggle('open');
+  }
+
+  function proceedToCheckout() {
+    const cart = getCart();
+    if (cart.length === 0) {
+      alert("Tu carrito está vacío. Agrega algunos productos antes de proceder al pago.");
+      return;
+    }
+
+    const drawer = document.getElementById('cart-drawer');
+    if (drawer && drawer.classList.contains('open')) {
+      toggleCartModal();
+    }
+
+    const summaryList = document.getElementById('checkout-summary-list');
+    const grandTotalElem = document.getElementById('checkout-grand-total');
+
+    if (summaryList) {
+      summaryList.innerHTML = cart.map(item => `
+        <div class="checkout-summary-item">
+          <span>${item.qty}x ${item.name}</span>
+          <strong>$${(item.price * item.qty).toFixed(2)}</strong>
+        </div>
+      `).join('');
+    }
+
+    if (grandTotalElem) {
+      const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      grandTotalElem.textContent = `$${grandTotal.toFixed(2)}`;
+    }
+
+    document.getElementById('checkout-modal-overlay')?.classList.add('open');
+  }
+
+  function closeCheckoutModal() {
+    document.getElementById('checkout-modal-overlay')?.classList.remove('open');
+  }
+
+  function selectDeliveryOption(method, element) {
+    const parent = element.closest('.options-grid');
+    if (parent) {
+      parent.querySelectorAll('.option-card').forEach(card => card.classList.remove('active'));
+    }
+    element.classList.add('active');
+
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+
+    const addressContainer = document.getElementById('address-field-container');
+    if (addressContainer) {
+      addressContainer.style.display = (method === 'delivery') ? 'block' : 'none';
+    }
+  }
+
+  function selectPaymentOption(method, element) {
+    const parent = element.closest('.options-grid');
+    if (parent) {
+      parent.querySelectorAll('.option-card').forEach(card => card.classList.remove('active'));
+    }
+    element.classList.add('active');
+
+    const radio = element.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+
+    const transferInfo = document.getElementById('transfer-details-info');
+    if (transferInfo) {
+      transferInfo.style.display = (method === 'TRANSFERENCIA') ? 'block' : 'none';
+    }
+  }
+
+  function confirmPurchase() {
+    const cart = getCart();
+    if (cart.length === 0) {
+      alert("Tu carrito está vacío.");
+      return;
+    }
+
+    const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'pickup';
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'EFECTIVO';
+    const shippingAddress = deliveryMethod === 'delivery' ? "<%= j(@client&.direccion) %>" : '';
+
+    if (deliveryMethod === 'delivery' && !shippingAddress.trim()) {
+      alert("No tienes una dirección registrada en tu perfil para realizar el envío. Actualiza tus datos.");
+      return;
+    }
+
+    if (!confirm("¿Estás seguro de que deseas confirmar esta compra?")) {
+      return;
+    }
+
+    const confirmBtn = document.querySelector('.btn-confirm-order');
+    const originalBtnHTML = confirmBtn.innerHTML;
+    confirmBtn.disabled = true;
+    confirmBtn.style.opacity = "0.7";
+    confirmBtn.style.cursor = "not-allowed";
+    confirmBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Procesando...`;
+
+    const payload = {
+      delivery_method: deliveryMethod,
+      payment_method: paymentMethod,
+      shipping_address: shippingAddress,
+      items: cart.map(item => ({
+        product_id: item.id,
+        quantity: item.qty,
+        unit_price: item.price
+      }))
+    };
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    fetch('/portal/cart/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrfToken
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(result => {
+      if (result.status === 200 && result.body.success) {
+        saveCart([]);
+        closeCheckoutModal();
+        showSuccessAlert(result.body.code);
+      } else {
+        alert("Error al procesar la compra: " + (result.body.error || "Inténtalo de nuevo."));
+      }
+    })
+    .catch(error => {
+      console.error("Error en la petición de checkout:", error);
+      alert("Ocurrió un error inesperado al procesar tu orden.");
+    })
+    .finally(() => {
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = "1";
+      confirmBtn.style.cursor = "pointer";
+      confirmBtn.innerHTML = originalBtnHTML;
+    });
+  }
+
+  function showSuccessAlert(orderCode) {
+    let alertOverlay = document.getElementById('success-order-overlay');
+    if (!alertOverlay) {
+      alertOverlay = document.createElement('div');
+      alertOverlay.id = 'success-order-overlay';
+      alertOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center; z-index: 1070;
+      `;
+      alertOverlay.innerHTML = `
+        <div style="background: #ffffff; width: 90%; max-width: 420px; border-radius: 14px; padding: 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
+          <div style="font-size: 3.5rem; color: #10b981; margin-bottom: 15px;">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h3 style="color: #0f172a; font-size: 1.3rem; margin-bottom: 10px; font-weight: 800;">¡Pedido Exitoso!</h3>
+          <p style="color: #64748b; font-size: 0.92rem; margin-bottom: 20px;">
+            Tu orden <strong id="success-code" style="color: #0f172a;"></strong> ha sido registrada correctamente.
+          </p>
+          <button id="btn-goto-purchases" style="width: 100%; background: #0d6efd; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background 0.2s;">
+            Ver Mis Compras <i class="fa-solid fa-arrow-right" style="margin-left: 6px;"></i>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(alertOverlay);
+    }
+
+    document.getElementById('success-code').textContent = orderCode;
+    alertOverlay.style.display = 'flex';
+
+    document.getElementById('btn-goto-purchases').onclick = function() {
+      window.location.href = '/portal/purchases';
+    };
+  }
+
+  function updateUI() {
+    const cart = getCart();
+    
+    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+    const badge = document.getElementById('floating-cart-count');
+    if (badge) badge.textContent = totalQty;
+
+    document.querySelectorAll('.product-cart-action-box').forEach(box => {
+      const productId = String(box.dataset.productId);
+      const item = cart.find(i => String(i.id) === productId);
+
+      if (item && item.qty > 0) {
+        box.innerHTML = `
+          <div class="card-qty-selector">
+            <button type="button" class="btn-qty" onclick="changeQty('${productId}', -1)">-</button>
+            <span class="qty-num">${item.qty}</span>
+            <button type="button" class="btn-qty" onclick="changeQty('${productId}', 1)">+</button>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <button class="btn-buy btn-add-to-cart" type="button" aria-label="Agregar al carrito" onclick="handleAddToCart('${productId}')">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </button>
+        `;
+      }
+    });
+
+    const container = document.getElementById('cart-drawer-items');
+    const totalElem = document.getElementById('cart-drawer-total');
+    
+    if (container) {
+      if (cart.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:30px;">Tu carrito está vacío.</p>`;
+      } else {
+        container.innerHTML = cart.map(item => {
+          const itemSubtotal = (item.price * item.qty).toFixed(2);
+          const itemUnitPrice = item.price.toFixed(2);
+
+          return `
+            <div class="cart-item-row">
+              <img src="${item.img}" alt="${item.name}">
+              <div class="cart-item-info">
+                <h4 class="cart-item-title">${item.name}</h4>
+                <div class="cart-item-details">
+                  <span class="cart-item-qty-badge">Cant: <strong>${item.qty}</strong></span>
+                  <span class="cart-item-unit-price">($${itemUnitPrice} c/u)</span>
+                </div>
+                <span class="cart-item-price">$${itemSubtotal}</span>
+              </div>
+              <div class="cart-qty-controls">
+                <button type="button" class="btn-qty" onclick="changeQty('${item.id}', -1)">-</button>
+                <span class="qty-display">${item.qty}</span>
+                <button type="button" class="btn-qty" onclick="changeQty('${item.id}', 1)">+</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    if (totalElem) {
+      const grandTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      totalElem.textContent = `$${grandTotal.toFixed(2)}`;
+    }
+  }
+
+  // Inicializadores globales para menú, perfil y carrito en todas las vistas
   (function() {
     function initHeaderScripts() {
       var toggleBtn = document.getElementById('menu-toggle');
@@ -587,9 +736,12 @@
           }
         });
       }
+
+      updateUI();
     }
 
-    document.addEventListener('DOMContentLoaded', initHeaderScripts);
-    document.addEventListener('turbo:load', initHeaderScripts);
+    ['DOMContentLoaded', 'turbo:load', 'turbolinks:load'].forEach(eventName => {
+      document.addEventListener(eventName, initHeaderScripts);
+    });
   })();
 </script>
