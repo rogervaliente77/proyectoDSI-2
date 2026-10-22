@@ -29,6 +29,7 @@ module Admin
     end
 
     def create
+      binding.pry
       unless @current_user.puede_vender?
         redirect_to admin_sales_new_path, alert: 'Esta acción solo la puede hacer un cajero'
         return
@@ -268,6 +269,7 @@ module Admin
         :tipo_documento_dte_id,
         :condicion_tributaria,
         :total_amount,
+        :forma_pago,
         product_sales_attributes: %i[product_id quantity unit_price discount_porcentage discount offer_type subtotal]
       )
 

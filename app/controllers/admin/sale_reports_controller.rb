@@ -14,7 +14,7 @@ module Admin
 
       # Base query
       sales = Sale.where(:created_at.gte => start_date, :created_at.lte => end_date)
-      sales = sales.where(status: 'completed') if params[:only_completed] == 'true'
+      #sales = sales.where(status: 'completed') if params[:only_completed] == 'true'
 
       if sale_channel == 'online'
         sales = sales.where(online_order: true)
@@ -137,6 +137,8 @@ module Admin
       labels = []
       totals = []
       rows = []
+
+      binding.pry
 
       grouped.each do |method, method_sales|
         method_name = method.present? ? method.humanize.titleize : 'No Especificado'

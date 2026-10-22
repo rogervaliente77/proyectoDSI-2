@@ -59,7 +59,7 @@
                     </td>
                     <td>
                       <span class="badge badge-primary">
-                        <%= sale.delivery_method == 'delivery' ? 'Domicilio' : 'Pickup' %>
+                        <%= sale.delivery_method == 'delivery' ? 'Domicilio' : 'Recoger en taller' %>
                       </span>
                     </td>
                     <td>
@@ -119,10 +119,12 @@
                             <%= form_with url: update_status_admin_online_sale_path(sale), method: :patch, local: true, class: "form-row align-items-center" do %>
                               <div class="col-md-8 mb-2 mb-md-0">
                                 <select name="new_status" class="form-control form-control-sm">
-                                  <% if sale.status == 'pending_check_payment_comprob' %>
+                                  <% if sale&.status == 'confirmed' && sale&.forma_pago == 'EFECTIVO' %>
+                                    <option value="preparing">Preparando pedido (preparing)</option>
+                                  <% elsif sale.status == 'pending_check_payment_comprob' %>
                                     <option value="payment_approved">Aprobar Pago (Payment Approved)</option>
                                   <% elsif sale.status == 'payment_approved' %>
-                                    <option value="assigned">Preparando pedido (preparing)</option>
+                                    <option value="preparing">Preparando pedido (preparing)</option>
                                   <% elsif sale.status == 'preparing' %>
                                     <% if sale.delivery_method == 'pickup' %>
                                       <option value="pending_to_pickup">Listo para Recoger en Taller (Pending to Pickup)</option>
