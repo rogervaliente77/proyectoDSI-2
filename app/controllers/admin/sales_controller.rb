@@ -7,20 +7,22 @@ module Admin
     layout 'dashboard'
 
     def index
-      @sales = Sale.all
-
+      # Filtro de rigor: Mostrar únicamente ventas manuales/de caja (excluyendo las de e-commerce)
+      @sales = Sale.where(online_order: false)
+    
       # Búsqueda por código interno de venta
       if params[:code].present?
         query = /#{Regexp.escape(params[:code])}/i
         @sales = @sales.where(code: query)
       end
-
+    
+      # Filtro por rango de fechas
       if params[:start_date].present? && params[:end_date].present?
         start_date = DateTime.parse(params[:start_date]).beginning_of_day
         end_date   = DateTime.parse(params[:end_date]).end_of_day
         @sales = @sales.where(:sold_at.gte => start_date, :sold_at.lte => end_date)
       end
-
+    
       @sales = @sales.order_by(sold_at: :desc)
     end
 
@@ -29,7 +31,7 @@ module Admin
     end
 
     def create
-      binding.pry
+      #binding.pry
       unless @current_user.puede_vender?
         redirect_to admin_sales_new_path, alert: 'Esta acción solo la puede hacer un cajero'
         return

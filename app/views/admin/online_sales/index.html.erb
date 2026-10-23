@@ -30,6 +30,8 @@
                   <th>Código</th>
                   <th>Cliente</th>
                   <th>Total</th>
+                  <th>Forma Pago</th>
+                  <th>Caja / Cajero</th>
                   <th>Pago</th>
                   <th>Entrega</th>
                   <th>Estado Pedido</th>
@@ -41,6 +43,10 @@
                   <% 
                     is_pending_action = !sale.admin_acknowledged
                     is_pulse = ['pending_payment_comprob', 'pending_check_payment_comprob'].include?(sale.status)
+                    
+                    # Consultas seguras para Caja y Cajero
+                    caja_obj = Caja.where(id: sale.caja_id).first if sale.caja_id.present?
+                    cajero_obj = Cajero.where(id: sale.cajero_id).first if sale.cajero_id.present?
                   %>
                   <tr id="sale-row-<%= sale.id %>" class="<%= 'pulse-animation-row' if is_pulse %>">
                     <td><%= index + 1 %></td>
@@ -52,6 +58,18 @@
                     </td>
                     <td><%= sale.client_name %></td>
                     <td>$<%= '%.2f' % sale.total_amount %></td>
+                    <td>
+                      <span class="badge badge-primary">
+                        <% forma_pago = FormaPago.where(codigo: sale.forma_pago).first %>
+                        <%= forma_pago.name rescue 'Sin registro' %>
+                      </span>
+                    </td>
+                    <td>
+                      <div style="font-size: 0.78rem; line-height: 1.2;">
+                        <span class="text-dark font-weight-bold">Caja:</span> <%= caja_obj&.nombre || 'N/A' %><br>
+                        <span class="text-dark font-weight-bold">Cajero:</span> <%= cajero_obj&.nombre || 'N/A' %>
+                      </div>
+                    </td>
                     <td>
                       <span class="badge badge-<%= sale.payment_status == 'paid' ? 'success' : 'warning' %>">
                         <%= format_sale_payment_status(sale.payment_status) %>
@@ -116,10 +134,13 @@
                           <!-- SELECTOR INTELIGENTE DE ESTADOS -->
                           <div class="p-3 bg-light rounded border">
                             <h6 class="font-weight-bold text-dark mb-2">Avanzar Estado del Pedido</h6>
+
+                            <% if sale.status == 'delivered'%><h6 class="font-weight-bold text-dark mb-2">Esta venta ya fue completada</h6> <% end %>
+
                             <%= form_with url: update_status_admin_online_sale_path(sale), method: :patch, local: true, class: "form-row align-items-center" do %>
                               <div class="col-md-8 mb-2 mb-md-0">
                                 <select name="new_status" class="form-control form-control-sm">
-                                  <% if sale&.status == 'confirmed' && sale&.forma_pago == 'EFECTIVO' %>
+                                  <% if sale&.status == 'confirmed' && sale&.forma_pago == '01' %>
                                     <option value="preparing">Preparando pedido (preparing)</option>
                                   <% elsif sale.status == 'pending_check_payment_comprob' %>
                                     <option value="payment_approved">Aprobar Pago (Payment Approved)</option>
@@ -137,13 +158,19 @@
                                     <option value="on_place">En el Lugar de Destino (On Place)</option>
                                   <% elsif sale.status == 'on_place' || sale.status == 'pending_to_pickup' %>
                                     <option value="delivered">Marcar Pagado y Entregado (Delivered)</option>
+                                  <% elsif sale.status == 'delivered'%>
+                                    <span class="font-weight-bold text-primary">Esta venta fue completada</span>
                                   <% end %>
-                                  <option value="cancelled">Cancelar Orden</option>
+                                  
                                 </select>
                               </div>
-                              <div class="col-md-4">
-                                <button type="submit" class="btn btn-success btn-sm btn-block shadow-sm">Aplicar Cambio</button>
-                              </div>
+
+                              <% if sale.status != 'delivered'%>
+                                <div class="col-md-4">
+                                  <button type="submit" class="btn btn-success btn-sm btn-block shadow-sm">Aplicar Cambio</button>
+                                </div>
+                              <% end %>
+                              
                             <% end %>
                           </div>
 
@@ -242,14 +269,29 @@
     const consumer = ActionCable.createConsumer();
     consumer.subscriptions.create({ channel: "SaleChannel" }, {
       received(data) {
+        // Validación inteligente: Si hay un modal abierto o se está interactuando con formularios, 
+        // evitamos la recarga automática para no interrumpir al usuario.
+        const isModalOpen = document.querySelector('.modal.show') !== null;
+        const isInteracting = document.activeElement && (
+          document.activeElement.tagName === 'SELECT' || 
+          document.activeElement.tagName === 'INPUT' || 
+          document.activeElement.tagName === 'BUTTON'
+        );
+
         if (data.action === "new_sale") {
           if (ringtone) ringtone.play().catch(e => {});
           showFloatingAlert("¡Nueva Orden En Línea!", `Pedido <b>${data.code}</b> por $${parseFloat(data.total_amount || 0).toFixed(2)}`, "warning");
-          setTimeout(() => window.location.reload(), 10000);
+          
+          if (!isModalOpen && !isInteracting) {
+            setTimeout(() => window.location.reload(), 10000);
+          }
         } else {
           if (shortBell) shortBell.play().catch(e => {});
           showFloatingAlert("Actualización de Pedido", `La orden ${data.code || ''} cambió de estado.`, "success");
-          setTimeout(() => window.location.reload(), 10000);
+          
+          if (!isModalOpen && !isInteracting) {
+            setTimeout(() => window.location.reload(), 10000);
+          }
         }
       }
     });

@@ -6,6 +6,7 @@
   <% if @sales.present? && @sales.any? %>
     <% 
       latest_sale = @sales.first
+      forma_pago_latest_sale = FormaPago.where(codigo: latest_sale.forma_pago).first
       past_sales = @sales.to_a[1..-1] || []
     %>
 
@@ -77,24 +78,47 @@
       </div>
 
       <!-- BOTÓN DE DESCARGA DE TICKET / COMPROBANTE SI EL PAGO ESTÁ APROBADO -->
-      <% if ['payment_approved', 'preparing', 'pending_to_pickup', 'assigned', 'on_route', 'on_place', 'delivered', 'completed', 'picked_up'].include?(latest_sale.status) || latest_sale.payment_status == 'paid' %>
-        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: #065f46;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fa-solid fa-file-pdf" style="font-size: 1.5rem; color: #059669; flex-shrink: 0;"></i>
-            <div>
-              <strong style="font-size: 0.95rem; display: block;">¡Pago Aprobado con Éxito!</strong>
-              <p style="margin: 2px 0 0 0; font-size: 0.84rem; color: #047857;">Ya puedes visualizar o descargar tu comprobante de venta o ticket oficial.</p>
-            </div>
+      <% if latest_sale.forma_pago == '03' && ['pending_payment_comprob', 'pending_check_payment_comprob'].include?(latest_sale.status) %>
+        <!-- Aviso para transferencia pendiente de revisión de comprobante -->
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: #92400e;">
+          <i class="fa-solid fa-clock" style="font-size: 1.5rem; color: #d97706; flex-shrink: 0;"></i>
+          <div>
+            <strong style="font-size: 0.95rem; display: block;">Comprobante en Revisión</strong>
+            <p style="margin: 2px 0 0 0; font-size: 0.84rem; color: #b45309;">Hemos recibido tu comprobante de transferencia. Nuestro equipo lo validará pronto.</p>
           </div>
-          
-          <%= link_to download_ticket_portal_purchase_path(latest_sale), target: "_blank", rel: "noopener", style: "background: #059669; color: #ffffff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);" do %>
-            <i class="fa-solid fa-print"></i> Ver / Descargar Ticket
-          <% end %>
         </div>
+
+      <% elsif latest_sale.forma_pago == '01' && ['confirmed', 'preparing', 'pending_to_pickup'].include?(latest_sale.status) %>
+        <!-- Aviso para pago en efectivo contra entrega -->
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: #334155;">
+          <i class="fa-solid fa-money-bill-wave" style="font-size: 1.5rem; color: #0284c7; flex-shrink: 0;"></i>
+          <div>
+            <strong style="font-size: 0.95rem; display: block;">Pago en Efectivo (Contra Entrega)</strong>
+            <p style="margin: 2px 0 0 0; font-size: 0.84rem; color: #64748b;">Pagarás al momento de recibir tu pedido o al retirarlo en el taller.</p>
+          </div>
+        </div>
+
+      <% else %>
+        <!-- BOTÓN DE DESCARGA DE TICKET / COMPROBANTE (Solo cuando ya está pagado, aprobado o entregado) -->
+        <% if ['payment_approved', 'delivered', 'completed', 'picked_up'].include?(latest_sale.status) || latest_sale.payment_status == 'paid' %>
+          <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: #065f46;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <i class="fa-solid fa-file-pdf" style="font-size: 1.5rem; color: #059669; flex-shrink: 0;"></i>
+              <div>
+                <strong style="font-size: 0.95rem; display: block;">¡Pago Aprobado con Éxito!</strong>
+                <p style="margin: 2px 0 0 0; font-size: 0.84rem; color: #047857;">Ya puedes visualizar o descargar tu comprobante de venta o ticket oficial.</p>
+              </div>
+            </div>
+            
+            <%= link_to download_ticket_portal_purchase_path(latest_sale), target: "_blank", rel: "noopener", style: "background: #059669; color: #ffffff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);" do %>
+              <i class="fa-solid fa-print"></i> Ver / Descargar Ticket
+            <% end %>
+          </div>
+        <% end %>
       <% end %>
 
       <!-- ALERTA SI ES TRANSFERENCIA Y FALTA COMPROBANTE -->
-      <% if latest_sale.forma_pago == 'TRANSFERENCIA' && latest_sale.status == 'pending_payment_comprob' %>
+      <% if forma_pago_latest_sale.name == 'TRANSFERENCIA' && latest_sale.status == 'pending_payment_comprob' %>
         <div class="transfer-alert-box" style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 18px; margin-bottom: 20px;">
           
           <div class="transfer-alert-header" style="display: flex; align-items: center; gap: 12px; color: #92400e; margin-bottom: 12px;">
@@ -143,7 +167,7 @@
           <% end %>
         </div>
 
-      <% elsif latest_sale.forma_pago == 'TRANSFERENCIA' && latest_sale.status == 'pending_check_payment_comprob' %>
+      <% elsif forma_pago_latest_sale.name == 'TRANSFERENCIA' && latest_sale.status == 'pending_check_payment_comprob' %>
         <div class="transfer-alert-box" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; color: #1e40af;">
           <div style="display: flex; align-items: center; gap: 12px;">
             <i class="fa-solid fa-circle-info" style="font-size: 1.3rem; flex-shrink: 0;"></i>
@@ -176,7 +200,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #e2e8f0; padding-top: 15px; margin-top: 15px; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <span style="font-size: 0.82rem; color: #64748b;">
-            Método de pago: <strong><%= latest_sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
+            Método de pago: <strong><%= forma_pago_latest_sale.name == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
           </span>
           <span style="font-size: 0.82rem; color: #64748b;">Entrega: <strong><%= latest_sale.delivery_method == 'delivery' ? 'Envío a Domicilio' : 'Recoger en Taller' %></strong></span>
         </div>
@@ -189,6 +213,7 @@
       <h3 style="color: #334155; font-size: 1.1rem; font-weight: 700; margin-bottom: 15px;">Compras Anteriores</h3>
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <% past_sales.each_with_index do |sale, idx| %>
+          <% sale_forma_pago = FormaPago.where(codigo: sale.forma_pago).first %>
           <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
             
             <!-- Cabecera Compacta (Contraída) -->
@@ -235,7 +260,7 @@
                 </div>
                 <div style="border-left: 1px solid #cbd5e1; padding-left: 12px;">
                   <span style="color: #64748b; display: block; font-size: 0.72rem;">MÉTODO DE PAGO</span>
-                  <strong style="color: #0f172a;"><%= sale.forma_pago == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
+                  <strong style="color: #0f172a;"><%= sale_forma_pago.name == 'TRANSFERENCIA' ? 'Transferencia Bancaria' : 'Efectivo (Contra Entrega)' %></strong>
                 </div>
               </div>
 

@@ -59,7 +59,7 @@ module Portal
 
       # 4. Determinar si es transferencia para asignar el estatus inicial correcto
       payment_method = params[:payment_method]
-      initial_status = (payment_method == 'TRANSFERENCIA') ? 'pending_payment_comprob' : 'confirmed'
+      initial_status = (payment_method == '03') ? 'pending_payment_comprob' : 'confirmed'
 
       # 5. Construir la Venta (Sale)
       @sale = Sale.new(
@@ -115,7 +115,7 @@ module Portal
         end
 
         # Registrar bitácora de estado inicial según el método de pago
-        log_comment = if payment_method == 'TRANSFERENCIA'
+        log_comment = if payment_method == '03'
                         "Pedido creado en línea. Pendiente de comprobante de transferencia."
                       else
                         "Pedido realizado en línea con pago en efectivo (contra entrega)."
@@ -125,7 +125,7 @@ module Portal
 
         # Si es pago en efectivo (confirmed), aplicamos caja e inventario de inmediato.
         # Si es transferencia (pending_payment_comprob), se omiten hasta que el taller valide el comprobante.
-        if payment_method != 'TRANSFERENCIA'
+        if payment_method != '03'
           registrar_movimiento_caja_online(@sale, client)
           create_product_histories_online(@sale, current_user.id)
         end

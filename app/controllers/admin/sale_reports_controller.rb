@@ -133,27 +133,30 @@ module Admin
 
     def generate_payment_methods_report(sales)
       grouped = sales.group_by(&:forma_pago)
-
+    
       labels = []
       totals = []
       rows = []
-
-      binding.pry
-
-      grouped.each do |method, method_sales|
-        method_name = method.present? ? method.humanize.titleize : 'No Especificado'
+    
+      grouped.each do |code, method_sales|
+        # Busca la forma de pago por el código en el modelo correspondiente
+        forma_pago_obj = FormaPago.where(codigo: code).first if code.present?
+        
+        # Toma exactamente el name (o ajusta el campo si en tu modelo se llama de otra forma, ej. :nombre)
+        method_name = forma_pago_obj&.name || (code.present? ? "Código: #{code}" : 'No Especificado')
+        
         sum = method_sales.sum(&:total_amount)
-
+    
         labels << method_name
         totals << sum.round(2)
-
+    
         rows << {
           method: method_name,
           count: method_sales.count,
           total: "$#{'%.2f' % sum}"
         }
       end
-
+    
       {
         report_type: 'payment_methods',
         chart_data: {
@@ -199,28 +202,34 @@ module Admin
     end
 
     def generate_by_cashier_report(sales)
-      manual_sales = sales.where(online_order: false)
-      grouped = manual_sales.group_by(&:user_id)
-
+      # Si deseas incluir tanto ventas manuales como en línea que tengan cajero asignado, 
+      # puedes omitir el filtro de online_order o ajustarlo según necesites.
+      # Dejaremos todas las ventas que contengan cajero_id:
+      sales_with_cashier = sales.where(:cajero_id.ne => nil)
+      
+      grouped = sales_with_cashier.group_by(&:cajero_id)
+    
       labels = []
       totals = []
       rows = []
-
-      grouped.each do |user_id, user_sales|
-        user = User.where(id: user_id).first
-        user_name = user&.nombre || user&.email || 'Usuario General'
-        sum = user_sales.sum(&:total_amount)
-
-        labels << user_name
+    
+      grouped.each do |cajero_id, cashier_sales|
+        # Buscamos directamente en tu modelo Cajero (ajusta el campo del nombre si en tu modelo se llama diferente, ej: :nombre o :name)
+        cajero = Cajero.where(id: cajero_id).first
+        cashier_name = cajero&.nombre || cajero&.name || 'Cajero No Asignado'
+        
+        sum = cashier_sales.sum(&:total_amount)
+    
+        labels << cashier_name
         totals << sum.round(2)
-
+    
         rows << {
-          cashier: user_name,
-          count: user_sales.count,
+          cashier: cashier_name,
+          count: cashier_sales.count,
           total: "$#{'%.2f' % sum}"
         }
       end
-
+    
       {
         report_type: 'by_cashier',
         chart_data: {
