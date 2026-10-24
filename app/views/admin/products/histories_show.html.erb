@@ -10,57 +10,78 @@
 
   <!-- Card principal -->
   <div class="card shadow-lg rounded-4 border-0">
-    <div class="card-body">
+    <div class="card-body p-4">
+      
+      <!-- Bloque informativo de Concepto -->
+      <div class="alert alert-light border shadow-sm rounded-3 mb-4 p-3 d-flex align-items-center gap-3">
+        <div class="bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+          <i class="fas fa-info-circle fa-lg"></i>
+        </div>
+        <div>
+          <span class="text-uppercase text-muted fw-bold small d-block">Concepto / Motivo</span>
+          <h6 class="mb-0 fw-bold text-dark"><%= @product_history.concepto.presence || "Sin concepto registrado" %></h6>
+        </div>
+      </div>
+
       <div class="row g-3">
         <div class="col-md-6">
           <p><strong>Producto:</strong> <span class="fw-semibold"><%= @product_history.name %></span></p>
           <p><strong>Código:</strong> <span class="text-monospace text-muted"><%= @product_history.code.presence || "-" %></span></p>
-          <% if @product_history.product.kind == 'producto' %>
+          <% if @product_history.product&.kind == 'producto' || @product_history.product.nil? %>
             <p><strong>Precio:</strong> <span class="text-primary fw-medium"><%= number_to_currency(@product_history.price) %></span></p>
-            <p><strong>% Descuento:</strong> <span class="text-muted"><%= @product_history.discount %> %</span></p>
+            <p><strong>% Descuento:</strong> <span class="text-muted"><%= @product_history.discount.to_i %> %</span></p>
           <% end %>
         </div>
+
         <div class="col-md-6">
-          <% if @product_history.product.kind == 'producto' %>
+          <% if @product_history.product&.kind == 'producto' || @product_history.product.nil? %>
             <p><strong>Cantidad:</strong> 
-              <% if @product_history.movement_type.in?(["Ingreso", "Ingreso inicial"]) %>
-                <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= @product_history.quantity %></span>
+              <% if ['1', 'Ingreso', 'Ingreso inicial'].include?(@product_history.movement_type) %>
+                <span class="badge bg-success text-white fw-bold px-2 py-1"><i class="fas fa-arrow-up me-1"></i>+<%= @product_history.quantity %></span>
+              <% elsif ['2', 'Egreso'].include?(@product_history.movement_type) %>
+                <span class="badge bg-danger text-white fw-bold px-2 py-1"><i class="fas fa-arrow-down me-1"></i>-<%= @product_history.quantity %></span>
               <% else %>
-                <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= @product_history.quantity %></span>
+                <span class="badge bg-secondary text-white fw-bold px-2 py-1"><%= @product_history.quantity %></span>
               <% end %>
             </p>
           
-            <p><strong>Stock antes:</strong> <span class="text-secondary"><%= @product_history.stock_before %></span></p>
-            <p><strong>Stock actual:</strong> <span class="fw-bold text-success"><%= @product_history.current_stock %></span></p>
+            <p><strong>Stock antes:</strong> <span class="text-secondary"><%= @product_history.stock_before.nil? ? 'N/A' : @product_history.stock_before %></span></p>
+            <p><strong>Stock actual:</strong> <span class="fw-bold text-success"><%= @product_history.current_stock.nil? ? 'N/A' : @product_history.current_stock %></span></p>
           <% end %>
 
           <p><strong>Tipo de movimiento:</strong> 
-            <%= @product_history&.movement_type rescue 'Movimiento sin tipo'%>
+            <% if @product_history.movement_type == '1' %>
+              <span class="badge bg-success text-white px-2 py-1"><i class="fas fa-arrow-up me-1"></i> Ingreso</span>
+            <% elsif @product_history.movement_type == '2' %>
+              <span class="badge bg-danger text-white px-2 py-1"><i class="fas fa-arrow-down me-1"></i> Egreso</span>
+            <% else %>
+              <span class="badge bg-secondary text-white px-2 py-1"><%= @product_history.movement_type.presence || 'Ajuste / Otro' %></span>
+            <% end %>
           </p>
         </div>
       </div>
 
-      <hr>
+      <hr class="my-4">
 
       <div class="row g-3">
         <div class="col-md-6">
           <% user = @product_history.user %>
           <p><strong>Usuario que realizó el movimiento:</strong> 
             <span class="fw-semibold">
-              <%= user&.full_name || user&.username || "Sistema" %>
+              <%= user.present? ? "#{user.first_name} #{user.last_name}" : "Sistema" %>
             </span>
           </p>
         </div>
         <div class="col-md-6">
-          <p><strong>Fecha del movimiento:</strong> <span class="text-muted"><%= @product_history.created_at.strftime("%d/%m/%Y %H:%M") %></span></p>
+          <p><strong>Fecha del movimiento:</strong> <span class="text-muted"><%= @product_history.created_at&.strftime("%d/%m/%Y %H:%M") %></span></p>
         </div>
       </div>
 
-      <div class="mt-4 d-flex justify-content-end">
+      <div class="mt-4 d-flex justify-content-end gap-2 no-print">
         <%= link_to "Volver al Historial", admin_product_histories_path, class: "btn btn-secondary fw-bold shadow-sm" %>
-        <%= link_to "#", class: "btn btn-primary fw-bold ms-2 shadow-sm", onclick: "window.print()" do %>
+        <button onclick="window.print()" class="btn btn-primary fw-bold shadow-sm">
           <i class="fas fa-print me-1"></i> Imprimir
-        <% end %>
+        </button>
       </div>
     </div>
   </div>
@@ -85,6 +106,8 @@
   }
 
   @media print {
-    .btn { display: none !important; }
+    .no-print, .btn { display: none !important; }
+    .shadow-lg { box-shadow: none !important; }
+    .card { border: 1px solid #ccc !important; }
   }
 </style>

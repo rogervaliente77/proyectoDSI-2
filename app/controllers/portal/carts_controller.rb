@@ -127,7 +127,7 @@ module Portal
         # Si es transferencia (pending_payment_comprob), se omiten hasta que el taller valide el comprobante.
         if payment_method != '03'
           registrar_movimiento_caja_online(@sale, client)
-          create_product_histories_online(@sale, current_user.id)
+          #create_product_histories_online(@sale, current_user.id)
         end
 
         render json: { success: true, code: @sale.code }, status: :ok

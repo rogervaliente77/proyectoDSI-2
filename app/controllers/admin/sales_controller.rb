@@ -43,7 +43,7 @@ module Admin
       @sale.user_id = @current_user.id
 
       if @sale.save
-        create_product_histories(@sale)
+        #create_product_histories(@sale)
         registrar_movimiento_caja(@sale) # Registra el movimiento centralizado de caja
 
         redirect_to admin_sales_path, notice: "Venta registrada con éxito. Código: #{@sale.code}"

@@ -15,8 +15,9 @@ class ProductHistory
   field :devolucion_id, type: BSON::ObjectId
   field :stock_before,  type: Integer
   field :current_stock, type: Integer
-  field :movement_type, type: String  # "Creación de servicio", "Ingreso de stock", "Ajuste de tarifa", etc.
+  field :movement_type, type: String  # 1 Ingreso, 2 Salida.
   field :user_id,       type: BSON::ObjectId
+  field :concepto,      type: String
 
   belongs_to :product, validate: false
   belongs_to :user, optional: true

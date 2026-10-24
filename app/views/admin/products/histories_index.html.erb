@@ -1,130 +1,223 @@
-<div class="container-fluid mt-5">
+<div class="container-fluid min-vh-100 py-4">
   <!-- 🔹 Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 text-gradient fw-bold" style="background: linear-gradient(90deg,#0d6efd,#6610f2); -webkit-background-clip: text; color: transparent;">
-      <i class="fas fa-warehouse me-2"></i> Movimiento de Inventario
-    </h1>
-    <%= link_to "Volver a Productos", admin_productos_path, class: "btn btn-outline-primary fw-bold shadow-sm" %>
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
+    <div>
+      <h1 class="h3 text-gray-800 mb-0">
+        <i class="fas fa-warehouse text-primary me-2"></i> Movimiento de Inventario
+      </h1>
+      <p class="text-muted small mb-0">Kardex y registro detallado de entradas, salidas y ajustes de productos</p>
+    </div>
+    <%= link_to admin_productos_path, class: "btn btn-outline-primary fw-bold shadow-sm no-print" do %>
+      <i class="fas fa-arrow-left me-1"></i> Volver a Productos
+    <% end %>
   </div>
 
-  <!-- 🔹 Filtros por usuario y fecha (horizontal completo) -->
-  <div class="card shadow-sm rounded mb-3 no-print p-3">
-    <%= form_with url: admin_product_histories_path, method: :get, local: true, class: "row g-2 align-items-end" do |f| %>
-      <div class="col-md-3">
-        <%= f.label :user_name, "Usuario", class: "form-label small fw-bold" %>
+  <!-- 🔹 Filtros por usuario y fecha -->
+  <div class="card shadow-sm rounded-3 mb-4 no-print border-0 bg-white p-3">
+    <%= form_with url: admin_product_histories_path, method: :get, local: true, class: "row g-3 align-items-end" do |f| %>
+      <div class="col-12 col-md-4">
+        <%= f.label :user_name, "Usuario", class: "form-label small fw-bold text-dark" %>
         <%= f.text_field :user_name, value: params[:user_name], placeholder: "Nombre o apellido", class: "form-control" %>
       </div>
-      <div class="col-md-3">
-        <%= f.label :start_date, "Fecha Inicio", class: "form-label small fw-bold" %>
+      <div class="col-12 col-md-3">
+        <%= f.label :start_date, "Fecha Inicio", class: "form-label small fw-bold text-dark" %>
         <%= f.date_field :start_date, value: params[:start_date], class: "form-control" %>
       </div>
-      <div class="col-md-3">
-        <%= f.label :end_date, "Fecha Fin", class: "form-label small fw-bold" %>
+      <div class="col-12 col-md-3">
+        <%= f.label :end_date, "Fecha Fin", class: "form-label small fw-bold text-dark" %>
         <%= f.date_field :end_date, value: params[:end_date], class: "form-control" %>
       </div>
-      <div class="col-md-3 d-flex gap-2">
+      <div class="col-12 col-md-2 d-flex gap-2">
         <%= f.submit "Filtrar", class: "btn btn-primary w-100" %>
-        <%= link_to "Reiniciar", admin_product_histories_path, class: "btn btn-secondary w-100" %>
+        <%= link_to "Reiniciar", admin_product_histories_path, class: "btn btn-outline-secondary w-100" %>
       </div>
     <% end %>
   </div>
 
   <!-- 🔹 Botones PDF y Excel -->
   <div class="d-flex justify-content-end mb-3 no-print gap-2">
-    <button class="btn btn-danger" id="exportPDF">
+    <button class="btn btn-danger btn-sm shadow-sm" id="exportPDF">
       <i class="fas fa-file-pdf me-1"></i> Descargar PDF
     </button>
-    <button class="btn btn-success" id="exportExcel">
+    <button class="btn btn-success btn-sm shadow-sm" id="exportExcel">
       <i class="fas fa-file-excel me-1"></i> Exportar a Excel
     </button>
   </div>
 
-  <!-- 🔹 Card principal -->
-  <div class="card shadow-lg border-0 rounded-4">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table id="historiesTable" class="table table-hover table-borderless align-middle mb-0" style="min-width: 1200px;">
-          <thead class="bg-gradient text-white text-uppercase small">
-            <tr>
-              <th>Producto</th>
-              <th>Código</th>
-              <th>Cantidad</th>
-              <th>Precio</th>
-              <th>% Descuento</th>
-              <th>Stock antes</th>
-              <th>Stock actual</th>
-              <th>Tipo</th>
-              <th>Usuario</th>
-              <th>Fecha</th>
-              <th class="text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @product_histories.each do |history| %>
-              <tr class="align-middle">
-                <td class="fw-semibold"><%= history.product&.name || "-" %></td>
-                <td class="text-monospace text-muted"><%= history.product&.code.presence || '-' %></td>
-                <td>
-                  <% if history.movement_type.in?(["Ingreso", "Ingreso inicial"]) %>
-                    <span class="badge bg-success text-white fw-bold"><i class="fas fa-arrow-up me-1"></i><%= history.quantity %></span>
-                  <% else %>
-                    <span class="badge bg-danger text-white fw-bold"><i class="fas fa-arrow-down me-1"></i><%= history.quantity %></span>
-                  <% end %>
-                </td>
-                
-                <% if history.product.kind == 'producto' %>
-                  <td><span class="fw-bold text-secondary"><%= number_to_currency(history.price) %></span></td>
-                <% else %>
-                  <td><span class="fw-bold text-dark">N/A</span></td>
-                <% end %>
-                
-                <td><span class="text-muted"><%= history.discount %> %</span></td>
-
-                <% if history.product.kind == 'producto' %>
-                  <td><span class="fw-bold text-secondary"><%= history.stock_before %></span></td>
-                <% else %>
-                  <td><span class="fw-bold text-dark">N/A</span></td>
-                <% end %>
-                
-                <% if history.product.kind == 'producto' %>
-                  <td><span class="fw-bold text-success"><%= history.current_stock %></span></td>
-                <% else %>
-                  <td><span class="fw-bold text-dark">N/A</span></td>
-                <% end %>
-                
-                <td><span class="badge bg-primary text-white"><%= history&.movement_type rescue 'Movimiento sin tipo'%></span></td>
-                <td><%= history.user.present? ? "#{history.user.first_name} #{history.user.last_name}" : "Sistema" %></td>
-                <td><span class="text-muted"><%= history.created_at.strftime("%d/%m/%Y %H:%M") %></span></td>
-                <td class="text-center no-print">
-                  <%= link_to admin_product_history_path(history), class: "btn btn-sm btn-info rounded-circle shadow-sm", title: "Ver detalle" do %>
-                    <i class="fas fa-eye"></i>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+  <!-- 🔹 Contenedor Principal en Tarjetas estilo Proveedores -->
+  <div class="card border-0 shadow-sm rounded mb-4 overflow-hidden" style="background-color: #f8f9fc;">
+    
+    <!-- Barra Superior / Encabezado de la Sección -->
+    <div class="card-header bg-white border-bottom py-3 px-3 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <div class="bg-primary text-white rounded p-2 mr-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+          <i class="fas fa-list-alt"></i>
+        </div>
+        <div>
+          <h5 class="mb-0 font-weight-bold text-dark">Historial de Movimientos</h5>
+          <span class="text-muted small">
+            Registros encontrados: <strong><%= @product_histories.size %></strong>
+          </span>
+        </div>
       </div>
     </div>
+
+    <!-- Cuerpo con el Listado de Movimientos -->
+    <div class="card-body p-3">
+      <% if @product_histories.present? %>
+        <% @product_histories.each do |history| %>
+          <% 
+            # Determinación del borde lateral según el tipo de movimiento
+            is_ingreso = (history.movement_type == '1' || history.movement_type == 'Ingreso' || history.movement_type == 'Ingreso inicial')
+            border_class = is_ingreso ? 'border-left-success' : 'border-left-danger'
+          %>
+
+          <div class="card border-0 shadow-sm rounded bg-white <%= border_class %> overflow-hidden mb-3">
+            <div class="card-body p-3">
+              <div class="row align-items-center">
+                
+                <!-- Columna 1: Producto, Código y Tipo de Movimiento -->
+                <div class="col-12 col-lg-4 mb-3 mb-lg-0 border-right-lg">
+                  <div class="d-flex align-items-center mb-1 flex-wrap">
+                    <!-- Código de Producto -->
+                    <span class="badge bg-dark text-white font-weight-bold px-2 py-1 mr-2 mb-1" style="font-family: monospace;">
+                      <i class="fas fa-barcode mr-1"></i><%= history.product&.code.presence || 'S/C' %>
+                    </span>
+                    <!-- Nombre del Producto -->
+                    <span class="font-weight-bold text-primary h6 mb-1 mr-2">
+                      <%= history.product&.name || "Producto eliminado / No disponible" %>
+                    </span>
+                  </div>
+
+                  <!-- Concepto (Nueva columna requerida) -->
+                  <div class="text-dark small mb-2 font-italic bg-light p-2 rounded border">
+                    <i class="fas fa-info-circle text-primary mr-1"></i><strong>Concepto:</strong> <%= history.concepto.presence || 'Sin concepto registrado' %>
+                  </div>
+
+                  <!-- Badges de Tipo de Movimiento -->
+                  <div>
+                    <% if history.movement_type == '1' %>
+                      <span class="badge bg-success text-white px-2 py-1">
+                        <i class="fas fa-arrow-up mr-1"></i> Ingreso
+                      </span>
+                    <% elsif history.movement_type == '2' %>
+                      <span class="badge bg-danger text-white px-2 py-1">
+                        <i class="fas fa-arrow-down mr-1"></i> Egreso
+                      </span>
+                    <% else %>
+                      <span class="badge bg-secondary text-white px-2 py-1">
+                        <%= history.movement_type.presence || 'Ajuste / Otro' %>
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+
+                <!-- Columna 2: Cantidad, Precios y Descuento -->
+                <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-lg-0">
+                  <div class="small text-muted mb-1">
+                    <strong>Cantidad:</strong> 
+                    <span class="<%= is_ingreso ? 'text-success fw-bold' : 'text-danger fw-bold' %>">
+                      <%= is_ingreso ? "+#{history.quantity}" : "-#{history.quantity}" %>
+                    </span>
+                  </div>
+                  <div class="small text-muted mb-1">
+                    <strong>Precio:</strong> 
+                    <%= history.product&.kind == 'producto' ? number_to_currency(history.price) : 'N/A' %>
+                  </div>
+                  <div class="small text-muted">
+                    <strong>Descuento:</strong> <%= history.discount.to_i %> %
+                  </div>
+                </div>
+
+                <!-- Columna 3: Control de Stock, Usuario y Fecha -->
+                <div class="col-12 col-sm-6 col-lg-3 mb-3 mb-lg-0">
+                  <% if history.product&.kind == 'producto' %>
+                    <div class="small text-muted mb-1">
+                      <strong>Stock Antes:</strong> <span class="text-dark"><%= history.stock_before.inspect == 'nil' ? 'N/A' : history.stock_before %></span>
+                    </div>
+                    <div class="small text-muted mb-1">
+                      <strong>Stock Actual:</strong> <span class="text-success fw-bold"><%= history.current_stock.inspect == 'nil' ? 'N/A' : history.current_stock %></span>
+                    </div>
+                  <% end %>
+                  <div class="small text-muted mb-1">
+                    <strong>Usuario:</strong> <%= history.user.present? ? "#{history.user.first_name} #{history.user.last_name}" : "Sistema" %>
+                  </div>
+                  <div class="small text-muted">
+                    <strong>Fecha:</strong> <%= history.created_at&.strftime("%d/%m/%Y %H:%M") %>
+                  </div>
+                </div>
+
+                <!-- Columna 4: Botón de Detalle -->
+                <div class="col-12 col-lg-2 d-flex justify-content-end align-items-center">
+                  <%= link_to admin_product_history_path(history), class: "btn btn-outline-primary btn-sm shadow-sm", title: "Ver detalle" do %>
+                    <i class="fas fa-eye mr-1"></i> Ver Detalle
+                  <% end %>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="card border-0 shadow-sm rounded bg-white text-center py-5">
+          <div class="card-body">
+            <i class="fas fa-warehouse fa-3x mb-3 text-secondary" style="opacity: 0.5;"></i>
+            <h5 class="text-muted">No se encontraron movimientos de inventario</h5>
+            <p class="text-muted small mb-0">Intenta ajustar los filtros de fechas o usuarios.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tabla oculta estrictamente para que la exportación a Excel y PDF funcione sin alterarse -->
+  <div style="display: none;">
+    <table id="historiesTable">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Código</th>
+          <th>Concepto</th>
+          <th>Cantidad</th>
+          <th>Precio</th>
+          <th>% Descuento</th>
+          <th>Stock antes</th>
+          <th>Stock actual</th>
+          <th>Tipo</th>
+          <th>Usuario</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @product_histories.each do |history| %>
+          <tr>
+            <td><%= history.product&.name || "-" %></td>
+            <td><%= history.product&.code.presence || '-' %></td>
+            <td><%= history.concepto.presence || '-' %></td>
+            <td><%= history.quantity %></td>
+            <td><%= history.product&.kind == 'producto' ? history.price : 'N/A' %></td>
+            <td><%= history.discount %></td>
+            <td><%= history.stock_before %></td>
+            <td><%= history.current_stock %></td>
+            <td><%= history.movement_type %></td>
+            <td><%= history.user.present? ? "#{history.user.first_name} #{history.user.last_name}" : "Sistema" %></td>
+            <td><%= history.created_at&.strftime("%d/%m/%Y %H:%M") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<!-- 🔹 Estilos -->
+<!-- 🔹 Estilos CSS y de Impresión -->
 <style>
-  table.table-hover tbody tr:hover { background-color: #e9f2ff; }
-  thead.bg-gradient { background: linear-gradient(90deg, #0d6efd, #6610f2); }
-  .badge { font-size: 0.85rem; padding: 0.45em 0.7em; border-radius: 0.5rem; }
-  td.text-monospace { font-family: 'Courier New', Courier, monospace; }
-
+  .border-left-success { border-left: 4.25rem solid #198754 !important; }
+  .border-left-danger { border-left: 4.25rem solid #dc3545 !important; }
+  
   @media print {
     .btn, .no-print { display: none !important; }
-    .shadow-sm, .shadow-lg { box-shadow: none !important; }
-    .card { border: none !important; }
+    .card { border: 1px solid #ddd !important; box-shadow: none !important; }
     .container-fluid { padding: 0 !important; width: 100%; }
-    table { width: 100% !important; font-size: 12px; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 4px 6px; }
-    tr { page-break-inside: avoid; }
-    @page { size: letter portrait; margin: 1cm; }
   }
 </style>
 
@@ -134,14 +227,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-  // 🔹 Exportar Excel
   document.getElementById("exportExcel").addEventListener("click", function() {
     var table = document.getElementById("historiesTable");
-    var wb = XLSX.utils.table_to_book(table, {sheet:"Movimiento de Inventario"});
+    var wb = XLSX.utils.table_to_book(table, {sheet:"Movimientos de Inventario"});
     XLSX.writeFile(wb, "movimiento_inventario.xlsx");
   });
 
-  // 🔹 Exportar PDF
   document.getElementById("exportPDF").addEventListener("click", function() {
     const { jsPDF } = window.jspdf;
     var doc = new jsPDF('p', 'pt', 'letter');

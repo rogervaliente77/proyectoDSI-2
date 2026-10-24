@@ -1,4 +1,3 @@
-# app/controllers/admin/products_controller.rb
 module Admin
   class ProductsController < ApplicationController
     before_action :set_current_user
@@ -19,13 +18,11 @@ module Admin
 
       @products = Product.includes(:category, :marca, :car_type).all
 
-      # Filtro por término de búsqueda (Nombre o Código)
       if params[:query].present?
         query_regex = /#{Regexp.escape(params[:query].strip)}/i
         @products = @products.any_of({ name: query_regex }, { code: query_regex })
       end
 
-      # Filtro de Categoría con Jerarquía
       if params[:category_id].present?
         selected_category = Category.where(id: params[:category_id]).first
         if selected_category
@@ -34,26 +31,22 @@ module Admin
         end
       end
 
-      # Filtro de Marca
       if params[:marca_id].present?
         marca_id = BSON::ObjectId.legal?(params[:marca_id]) ? BSON::ObjectId.from_string(params[:marca_id]) : params[:marca_id]
         @products = @products.where(marca_id: marca_id)
       end
 
-      # Filtro de Tipo de Vehículo
       if params[:car_type_id].present?
         car_type_id = BSON::ObjectId.legal?(params[:car_type_id]) ? BSON::ObjectId.from_string(params[:car_type_id]) : params[:car_type_id]
         @products = @products.where(car_type_id: car_type_id)
       end
 
-      # Filtro de Precios
       if params[:min_price].present? || params[:max_price].present?
         min_price = params[:min_price].present? ? params[:min_price].to_f : 0
         max_price = params[:max_price].present? ? params[:max_price].to_f : Float::INFINITY
         @products = @products.where(:price.gte => min_price, :price.lte => max_price)
       end
 
-      # Filtro de Oferta
       if params[:offer].present? && params[:offer] != "todas"
         @products = @products.where(offer_type: params[:offer])
       end
@@ -73,17 +66,12 @@ module Admin
     # CREAR PRODUCTO
     def create
       @product = Product.new(product_params)
-      if @product.save
-        create_product_history(
-          @product, 
-          @product.producto? ? 0 : nil, 
-          @product.producto? ? @product.quantity : nil, 
-          "Creación de #{@product.kind}"
-        )
+      @product.current_user_id = current_user&.id
 
+      if @product.save
         redirect_to admin_productos_path, notice: "Producto creado con éxito."
       else
-        flash[:alert] = "Hubo un error al crear el producto"
+        flash[:alert] = "Hubo al crear el producto: #{@product.errors.full_messages.join(', ')}"
         render :new, status: :unprocessable_entity
       end
     end
@@ -98,23 +86,9 @@ module Admin
 
     # ACTUALIZAR PRODUCTO
     def update
-      stock_before = @product.quantity.to_i
-      price_before = @product.price
-
-      # Asignamos el usuario que está realizando la edición para el AuditLog
-      @product.current_modifier = current_user
+      @product.current_user_id = current_user&.id
 
       if @product.update(product_params)
-        # 1. Movimiento de inventario para Producto Físico (Tu Kardex existente)
-        if @product.producto? && product_params[:quantity].present? && product_params[:quantity].to_i != stock_before
-          movement_type = product_params[:quantity].to_i > stock_before ? "Ingreso" : "Salida"
-          create_product_history(@product, stock_before, @product.quantity, movement_type)
-
-        # 2. Movimiento por cambio de tarifa para Servicio (Tu Kardex existente)
-        elsif @product.servicio? && product_params[:price].present? && product_params[:price].to_f != price_before
-          create_product_history(@product, nil, nil, "Ajuste de tarifa ($#{price_before} -> $#{@product.price})")
-        end
-
         redirect_to admin_edit_product_path(product_id: @product.id), notice: "#{@product.servicio? ? 'Servicio' : 'Producto'} actualizado con éxito"
       else
         flash[:alert] = @product.errors.full_messages.join(", ")
@@ -135,10 +109,8 @@ module Admin
 
     # INVENTARIO
     def inventory
-      # 1. Base query
       base_scope = Product.where(kind: "producto")
 
-      # 2. Búsqueda por query
       if params[:query].present?
         q = params[:query].strip
         base_scope = base_scope.where(
@@ -146,11 +118,9 @@ module Admin
         ).or(Product.where(:name => /#{Regexp.escape(q)}/i))
       end
 
-      # 3. Filtro por estado
       @current_status = params[:status].presence || 'stock_bajo'
       base_scope = base_scope.where(:quantity.lte => 15) if @current_status == 'stock_bajo'
 
-      # 4. Agregación de Totales Globales
       totals = base_scope.collection.aggregate([
         { '$match' => base_scope.selector },
         {
@@ -186,14 +156,12 @@ module Admin
       query = params[:q].to_s.strip
 
       products = if query.present?
-                  # Carga anticipada de la relación para evitar N+1 queries
                   Product.includes(:offer).where(name: /#{Regexp.escape(query)}/i).limit(10)
                 else
                   Product.none
                 end
 
       render json: products.map { |p|
-        # 1. Obtener la oferta probando p.offer o buscando directamente por offer_id
         offer_obj = begin
                       if p.respond_to?(:offer) && p.offer.present?
                         p.offer
@@ -205,11 +173,9 @@ module Admin
                       nil
                     end
 
-        # 2. Evaluación flexible de la fecha de vencimiento
         expires_at = p.try(:offer_expires_at)
         
         not_expired = if expires_at.blank?
-                        # Si no definieron fecha de expiración pero asignaron oferta, se asume vigente
                         offer_obj.present?
                       elsif expires_at.respond_to?(:to_date)
                         expires_at.to_date >= Date.current
@@ -217,10 +183,8 @@ module Admin
                         expires_at > Time.current
                       end
 
-        # 3. Determinar vigencia final
         vigente = offer_obj.present? && not_expired
 
-        # Extraer tipo y nombre de la oferta
         offer_name = vigente ? (offer_obj.try(:name) || offer_obj.try(:nombre) || '') : ''
         type = vigente ? (offer_obj.try(:offer_type) || offer_obj.try(:tipo) || '') : ''
 
@@ -251,23 +215,7 @@ module Admin
       params.require(:product).permit(
         :kind, :name, :description, :quantity, :price, :cost_price, :category_id, :marca_id, :discount, :code,
         :offer_type, :offer_id, :offer_expires_at, :wholesale_quantity, :car_type_id, :supplier_id,
-        product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy] # <-- Se agregó :file
-      )
-    end
-      
-    def create_product_history(product, stock_before, stock_after, movement_type)
-      ProductHistory.create!(
-        product: product,
-        name: product.name,
-        description: product.description,
-        code: product.code,
-        quantity: product.producto? ? product.quantity : 0,
-        price: product.price,
-        discount: product.discount,
-        stock_before: stock_before,
-        current_stock: stock_after,
-        movement_type: movement_type,
-        user_id: @current_user.id
+        product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy]
       )
     end
   end
