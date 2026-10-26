@@ -7,6 +7,11 @@ module Admin
     def index
       @product_histories = ProductHistory.all
 
+      # 🔹 Filtro por producto específico (si viene el product_id desde el inventario)
+      if params[:product_id].present?
+        @product_histories = @product_histories.where(product_id: params[:product_id])
+      end
+
       # 🔹 Filtro por rango de fechas
       if params[:start_date].present? && params[:end_date].present?
         start_date = DateTime.parse(params[:start_date]).beginning_of_day

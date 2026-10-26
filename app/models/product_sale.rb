@@ -20,28 +20,35 @@ class ProductSale
   belongs_to :product
 
   # Índices
+  # 
   index({ sale_id: 1 })
   index({ product_id: 1 })
 
   def update_product_stock
-    product = self.product 
+    product = self.product
+    product.skip_history_callbacks = true
     product.quantity = product.quantity - self.quantity 
     product.save
   end
 
   def create_product_history
+    concepto = "Egreso de inventario por venta realizada #{self.sale.code}"
+
     ProductHistory.create!(
       product_id: product.id,
       name: product.name,
       description: product.description,
+      code: product.code,
       quantity: quantity,
       price: unit_price,
-      code: product.code,
       discount: discount || 0,
       cash_in: (unit_price - (unit_price * (discount.to_f / 100))) * quantity,
       sale_id: sale.id,
+      movement_type: "2",
+      concepto: concepto,
       stock_before: product.quantity,
-      current_stock: product.quantity - quantity
+      current_stock: product.quantity - quantity,
+      user_id: self.sale.user_id
     )
   end
 

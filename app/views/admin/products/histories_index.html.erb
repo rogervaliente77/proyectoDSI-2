@@ -3,12 +3,12 @@
   <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-4 gap-2">
     <div>
       <h1 class="h3 text-gray-800 mb-0">
-        <i class="fas fa-warehouse text-primary me-2"></i> Movimiento de Inventario
+        <i class="fas fa-warehouse text-primary me-2"></i> Movimientos de Inventario
       </h1>
       <p class="text-muted small mb-0">Kardex y registro detallado de entradas, salidas y ajustes de productos</p>
     </div>
-    <%= link_to admin_productos_path, class: "btn btn-outline-primary fw-bold shadow-sm no-print" do %>
-      <i class="fas fa-arrow-left me-1"></i> Volver a Productos
+    <%= link_to admin_inventory_admin_products_path, class: "btn btn-outline-primary fw-bold shadow-sm no-print" do %>
+      <i class="fas fa-arrow-left me-1"></i> Volver a Inventario
     <% end %>
   </div>
 
@@ -148,11 +148,11 @@
                 </div>
 
                 <!-- Columna 4: Botón de Detalle -->
-                <div class="col-12 col-lg-2 d-flex justify-content-end align-items-center">
-                  <%= link_to admin_product_history_path(history), class: "btn btn-outline-primary btn-sm shadow-sm", title: "Ver detalle" do %>
+                <!--<div class="col-12 col-lg-2 d-flex justify-content-end align-items-center">
+                  <%#= link_to admin_product_history_path(history), class: "btn btn-outline-primary btn-sm shadow-sm", title: "Ver detalle" do %>
                     <i class="fas fa-eye mr-1"></i> Ver Detalle
-                  <% end %>
-                </div>
+                  <%# end %>
+                </div>-->
 
               </div>
             </div>

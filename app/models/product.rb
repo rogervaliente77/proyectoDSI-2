@@ -18,7 +18,7 @@ class Product
   field :kind, type: String, default: "producto"
 
   # Atributo virtual para capturar el usuario actual en peticiones web
-  attr_accessor :current_user_id, :stock_before_update, :price_before_update
+  attr_accessor :current_user_id, :stock_before_update, :price_before_update, :skip_history_callbacks
 
   # -------- RELACIONES --------
   has_many :product_sales, dependent: :destroy
@@ -143,8 +143,10 @@ class Product
 
   # --- LÓGICA DE HISTORIAL AUTOMÁTICA ---
   def create_initial_history
+    return if servicio?
+
     initial_qty = producto? ? quantity.to_i : 0
-    
+
     ProductHistory.create!(
       product: self,
       name: self.name,
@@ -162,11 +164,14 @@ class Product
   end
 
   def capture_previous_values
+    return if servicio?
     self.stock_before_update = self.quantity_was.to_i
     self.price_before_update = self.price_was.to_f
   end
 
   def create_update_history
+    return if skip_history_callbacks || servicio?
+
     # 1. Movimiento de stock para productos físicos
     if producto? && saved_change_to_attribute?(:quantity)
       stock_after = self.quantity.to_i

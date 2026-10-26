@@ -111,15 +111,29 @@ module Admin
     def inventory
       base_scope = Product.where(kind: "producto")
 
-      if params[:query].present?
+      # Si viene un product_id específico por parámetro, filtramos directamente por él
+      if params[:product_id].present?
+        base_scope = base_scope.where(id: params[:product_id])
+      elsif params[:query].present?
         q = params[:query].strip
         base_scope = base_scope.where(
           :code => /#{Regexp.escape(q)}/i
         ).or(Product.where(:name => /#{Regexp.escape(q)}/i))
       end
 
-      @current_status = params[:status].presence || 'stock_bajo'
-      base_scope = base_scope.where(:quantity.lte => 15) if @current_status == 'stock_bajo'
+      # Manejo de estados de inventario (si no se busca un product_id específico)
+      unless params[:product_id].present?
+        @current_status = params[:status].presence || 'stock_bajo'
+        
+        case @current_status
+        when 'stock_bajo'
+          base_scope = base_scope.where(:quantity.lte => 15, :quantity.gt => 0) # Menor a 15 pero mayor a 0
+        when 'agotados'
+          base_scope = base_scope.where(:quantity.lte => 0) # Cero o negativos
+        when 'todos'
+          # No aplicamos filtro de cantidad
+        end
+      end
 
       totals = base_scope.collection.aggregate([
         { '$match' => base_scope.selector },
