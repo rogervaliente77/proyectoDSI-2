@@ -25,6 +25,8 @@ class ProductSale
   index({ product_id: 1 })
 
   def update_product_stock
+    return if sale&.online_order?
+
     product = self.product
     product.skip_history_callbacks = true
     product.quantity = product.quantity - self.quantity 
@@ -32,6 +34,7 @@ class ProductSale
   end
 
   def create_product_history
+    return if sale&.online_order?
     concepto = "Egreso de inventario por venta realizada #{self.sale.code}"
 
     ProductHistory.create!(
