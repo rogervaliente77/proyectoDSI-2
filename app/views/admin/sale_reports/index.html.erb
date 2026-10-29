@@ -1,5 +1,10 @@
-<!-- Inclusión de Chart.js -->
+<!-- Inclusión de Librerías del Cliente -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- SheetJS para Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- jsPDF y AutoTable para PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 <div class="container-fluid">
   <!-- Encabezado -->
@@ -61,10 +66,22 @@
     <p class="mt-2 text-muted font-weight-bold">Procesando métricas...</p>
   </div>
 
-  <!-- Área de Resultados (Oculta por defecto hasta presionar Generar) -->
+  <!-- Área de Resultados -->
   <div id="report-results" style="display: none;">
     
-    <!-- Tarjetas de Resumen KPI -->
+    <!-- Tarjetas de Resumen KPI y Botones de Exportación -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="h5 mb-0 font-weight-bold text-gray-800">Resumen y Exportación</div>
+      <div class="btn-group">
+        <button id="export-excel-btn" class="btn btn-success btn-sm shadow-sm">
+          <i class="fas fa-file-excel mr-1"></i> Exportar a Excel (2 Hojas)
+        </button>
+        <button id="export-pdf-btn" class="btn btn-danger btn-sm shadow-sm ml-2">
+          <i class="fas fa-file-pdf mr-1"></i> Exportar a PDF
+        </button>
+      </div>
+    </div>
+
     <div class="row mb-4" id="kpi-summary-cards"></div>
 
     <!-- Pestañas de Visualización: Tabla vs Gráfico -->
@@ -86,16 +103,17 @@
           <!-- Vista de Tabla -->
           <div class="tab-pane fade show active" id="content-table" role="tabpanel">
             <div class="table-responsive">
-              <table class="table table-bordered table-striped" id="report-table">
+              <table class="table table-bordered table-striped align-middle" id="report-table">
                 <thead class="thead-dark" id="report-table-head"></thead>
                 <tbody id="report-table-body"></tbody>
+                <tfoot class="bg-light font-weight-bold border-top border-2" id="report-table-foot"></tfoot>
               </table>
             </div>
           </div>
 
           <!-- Vista de Gráfico -->
           <div class="tab-pane fade" id="content-chart" role="tabpanel">
-            <div class="chart-area" style="position: relative; height:350px; width:100%">
+            <div class="chart-area" style="position: relative; height:380px; width:100%">
               <canvas id="myReportChart"></canvas>
             </div>
           </div>
@@ -108,14 +126,20 @@
 
 <script>
   let reportChart = null;
+  let currentReportData = null;
 
   document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("report-filter-form");
+    const exportExcelBtn = document.getElementById("export-excel-btn");
+    const exportPdfBtn = document.getElementById("export-pdf-btn");
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
       fetchReportData();
     });
+
+    exportExcelBtn.addEventListener("click", generateExcelReport);
+    exportPdfBtn.addEventListener("click", generatePDFReport);
 
     function fetchReportData() {
       const reportType = document.getElementById("report_type").value;
@@ -131,6 +155,7 @@
       fetch(url)
         .then(response => response.json())
         .then(data => {
+          currentReportData = data;
           document.getElementById("loading-spinner").style.display = "none";
           document.getElementById("report-results").style.display = "block";
 
@@ -185,40 +210,130 @@
     function renderTable(data) {
       const thead = document.getElementById("report-table-head");
       const tbody = document.getElementById("report-table-body");
+      const tfoot = document.getElementById("report-table-foot");
 
       thead.innerHTML = "";
       tbody.innerHTML = "";
+      tfoot.innerHTML = "";
 
       if (!data.rows || data.rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron registros para el rango seleccionado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No se encontraron registros para el rango seleccionado.</td></tr>`;
         return;
       }
 
+      const parseVal = (str) => parseFloat(str.replace(/[^0-9.-]+/g, "")) || 0;
+
       if (data.report_type === "general") {
-        thead.innerHTML = `<tr><th>Fecha</th><th>Transacciones</th><th>Total En Línea</th><th>Total Manual</th><th>Total General</th></tr>`;
+        thead.innerHTML = `<tr><th>Fecha</th><th class="text-center">Transacciones</th><th class="text-right">Total En Línea</th><th class="text-right">Total Manual</th><th class="text-right">Total General</th></tr>`;
+        
+        let sumTx = 0, sumOnline = 0, sumManual = 0, sumTotal = 0;
+
         data.rows.forEach(r => {
-          tbody.innerHTML += `<tr><td>${r.date}</td><td>${r.total_transactions}</td><td>${r.online_amount}</td><td>${r.manual_amount}</td><td class="font-weight-bold text-success">${r.total_amount}</td></tr>`;
+          sumTx += r.total_transactions;
+          sumOnline += parseVal(r.online_amount);
+          sumManual += parseVal(r.manual_amount);
+          sumTotal += parseVal(r.total_amount);
+
+          tbody.innerHTML += `<tr>
+            <td>${r.date}</td>
+            <td class="text-center">${r.total_transactions}</td>
+            <td class="text-right">${r.online_amount}</td>
+            <td class="text-right">${r.manual_amount}</td>
+            <td class="text-right font-weight-bold text-success">${r.total_amount}</td>
+          </tr>`;
         });
+
+        tfoot.innerHTML = `<tr>
+          <td class="text-uppercase text-dark font-weight-bold">TOTALES GENERALES</td>
+          <td class="text-center text-dark">${sumTx}</td>
+          <td class="text-right text-dark">$${sumOnline.toFixed(2)}</td>
+          <td class="text-right text-dark">$${sumManual.toFixed(2)}</td>
+          <td class="text-right text-success font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
+        </tr>`;
+
       } else if (data.report_type === "top_products") {
-        thead.innerHTML = `<tr><th>Producto</th><th>Unidades Vendidas</th><th>Monto Total Generado</th></tr>`;
+        thead.innerHTML = `<tr><th>Producto</th><th class="text-center">Unidades Vendidas</th><th class="text-right">Monto Total Generado</th></tr>`;
+        let sumQty = 0, sumSubtotal = 0;
+
         data.rows.forEach(r => {
-          tbody.innerHTML += `<tr><td>${r.product_name}</td><td>${r.quantity}</td><td class="font-weight-bold text-primary">${r.subtotal}</td></tr>`;
+          sumQty += r.quantity;
+          sumSubtotal += parseVal(r.subtotal);
+
+          tbody.innerHTML += `<tr>
+            <td>${r.product_name}</td>
+            <td class="text-center">${r.quantity}</td>
+            <td class="text-right font-weight-bold text-primary">${r.subtotal}</td>
+          </tr>`;
         });
+
+        tfoot.innerHTML = `<tr>
+          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
+          <td class="text-center text-dark">${sumQty}</td>
+          <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumSubtotal.toFixed(2)}</td>
+        </tr>`;
+
       } else if (data.report_type === "payment_methods") {
-        thead.innerHTML = `<tr><th>Método de Pago</th><th>Cantidad de Transacciones</th><th>Total Acumulado</th></tr>`;
+        thead.innerHTML = `<tr><th>Método de Pago</th><th class="text-center">Cantidad de Transacciones</th><th class="text-right">Total Acumulado</th></tr>`;
+        let sumCount = 0, sumTotal = 0;
+
         data.rows.forEach(r => {
-          tbody.innerHTML += `<tr><td>${r.method}</td><td>${r.count}</td><td class="font-weight-bold text-info">${r.total}</td></tr>`;
+          sumCount += r.count;
+          sumTotal += parseVal(r.total);
+
+          tbody.innerHTML += `<tr>
+            <td>${r.method}</td>
+            <td class="text-center">${r.count}</td>
+            <td class="text-right font-weight-bold text-info">${r.total}</td>
+          </tr>`;
         });
+
+        tfoot.innerHTML = `<tr>
+          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
+          <td class="text-center text-dark">${sumCount}</td>
+          <td class="text-right text-info font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
+        </tr>`;
+
       } else if (data.report_type === "logistics") {
-        thead.innerHTML = `<tr><th>Método de Entrega</th><th>Total de Pedidos</th><th>Monto Total</th></tr>`;
+        thead.innerHTML = `<tr><th>Método de Entrega</th><th class="text-center">Total de Pedidos</th><th class="text-right">Monto Total</th></tr>`;
+        let sumCount = 0, sumTotal = 0;
+
         data.rows.forEach(r => {
-          tbody.innerHTML += `<tr><td>${r.method}</td><td>${r.count}</td><td class="font-weight-bold text-primary">${r.total_amount}</td></tr>`;
+          sumCount += r.count;
+          sumTotal += parseVal(r.total_amount);
+
+          tbody.innerHTML += `<tr>
+            <td>${r.method}</td>
+            <td class="text-center">${r.count}</td>
+            <td class="text-right font-weight-bold text-primary">${r.total_amount}</td>
+          </tr>`;
         });
+
+        tfoot.innerHTML = `<tr>
+          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
+          <td class="text-center text-dark">${sumCount}</td>
+          <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
+        </tr>`;
+
       } else if (data.report_type === "by_cashier") {
-        thead.innerHTML = `<tr><th>Cajero / Usuario</th><th>Transacciones Realizadas</th><th>Total Recaudado</th></tr>`;
+        thead.innerHTML = `<tr><th>Cajero / Usuario</th><th class="text-center">Transacciones Realizadas</th><th class="text-right">Total Recaudado</th></tr>`;
+        let sumCount = 0, sumTotal = 0;
+
         data.rows.forEach(r => {
-          tbody.innerHTML += `<tr><td>${r.cashier}</td><td>${r.count}</td><td class="font-weight-bold text-success">${r.total}</td></tr>`;
+          sumCount += r.count;
+          sumTotal += parseVal(r.total);
+
+          tbody.innerHTML += `<tr>
+            <td>${r.cashier}</td>
+            <td class="text-center">${r.count}</td>
+            <td class="text-right font-weight-bold text-success">${r.total}</td>
+          </tr>`;
         });
+
+        tfoot.innerHTML = `<tr>
+          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
+          <td class="text-center text-dark">${sumCount}</td>
+          <td class="text-right text-success font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
+        </tr>`;
       }
     }
 
@@ -245,6 +360,116 @@
           }
         }
       });
+    }
+
+    // 🟢 EXCEL CON ENCABEZADO Y 2 HOJAS (DATOS Y MATRIZ DEL GRÁFICO)
+    function generateExcelReport() {
+      if (!currentReportData || !currentReportData.rows) {
+        alert("Primero genera un reporte para poder exportar.");
+        return;
+      }
+
+      const reportName = document.getElementById("report_type").options[document.getElementById("report_type").selectedIndex].text;
+      const generationDate = new Date().toLocaleString();
+      const wb = XLSX.utils.book_new();
+
+      // -------------------------------------------------------------
+      // HOJA 1: DATOS DE LA TABLA CON ENCABEZADO
+      // -------------------------------------------------------------
+      const ws1_data = [
+        [reportName.toUpperCase()],
+        [`Fecha de generación: ${generationDate}`],
+        [""], // Espacio en blanco
+      ];
+
+      // Extraer filas de la tabla HTML actual para mantener los totales
+      const tableEl = document.getElementById("report-table");
+      const ws1_table = XLSX.utils.sheet_to_json(XLSX.utils.table_to_sheet(tableEl), { header: 1 });
+      
+      const finalWs1Data = ws1_data.concat(ws1_table);
+      const ws1 = XLSX.utils.aoa_to_sheet(finalWs1Data);
+      XLSX.utils.book_append_sheet(wb, ws1, "Datos del Reporte");
+
+      // -------------------------------------------------------------
+      // HOJA 2: MATRIZ DE DATOS DEL GRÁFICO CON ENCABEZADO
+      // -------------------------------------------------------------
+      const ws2_data = [
+        [`GRÁFICO / MÉTRICAS - ${reportName.toUpperCase()}`],
+        [`Fecha de generación: ${generationDate}`],
+        [""],
+        ["ETIQUETA", "VALOR DE MÉTRICA"]
+      ];
+
+      if (currentReportData.chart_data && currentReportData.chart_data.labels) {
+        const labels = currentReportData.chart_data.labels;
+        const dataset = currentReportData.chart_data.datasets[0];
+        
+        labels.forEach((lbl, idx) => {
+          ws2_data.push([lbl, dataset.data[idx]]);
+        });
+      }
+
+      const ws2 = XLSX.utils.aoa_to_sheet(ws2_data);
+      XLSX.utils.book_append_sheet(wb, ws2, "Gráficos y Métricas");
+
+      // Descargar archivo Excel
+      const fileName = `Reporte_${currentReportData.report_type}_${new Date().toISOString().slice(0,10)}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+    }
+
+    // 🔴 PDF CON ENCABEZADO Y GRÁFICO INCORPORADO
+    function generatePDFReport() {
+      if (!currentReportData || !currentReportData.rows) {
+        alert("Primero genera un reporte para poder exportar.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'pt', 'letter');
+
+      const title = document.getElementById("report_type").options[document.getElementById("report_type").selectedIndex].text;
+      const startDate = document.getElementById("start_date").value;
+      const endDate = document.getElementById("end_date").value;
+      const generationDate = new Date().toLocaleString();
+
+      // Encabezado formal en PDF
+      doc.setFontSize(16);
+      doc.setTextColor(40);
+      doc.text(title.toUpperCase(), 40, 40);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Fecha de generación: ${generationDate}`, 40, 56);
+      doc.text(`Rango de consulta: ${startDate} al ${endDate}`, 40, 70);
+
+      // Tabla en PDF con los datos y fila de totales (tfoot)
+      doc.autoTable({
+        html: "#report-table",
+        startY: 85,
+        theme: 'grid',
+        headStyles: { fillColor: [78, 115, 223] },
+        footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
+      });
+
+      // Imagen del Gráfico Chart.js en el PDF
+      if (reportChart) {
+        const canvasImg = document.getElementById("myReportChart").toDataURL("image/png", 1.0);
+        const finalY = doc.lastAutoTable.finalY || 200;
+
+        let imgY = finalY + 30;
+        if (imgY + 220 > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          imgY = 40;
+        }
+
+        doc.setFontSize(12);
+        doc.setTextColor(40);
+        doc.text("Gráfico de Visualización:", 40, imgY - 10);
+        doc.addImage(canvasImg, 'PNG', 40, imgY, 520, 220);
+      }
+
+      const fileName = `Reporte_${currentReportData.report_type}_${new Date().toISOString().slice(0,10)}.pdf`;
+      doc.save(fileName);
     }
   });
 </script>
