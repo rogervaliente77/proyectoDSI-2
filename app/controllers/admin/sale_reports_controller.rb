@@ -2,48 +2,56 @@ module Admin
   class SaleReportsController < ApplicationController
     layout 'dashboard'
 
+    # Hacemos accesibles estos métodos para las vistas (.xlsx.axlsx)
+    helper_method :generate_general_report, 
+                  :generate_top_products_report, 
+                  :generate_payment_methods_report, 
+                  :generate_logistics_report, 
+                  :generate_by_cashier_report
+
     def index
       # La vista carga vacía e instantánea sin consultas pesadas a la BD
     end
 
     def sales_data
-      start_date = params[:start_date].present? ? Time.zone.parse(params[:start_date]).beginning_of_day : 30.days.ago.beginning_of_day
-      end_date = params[:end_date].present? ? Time.zone.parse(params[:end_date]).end_of_day : Time.current.end_of_day
+      sales = filter_sales_by_params
       report_type = params[:report_type] || 'general'
-      sale_channel = params[:sale_channel] # 'all', 'online', 'manual'
 
-      # Base query
-      sales = Sale.where(:created_at.gte => start_date, :created_at.lte => end_date)
-      #sales = sales.where(status: 'completed') if params[:only_completed] == 'true'
-
-      if sale_channel == 'online'
-        sales = sales.where(online_order: true)
-      elsif sale_channel == 'manual'
-        sales = sales.where(online_order: false)
-      end
-
-      case report_type
-      when 'general'
-        data = generate_general_report(sales)
-      when 'top_products'
-        data = generate_top_products_report(sales)
-      when 'payment_methods'
-        data = generate_payment_methods_report(sales)
-      when 'logistics'
-        data = generate_logistics_report(sales)
-      when 'by_cashier'
-        data = generate_by_cashier_report(sales)
-      else
-        data = {}
-      end
+      data = case report_type
+             when 'general' then generate_general_report(sales)
+             when 'top_products' then generate_top_products_report(sales)
+             when 'payment_methods' then generate_payment_methods_report(sales)
+             when 'logistics' then generate_logistics_report(sales)
+             when 'by_cashier' then generate_by_cashier_report(sales)
+             else {}
+             end
 
       render json: data
     end
 
-    private
+    def export_excel
+      @sales = filter_sales_by_params
+      @report_type = params[:report_type] || 'general'
+      
+      report_titles = {
+        'general' => 'Ventas Generales (Canales)',
+        'top_products' => 'Top 10 Productos Más Vendidos',
+        'payment_methods' => 'Desglose por Métodos de Pago',
+        'logistics' => 'Logística de Entregas (Online)',
+        'by_cashier' => 'Ventas por Cajero / Usuario'
+      }
+      @report_title = report_titles[@report_type] || 'Reporte de Ventas'
 
+      respond_to do |format|
+        format.xlsx { 
+          response.headers['Content-Disposition'] = "attachment; filename=Reporte_#{@report_type}_#{Time.current.strftime('%Y%m%d_%H%M')}.xlsx"
+        }
+      end
+    end
+
+    # 🔹 Movemos los generadores fuera de private para que el helper_method funcione correctamente, 
+    # o los dejamos accesibles como métodos públicos del controlador.
     def generate_general_report(sales)
-      # Agrupar ventas por fecha (Día)
       grouped = sales.group_by { |s| s.created_at.in_time_zone('America/El_Salvador').strftime('%d/%m/%Y') }
 
       labels = []
@@ -91,7 +99,6 @@ module Admin
       sale_ids = sales.pluck(:id)
       product_sales = ProductSale.where(:sale_id.in => sale_ids)
 
-      # Agrupar por producto
       grouped = product_sales.group_by(&:product_id)
 
       labels = []
@@ -99,13 +106,12 @@ module Admin
       subtotals = []
       rows = []
 
-      # Ordenar por cantidad vendida descendente
       sorted_groups = grouped.map do |product_id, items|
         product = Product.where(id: product_id).first
         qty = items.sum(&:quantity)
         subtotal = items.sum(&:subtotal)
         { product_name: product&.name || 'Producto Desconocido', qty: qty, subtotal: subtotal }
-      end.sort_by { |item| item[:qty] }.reverse.first(10) # Top 10
+      end.sort_by { |item| item[:qty] }.reverse.first(10)
 
       sorted_groups.each do |item|
         labels << item[:product_name]
@@ -139,12 +145,8 @@ module Admin
       rows = []
     
       grouped.each do |code, method_sales|
-        # Busca la forma de pago por el código en el modelo correspondiente
         forma_pago_obj = FormaPago.where(codigo: code).first if code.present?
-        
-        # Toma exactamente el name (o ajusta el campo si en tu modelo se llama de otra forma, ej. :nombre)
         method_name = forma_pago_obj&.name || (code.present? ? "Código: #{code}" : 'No Especificado')
-        
         sum = method_sales.sum(&:total_amount)
     
         labels << method_name
@@ -202,11 +204,7 @@ module Admin
     end
 
     def generate_by_cashier_report(sales)
-      # Si deseas incluir tanto ventas manuales como en línea que tengan cajero asignado, 
-      # puedes omitir el filtro de online_order o ajustarlo según necesites.
-      # Dejaremos todas las ventas que contengan cajero_id:
       sales_with_cashier = sales.where(:cajero_id.ne => nil)
-      
       grouped = sales_with_cashier.group_by(&:cajero_id)
     
       labels = []
@@ -214,10 +212,8 @@ module Admin
       rows = []
     
       grouped.each do |cajero_id, cashier_sales|
-        # Buscamos directamente en tu modelo Cajero (ajusta el campo del nombre si en tu modelo se llama diferente, ej: :nombre o :name)
         cajero = Cajero.where(id: cajero_id).first
         cashier_name = cajero&.nombre || cajero&.name || 'Cajero No Asignado'
-        
         sum = cashier_sales.sum(&:total_amount)
     
         labels << cashier_name
@@ -240,6 +236,24 @@ module Admin
         },
         rows: rows
       }
+    end
+
+    private
+
+    def filter_sales_by_params
+      start_date = params[:start_date].present? ? Time.zone.parse(params[:start_date]).beginning_of_day : 30.days.ago.beginning_of_day
+      end_date = params[:end_date].present? ? Time.zone.parse(params[:end_date]).end_of_day : Time.current.end_of_day
+      sale_channel = params[:sale_channel]
+
+      sales = Sale.where(:created_at.gte => start_date, :created_at.lte => end_date)
+
+      if sale_channel == 'online'
+        sales = sales.where(online_order: true)
+      elsif sale_channel == 'manual'
+        sales = sales.where(online_order: false)
+      end
+
+      sales
     end
   end
 end

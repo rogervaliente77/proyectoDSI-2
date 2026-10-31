@@ -138,6 +138,15 @@
       fetchReportData();
     });
 
+    // 🔧 Evento para resize del Canvas cuando se selecciona la pestaña de Gráfico
+    if (window.jQuery) {
+      $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        if (e.target.id === 'tab-chart' && reportChart) {
+          reportChart.resize();
+        }
+      });
+    }
+
     exportExcelBtn.addEventListener("click", generateExcelReport);
     exportPdfBtn.addEventListener("click", generatePDFReport);
 
@@ -355,6 +364,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: false, // Desactivar animación para captura limpia en PDF
           plugins: {
             legend: { position: 'top' }
           }
@@ -362,62 +372,19 @@
       });
     }
 
-    // 🟢 EXCEL CON ENCABEZADO Y 2 HOJAS (DATOS Y MATRIZ DEL GRÁFICO)
+    // 🟢 EXCEL CON ENCABEZADO Y HOJAS CON DATOS Y MÉTRICAS
+    // 🟢 EXCEL GENERADO DESDE EL BACKEND (RAILS / CAXLSX)
     function generateExcelReport() {
-      if (!currentReportData || !currentReportData.rows) {
-        alert("Primero genera un reporte para poder exportar.");
-        return;
-      }
+      const reportType = document.getElementById("report_type").value;
+      const saleChannel = document.getElementById("sale_channel").value;
+      const startDate = document.getElementById("start_date").value;
+      const endDate = document.getElementById("end_date").value;
 
-      const reportName = document.getElementById("report_type").options[document.getElementById("report_type").selectedIndex].text;
-      const generationDate = new Date().toLocaleString();
-      const wb = XLSX.utils.book_new();
-
-      // -------------------------------------------------------------
-      // HOJA 1: DATOS DE LA TABLA CON ENCABEZADO
-      // -------------------------------------------------------------
-      const ws1_data = [
-        [reportName.toUpperCase()],
-        [`Fecha de generación: ${generationDate}`],
-        [""], // Espacio en blanco
-      ];
-
-      // Extraer filas de la tabla HTML actual para mantener los totales
-      const tableEl = document.getElementById("report-table");
-      const ws1_table = XLSX.utils.sheet_to_json(XLSX.utils.table_to_sheet(tableEl), { header: 1 });
-      
-      const finalWs1Data = ws1_data.concat(ws1_table);
-      const ws1 = XLSX.utils.aoa_to_sheet(finalWs1Data);
-      XLSX.utils.book_append_sheet(wb, ws1, "Datos del Reporte");
-
-      // -------------------------------------------------------------
-      // HOJA 2: MATRIZ DE DATOS DEL GRÁFICO CON ENCABEZADO
-      // -------------------------------------------------------------
-      const ws2_data = [
-        [`GRÁFICO / MÉTRICAS - ${reportName.toUpperCase()}`],
-        [`Fecha de generación: ${generationDate}`],
-        [""],
-        ["ETIQUETA", "VALOR DE MÉTRICA"]
-      ];
-
-      if (currentReportData.chart_data && currentReportData.chart_data.labels) {
-        const labels = currentReportData.chart_data.labels;
-        const dataset = currentReportData.chart_data.datasets[0];
-        
-        labels.forEach((lbl, idx) => {
-          ws2_data.push([lbl, dataset.data[idx]]);
-        });
-      }
-
-      const ws2 = XLSX.utils.aoa_to_sheet(ws2_data);
-      XLSX.utils.book_append_sheet(wb, ws2, "Gráficos y Métricas");
-
-      // Descargar archivo Excel
-      const fileName = `Reporte_${currentReportData.report_type}_${new Date().toISOString().slice(0,10)}.xlsx`;
-      XLSX.writeFile(wb, fileName);
+      // Redirección directa al endpoint de Rails para descargar el archivo .xlsx
+      window.location.href = `/admin/sale_reports/export_excel.xlsx?report_type=${reportType}&sale_channel=${saleChannel}&start_date=${startDate}&end_date=${endDate}`;
     }
 
-    // 🔴 PDF CON ENCABEZADO Y GRÁFICO INCORPORADO
+    // 🔴 PDF CON ENCABEZADO Y CAPTURA DEL GRÁFICO
     function generatePDFReport() {
       if (!currentReportData || !currentReportData.rows) {
         alert("Primero genera un reporte para poder exportar.");
@@ -432,40 +399,41 @@
       const endDate = document.getElementById("end_date").value;
       const generationDate = new Date().toLocaleString();
 
-      // Encabezado formal en PDF
-      doc.setFontSize(16);
+      // Encabezado
+      doc.setFontSize(14);
       doc.setTextColor(40);
       doc.text(title.toUpperCase(), 40, 40);
 
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setTextColor(100);
-      doc.text(`Fecha de generación: ${generationDate}`, 40, 56);
-      doc.text(`Rango de consulta: ${startDate} al ${endDate}`, 40, 70);
+      doc.text(`Fecha de Generación: ${generationDate}`, 40, 54);
+      doc.text(`Rango Consultado: ${startDate} al ${endDate}`, 40, 66);
 
-      // Tabla en PDF con los datos y fila de totales (tfoot)
+      // Tabla
       doc.autoTable({
         html: "#report-table",
-        startY: 85,
+        startY: 80,
         theme: 'grid',
         headStyles: { fillColor: [78, 115, 223] },
         footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
       });
 
-      // Imagen del Gráfico Chart.js en el PDF
+      // Captura del Gráfico
       if (reportChart) {
-        const canvasImg = document.getElementById("myReportChart").toDataURL("image/png", 1.0);
+        const canvas = document.getElementById("myReportChart");
+        const canvasImg = canvas.toDataURL("image/png", 1.0);
         const finalY = doc.lastAutoTable.finalY || 200;
 
         let imgY = finalY + 30;
-        if (imgY + 220 > doc.internal.pageSize.getHeight()) {
+        if (imgY + 200 > doc.internal.pageSize.getHeight()) {
           doc.addPage();
           imgY = 40;
         }
 
-        doc.setFontSize(12);
+        doc.setFontSize(11);
         doc.setTextColor(40);
-        doc.text("Gráfico de Visualización:", 40, imgY - 10);
-        doc.addImage(canvasImg, 'PNG', 40, imgY, 520, 220);
+        doc.text("Gráfico de Resumen:", 40, imgY - 10);
+        doc.addImage(canvasImg, 'PNG', 40, imgY, 500, 200);
       }
 
       const fileName = `Reporte_${currentReportData.report_type}_${new Date().toISOString().slice(0,10)}.pdf`;

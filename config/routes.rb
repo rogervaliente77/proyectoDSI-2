@@ -262,6 +262,7 @@ Rails.application.routes.draw do
     resources :sale_reports, only: [:index] do
       collection do
         get :sales_data # Endpoint AJAX para procesar los filtros y devolver JSON
+        get :export_excel
       end
     end
   end

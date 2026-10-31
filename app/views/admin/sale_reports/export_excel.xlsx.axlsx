@@ -1,0 +1,122 @@
+wb = xlsx_package.workbook
+
+# Estilos predeterminados
+title_style = wb.styles.add_style(sz: 14, b: true, fg_color: "1F4E78")
+meta_style = wb.styles.add_style(sz: 10, i: true, fg_color: "595959")
+header_style = wb.styles.add_style(bg_color: "4E73DF", fg_color: "FFFFFF", b: true, alignment: { horizontal: :center })
+total_style = wb.styles.add_style(b: true, bg_color: "EAECF4", border: Axlsx::STYLE_THIN_BORDER)
+
+generation_date = Time.current.in_time_zone('America/El_Salvador').strftime('%d/%m/%Y %H:%M')
+
+# ==========================================
+# HOJA 1: DATOS DEL REPORTE Y TOTALES
+# ==========================================
+wb.add_worksheet(name: "Datos del Reporte") do |sheet|
+  sheet.add_row [@report_title.upcase], style: title_style
+  sheet.add_row ["Fecha de generación: #{generation_date}"], style: meta_style
+  sheet.add_row [] # Fila en blanco
+
+  case @report_type
+  when 'general'
+    sheet.add_row ["Fecha", "Transacciones", "Total En Línea", "Total Manual", "Total General"], style: header_style
+    sum_tx = 0; sum_online = 0.0; sum_manual = 0.0; sum_general = 0.0
+
+    generate_general_report(@sales)[:rows].each do |r|
+      sum_tx += r[:total_transactions]
+      sum_online += r[:online_amount].to_f
+      sum_manual += r[:manual_amount].to_f
+      sum_general += r[:total_amount].to_f
+
+      sheet.add_row [r[:date], r[:total_transactions], r[:online_amount], r[:manual_amount], r[:total_amount]]
+    end
+    sheet.add_row ["TOTALES GENERALES", sum_tx, sum_online, sum_manual, sum_general], style: total_style
+
+  when 'top_products'
+    sheet.add_row ["Producto", "Unidades Vendidas", "Monto Total Generado"], style: header_style
+    sum_qty = 0; sum_sub = 0.0
+
+    generate_top_products_report(@sales)[:rows].each do |r|
+      sum_qty += r[:quantity]
+      sum_sub += r[:subtotal].to_f
+      sheet.add_row [r[:product_name], r[:quantity], r[:subtotal]]
+    end
+    sheet.add_row ["TOTALES", sum_qty, sum_sub], style: total_style
+
+  when 'payment_methods'
+    sheet.add_row ["Método de Pago", "Cantidad de Transacciones", "Total Acumulado"], style: header_style
+    sum_count = 0; sum_tot = 0.0
+
+    generate_payment_methods_report(@sales)[:rows].each do |r|
+      sum_count += r[:count]
+      sum_tot += r[:total].to_f
+      sheet.add_row [r[:method], r[:count], r[:total]]
+    end
+    sheet.add_row ["TOTALES", sum_count, sum_tot], style: total_style
+
+  when 'logistics'
+    sheet.add_row ["Método de Entrega", "Total de Pedidos", "Monto Total"], style: header_style
+    sum_count = 0; sum_tot = 0.0
+
+    generate_logistics_report(@sales)[:rows].each do |r|
+      sum_count += r[:count]
+      sum_tot += r[:total_amount].to_f
+      sheet.add_row [r[:method], r[:count], r[:total_amount]]
+    end
+    sheet.add_row ["TOTALES", sum_count, sum_tot], style: total_style
+
+  when 'by_cashier'
+    sheet.add_row ["Cajero / Usuario", "Transacciones Realizadas", "Total Recaudado"], style: header_style
+    sum_count = 0; sum_tot = 0.0
+
+    generate_by_cashier_report(@sales)[:rows].each do |r|
+      sum_count += r[:count]
+      sum_tot += r[:total].to_f
+      sheet.add_row [r[:cashier], r[:count], r[:total]]
+    end
+    sheet.add_row ["TOTALES", sum_count, sum_tot], style: total_style
+  end
+end
+
+# ==========================================
+# HOJA 2: MÉTRICAS Y GRÁFICO NATIVO DE EXCEL
+# ==========================================
+wb.add_worksheet(name: "Gráficos y Métricas") do |sheet|
+  sheet.add_row ["MÉTRICAS - #{@report_title.upcase}"], style: title_style
+  sheet.add_row ["Fecha de generación: #{generation_date}"], style: meta_style
+  sheet.add_row []
+
+  report_data = case @report_type
+                when 'general' then generate_general_report(@sales)
+                when 'top_products' then generate_top_products_report(@sales)
+                when 'payment_methods' then generate_payment_methods_report(@sales)
+                when 'logistics' then generate_logistics_report(@sales)
+                when 'by_cashier' then generate_by_cashier_report(@sales)
+                end
+
+  if report_data[:chart_data] && report_data[:chart_data][:labels] && report_data[:chart_data][:labels].any?
+    # Fila 4: Cabeceras de la tabla de soporte para el gráfico
+    sheet.add_row ["Etiqueta / Categoría", "Valor de Métrica"], style: header_style
+    
+    labels = report_data[:chart_data][:labels]
+    dataset = report_data[:chart_data][:datasets][0]
+    data_values = dataset[:data]
+
+    start_row = 5 # Los datos empiezan en la fila 5
+    labels.each_with_index do |lbl, idx|
+      sheet.add_row [lbl, data_values[idx]]
+    end
+    end_row = start_row + labels.length - 1
+
+    # Definir tipo de gráfico según el reporte (Gráfico de pastel para métodos/logística, barras para los demás)
+    chart_type = ['payment_methods', 'logistics'].include?(@report_type) ? Axlsx::PieChart : Axlsx::Bar3DChart
+
+    # Insertar el gráfico nativo de Excel dentro de la misma hoja
+    sheet.add_chart(chart_type, start_at: "D2", end_at: "N18", title: "Gráfico de #{@report_title}") do |chart|
+      chart.add_series(
+        data: sheet["B#{start_row}:B#{end_row}"],
+        labels: sheet["A#{start_row}:A#{end_row}"],
+        title: dataset[:label] || "Valores"
+      )
+    end
+  end
+end
