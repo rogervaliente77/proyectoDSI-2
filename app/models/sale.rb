@@ -81,4 +81,38 @@ class Sale
 
     self.code = "#{prefix}-#{date_str}-#{(count_today + 1).to_s.rjust(3, '0')}"
   end
+
+  #METODOS DE SALE
+  def devoluciones_autorizadas
+    devoluciones.where(is_authorized: true)
+  end
+
+  def total_devuelto
+    devoluciones_autorizadas.sum(&:total_a_devolver).to_f.round(2)
+  end
+
+  def devuelta?
+    devoluciones_autorizadas.exists?
+  end
+
+  def devuelta_totalmente?
+    return false unless devuelta?
+    
+    # Si el monto devuelto alcanza o supera el total de la venta
+    total_devuelto >= (total_amount || 0.0)
+  end
+
+  def devuelta_parcialmente?
+    devuelta? && !devuelta_totalmente?
+  end
+
+  def estado_devolucion
+    if devuelta_totalmente?
+      "Devolución Total"
+    elsif devuelta_parcialmente?
+      "Devolución Parcial"
+    else
+      "Sin Devolución"
+    end
+  end
 end

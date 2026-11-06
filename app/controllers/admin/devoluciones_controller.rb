@@ -1,15 +1,13 @@
 # app/controllers/admin/devoluciones_controller.rb
 module Admin
   class DevolucionesController < ApplicationController
-    before_action :set_devolucion, only: %i[edit update destroy]
+    before_action :set_devolucion, only: %i[edit update destroy autorizar_devolucion generate_pdf]
     before_action :check_pending_devoluciones
     layout 'dashboard'
 
-    # Listado de devoluciones con filtros por fecha
     def index
       @devoluciones = Devolucion.all.order_by(created_at: :desc)
 
-      #  Filtro por rango de fechas
       if params[:start_date].present? && params[:end_date].present?
         start_date = DateTime.parse(params[:start_date]).beginning_of_day
         end_date   = DateTime.parse(params[:end_date]).end_of_day
@@ -17,7 +15,6 @@ module Admin
       end
     end
 
-    #  Nueva acción: generar reporte PDF de devoluciones
     def generate_report
       start_date = params[:start_date].present? ? DateTime.parse(params[:start_date]).beginning_of_day : nil
       end_date   = params[:end_date].present? ? DateTime.parse(params[:end_date]).end_of_day : nil
@@ -33,9 +30,7 @@ module Admin
                 disposition: "inline"
     end
 
-# Nueva acción: generar PDF de un comprobante individual
     def generate_pdf
-      @devolucion = Devolucion.find(params[:id])
       pdf = DevolucionPdf.new(@devolucion).generate
 
       send_data pdf,
@@ -50,29 +45,13 @@ module Admin
 
     def create
       @devolucion = Devolucion.new(devolucion_params)
-
-      # Ajustar cada detalle con precios y descuento
-      detalles = (@devolucion.sale_devolucion_detalle || []).map do |detalle|
-        product = Product.find_by(id: detalle["product_id"])
-        next unless product
-
-        {
-          "product_id" => product.id.to_s,
-          "cantidad" => detalle["cantidad"].to_i,
-          "precio_unitario" => product.price.to_f,
-          "descuento" => product.discount.to_f,
-          "precio_con_descuento" => (product.price.to_f * (1 - product.discount.to_f / 100)).round(2)
-        }
-      end.compact
-
-      @devolucion.sale_devolucion_detalle = detalles
-      @devolucion.calcular_total
+      @devolucion.fecha_devolucion ||= Time.current
+      procesar_detalles_devolucion
 
       if @devolucion.save
-        redirect_to admin_devoluciones_path, notice: "Devolución creada con éxito."
+        redirect_to admin_devoluciones_path, notice: "Devolución registrada exitosamente."
       else
-        flash[:alert] = @devolucion.errors.full_messages.join(", ")
-        render :new, status: :unprocessable_entity
+        redirect_to admin_devoluciones_path, alert: "Error al registrar la devolución: #{@devolucion.errors.full_messages.join(', ')}"
       end
     end
 
@@ -87,27 +66,16 @@ module Admin
           cantidad: detalle["cantidad"].to_i,
           precio_unitario: detalle["precio_unitario"].to_f,
           descuento: detalle["descuento"].to_f,
-          precio_con_descuento: detalle["precio_con_descuento"].to_f
+          precio_con_descuento: detalle["precio_con_descuento"].to_f,
+          condicion: detalle["condicion"] || "buen_estado"
         }
       end
     end
 
     def update
       if devolucion_params[:sale_devolucion_detalle]
-        detalles = devolucion_params[:sale_devolucion_detalle].map do |detalle|
-          product = Product.find_by(id: detalle["product_id"])
-          next unless product
-
-          {
-            "product_id" => product.id.to_s,
-            "cantidad" => detalle["cantidad"].to_i,
-            "precio_unitario" => product.price.to_f,
-            "descuento" => product.discount.to_f,
-            "precio_con_descuento" => (product.price.to_f * (1 - product.discount.to_f / 100)).round(2)
-          }
-        end.compact
-
-        @devolucion.sale_devolucion_detalle = detalles
+        @devolucion.sale_devolucion_detalle = devolucion_params[:sale_devolucion_detalle]
+        procesar_detalles_devolucion
       end
 
       if @devolucion.update(devolucion_params.except(:sale_devolucion_detalle))
@@ -128,44 +96,137 @@ module Admin
       end
     end
 
-    # Autorizar/desautorizar devolución y generar ReturnedProduct
+    # Autorizar devolución: ajusta inventarios (normal vs defectuoso) y crea kardex
     def autorizar_devolucion
-      @devolucion = Devolucion.find(params[:id])
-
       if !@devolucion.is_authorized
         @devolucion.authorized_at = Time.current
 
         @devolucion.sale_devolucion_detalle.each do |detalle|
-          next if detalle["cantidad"].to_f <= 0
-          begin
-            product = Product.find(BSON::ObjectId.from_string(detalle["product_id"]))
-          rescue Mongoid::Errors::DocumentNotFound
-            next
-          end
+          qty = detalle["cantidad"].to_i
+          next if qty <= 0
 
+          product = Product.find_by(id: detalle["product_id"])
+          next unless product
+
+          condicion = detalle["condicion"] || "buen_estado"
+          precio_unitario = detalle["precio_con_descuento"].to_f
+
+          # 1. Crear registro de ReturnedProduct
           ReturnedProduct.create!(
             product: product,
             sale: @devolucion.sale,
             devolucion: @devolucion,
-            quantity: detalle["cantidad"].to_i,
-            unit_price: detalle["precio_con_descuento"].to_f,
+            quantity: qty,
+            unit_price: precio_unitario,
             discount: detalle["descuento"].to_f,
+            condicion: condicion,
             returned_at: Time.current
           )
+
+          # 2. Reingreso al Inventario según condición
+          stock_anterior = product.quantity.to_i
+          product.skip_history_callbacks = true
+
+          if condicion == "defectuoso"
+            product.defective_quantity = product.defective_quantity.to_i + qty
+          else
+            product.quantity = stock_anterior + qty
+          end
+          product.save!
+
+          # 3. Registrar en el Kardex (ProductHistory)
+          concepto = "Ingreso por devolución (#{condicion == 'defectuoso' ? 'Producto Defectuoso' : 'Buen Estado'}) - Orden #{@devolucion.sale&.code}"
+          
+          ProductHistory.create!(
+            product_id: product.id,
+            name: product.name,
+            description: product.description,
+            code: product.code,
+            quantity: qty,
+            price: precio_unitario,
+            discount: detalle["descuento"].to_f,
+            cash_in: 0, # No genera flujo de caja de ingreso
+            sale_id: @devolucion.sale_id,
+            movement_type: "1", # 1 = Ingreso
+            concepto: concepto,
+            stock_before: stock_anterior,
+            current_stock: product.quantity,
+            user_id: current_user.id
+          )
         end
+
+        # 4. Registrar en los logs de la venta
+        sale = @devolucion.sale
+        if sale.present?
+          comment = "Devolución #{@devolucion.tipo_devolucion.capitalize} Autorizada por $#{'%.2f' % @devolucion.total_a_devolver}"
+          sale.update_status_with_log(sale.status, current_user.id, comment, sale.payment_status)
+        end
+
+        @devolucion.is_authorized = true
+        @devolucion.authorized_at = Time.current
+        notice_msg = "Devolución autorizada correctamente. Inventario y Kardex actualizados."
       else
+        @devolucion.is_authorized = false
         @devolucion.authorized_at = nil
+        notice_msg = "Devolución marcada como no autorizada."
       end
 
-      @devolucion.update(is_authorized: !@devolucion.is_authorized, authorized_at: @devolucion.authorized_at)
-      redirect_to admin_devoluciones_path, notice: "Devolución actualizada exitosamente", status: :see_other
+      @devolucion.save
+      redirect_to admin_devoluciones_path, notice: notice_msg, status: :see_other
+    end
+
+    def api_sale_details
+      sale = Sale.find(params[:sale_id])
+      if sale
+        render json: {
+          client_name: sale.client_name || 'Público General',
+          products: sale.product_sales.map { |ps|
+            {
+              product_id: ps.product_id.to_s,
+              name: ps.product&.name || 'Producto',
+              max_quantity: ps.quantity,
+              unit_price: ps.unit_price,
+              subtotal: ps.subtotal
+            }
+          }
+        }
+      else
+        render json: { error: "Venta no encontrada" }, status: :not_found
+      end
+    rescue Mongoid::Errors::DocumentNotFound
+      render json: { error: "Venta no encontrada" }, status: :not_found
     end
 
     private
 
     def set_devolucion
       @devolucion = Devolucion.find(params[:id])
-      redirect_to admin_devoluciones_path, alert: "Devolución no encontrada" unless @devolucion
+    rescue Mongoid::Errors::DocumentNotFound
+      redirect_to admin_devoluciones_path, alert: "Devolución no encontrada"
+    end
+
+    def procesar_detalles_devolucion
+      detalles = (@devolucion.sale_devolucion_detalle || []).map do |detalle|
+        product = Product.find_by(id: detalle["product_id"])
+        next unless product
+
+        qty = detalle["cantidad"].to_i
+        precio = product.price.to_f
+        desc = product.discount.to_f
+        precio_desc = (precio * (1 - desc / 100.0)).round(2)
+
+        {
+          "product_id" => product.id.to_s,
+          "cantidad" => qty,
+          "precio_unitario" => precio,
+          "descuento" => desc,
+          "precio_con_descuento" => precio_desc,
+          "condicion" => detalle["condicion"].presence || "buen_estado"
+        }
+      end.compact
+
+      @devolucion.sale_devolucion_detalle = detalles
+      @devolucion.calcular_total
     end
 
     def devolucion_params
@@ -177,11 +238,10 @@ module Admin
         :caja_id,
         :cajero_id,
         :sale_id,
-        sale_devolucion_detalle: [:product_id, :cantidad]
+        sale_devolucion_detalle: [:product_id, :cantidad, :condicion]
       )
     end
 
-    #PD1-42
     def check_pending_devoluciones
       if current_user && current_user.role && ["admin", "super_admin"].include?(current_user.role.name)
         @pending_devoluciones_count = Devolucion.where(is_authorized: false).count
@@ -189,6 +249,5 @@ module Admin
         @pending_devoluciones_count = 0
       end
     end
-
   end
 end

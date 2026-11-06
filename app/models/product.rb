@@ -16,6 +16,7 @@ class Product
   field :wholesale_quantity, type: Integer
   field :wholesale_price, type: Float
   field :kind, type: String, default: "producto"
+  field :defective_quantity, type: Integer, default: 0
 
   # Atributo virtual para capturar el usuario actual en peticiones web
   attr_accessor :current_user_id, :stock_before_update, :price_before_update, :skip_history_callbacks

@@ -1,168 +1,359 @@
-<div class="container mt-4">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 fw-bold">Listado de Devoluciones</h1>
-    <div class="d-flex gap-2">
-      <!-- Botón PDF -->
-      <button class="btn btn-primary shadow-sm" id="exportPDF">
-        <i class="fas fa-file-pdf me-1"></i> PDF
-      </button>
+<div class="container-fluid">
+  <!-- Encabezado -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-undo text-danger mr-2"></i>Gestión de Devoluciones</h1>
+    <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#nuevaDevolucionModal">
+      <i class="fas fa-plus mr-1"></i> Nueva Devolución
+    </button>
+  </div>
 
-      <!-- Botón Excel -->
-      <button id="exportExcel" class="btn btn-success shadow-sm">
-        <i class="fas fa-file-excel me-1"></i> Excel
-      </button>
+  <!-- Tarjetas KPI -->
+  <div class="row mb-4">
+    <div class="col-xl-4 col-md-6 mb-3">
+      <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Monto Total Reembolsado</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">$<%= '%.2f' % @devoluciones.where(is_authorized: true).sum(&:total_a_devolver) %></div>
+            </div>
+            <div class="col-auto"><i class="fas fa-dollar-sign fa-2x text-gray-300"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <!-- Nueva devolución -->
-      <%= link_to new_admin_devolucione_path,
-                  class: "btn btn-secondary shadow-sm",
-                  title: "Nueva Devolución",
-                  data: { turbo: false } do %>
-        <i class="fas fa-plus-circle me-1"></i> Nueva
+    <div class="col-xl-4 col-md-6 mb-3">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Devoluciones Pendientes</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><%= @devoluciones.where(is_authorized: false).count %></div>
+            </div>
+            <div class="col-auto"><i class="fas fa-clock fa-2x text-gray-300"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-3">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Devoluciones Autorizadas</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><%= @devoluciones.where(is_authorized: true).count %></div>
+            </div>
+            <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <%= form_with url: admin_devoluciones_path, method: :get, local: true, class: "form-inline" do |f| %>
+        <div class="form-group mr-3">
+          <label class="mr-2 font-weight-bold small">Fecha Inicio:</label>
+          <%= f.date_field :start_date, value: params[:start_date], class: "form-control form-control-sm" %>
+        </div>
+        <div class="form-group mr-3">
+          <label class="mr-2 font-weight-bold small">Fecha Fin:</label>
+          <%= f.date_field :end_date, value: params[:end_date], class: "form-control form-control-sm" %>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm mr-2 shadow-sm"><i class="fas fa-filter mr-1"></i> Filtrar</button>
+        <%= link_to admin_devoluciones_path, class: "btn btn-secondary btn-sm shadow-sm" do %>
+          <i class="fas fa-undo mr-1"></i> Limpiar
+        <% end %>
+
+        <div class="ml-auto">
+          <%= link_to generate_report_admin_devoluciones_path(start_date: params[:start_date], end_date: params[:end_date]), class: "btn btn-danger btn-sm shadow-sm", target: "_blank" do %>
+            <i class="fas fa-file-pdf mr-1"></i> Reporte PDF
+          <% end %>
+        </div>
       <% end %>
     </div>
   </div>
 
-  <!-- Flash messages -->
-  <% if flash[:notice] %>
-    <div class="alert alert-success"><%= flash[:notice] %></div>
-  <% elsif flash[:alert] %>
-    <div class="alert alert-danger"><%= flash[:alert] %></div>
-  <% end %>
-
-  <!-- Tabla -->
-  <div class="table-responsive shadow-sm rounded">
-    <table class="table table-striped table-hover align-middle" id="devolucionesTable">
-      <thead class="table-dark text-center">
-        <tr>
-          <th>Cliente</th>
-          <th>Fecha</th>
-          <th>Comentarios</th>
-          <th>Caja</th>
-          <th>Cajero</th>
-          <th>Venta</th>
-          <th>Autorizada?</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @devoluciones.each do |d| %>
-          <tr>
-            <td><%= d.client_name.presence || "—" %></td>
-            <td class="text-center"><%= d.fecha_devolucion&.strftime("%d/%m/%Y %H:%M") || "—" %></td>
-            <td class="text-muted"><%= d.comments_devolucion.presence || "Sin comentarios" %></td>
-            <td class="text-center"><%= d.caja&.nombre || "—" %></td>
-            <td class="text-center"><%= d.cajero&.nombre || "—" %></td>
-            <td class="text-center"><%= d.sale&.code || "—" %></td>
-
-            <!-- Autorizada -->
-            <td class="text-center">
-              <% if d.is_authorized %>
-                <button class="btn btn-success btn-sm fas fa-check-circle" disabled
-                        title="Autorizada" data-bs-toggle="tooltip"></button>
-              <% else %>
-                <% if @current_user.role.name.in?(["super_admin","admin"]) %>
-                  <%= button_to autorizar_devolucion_admin_devolucione_path(d),
-                        method: :patch,
-                        class: "btn btn-outline-success btn-sm fas fa-check",
-                        data: { turbo: false, confirm: "¿Autorizar esta devolución?", bs_toggle: "tooltip" },
-                        title: "Autorizar" do %>
-                  <% end %>
-                <% else %>
-                  <button class="btn btn-secondary btn-sm fas fa-lock" disabled
-                          title="No autorizado" data-bs-toggle="tooltip"></button>
-                <% end %>
-              <% end %>
-            </td>
-
-            <!-- Acciones -->
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-1 flex-wrap">
-                <!-- Editar -->
-                <%= link_to edit_admin_devolucione_path(d),
-                            class: "btn btn-outline-warning btn-sm",
-                            title: "Editar",
-                            data: { turbo: false, bs_toggle: "tooltip" } do %>
-                  <i class="fas fa-edit"></i>
-                <% end %>
-
-                <!-- Eliminar -->
-                <%= button_to admin_devolucione_path(d),
-                            method: :delete,
-                            form: { class: "d-inline" },
-                            class: "btn btn-outline-danger btn-sm",
-                            data: { turbo_confirm: "¿Eliminar esta devolución?", turbo: false },
-                            title: "Eliminar" do %>
-                  <i class="fas fa-trash-alt"></i>
-                <% end %>
-
-                <!-- Comprobante PDF -->
-                <%= link_to generate_pdf_admin_devolucione_path(d),
-                            target: "_blank",
-                            class: "btn btn-danger btn-sm",
-                            data: { turbo: false, bs_toggle: "tooltip" },
-                            title: "Comprobante" do %>
-                  <i class="fas fa-download"></i>
-                <% end %>
-              </div>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <% if @devoluciones.empty? %>
-    <div class="alert alert-info text-center mt-3 shadow-sm">
-      No hay devoluciones registradas.
+  <!-- Tabla de Devoluciones -->
+  <div class="card shadow mb-4">
+    <div class="card-header py-3 bg-dark text-white">
+      <h6 class="m-0 font-weight-bold"><i class="fas fa-list mr-1"></i> Listado de Devoluciones Registradas</h6>
     </div>
-  <% end %>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" width="100%">
+          <thead class="thead-dark">
+            <tr>
+              <th>Fecha</th>
+              <th>Venta Afectada</th>
+              <th>Cliente</th>
+              <th class="text-center">Tipo</th>
+              <th class="text-right">Monto Devuelto</th>
+              <th class="text-center">Estado Autorización</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @devoluciones.empty? %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No se encontraron devoluciones en el rango seleccionado.</td>
+              </tr>
+            <% else %>
+              <% @devoluciones.each do |dev| %>
+                <tr>
+                  <td><%= dev.fecha_devolucion&.strftime('%d/%m/%Y %H:%M') || dev.created_at.strftime('%d/%m/%Y') %></td>
+                  <td>
+                    <% if dev.sale.present? %>
+                      <strong class="text-primary"><%= dev.sale.code %></strong>
+                    <% else %>
+                      <span class="text-muted">N/A</span>
+                    <% end %>
+                  </td>
+                  <td><%= dev.client_name.presence || dev.sale&.client_name || 'Público General' %></td>
+                  <td class="text-center">
+                    <% if dev.tipo_devolucion == 'total' %>
+                      <span class="badge badge-danger px-2 py-1">TOTAL</span>
+                    <% else %>
+                      <span class="badge badge-info px-2 py-1">PARCIAL</span>
+                    <% end %>
+                  </td>
+                  <td class="text-right font-weight-bold text-danger">$<%= '%.2f' % dev.total_a_devolver %></td>
+                  <td class="text-center">
+                    <% if dev.is_authorized %>
+                      <span class="badge badge-success px-2 py-1"><i class="fas fa-check mr-1"></i> Autorizada</span>
+                    <% else %>
+                      <span class="badge badge-warning px-2 py-1"><i class="fas fa-clock mr-1"></i> Pendiente</span>
+                    <% end %>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                      <!-- Autorizar / Desautorizar -->
+                      <%= button_to autorizar_devolucion_admin_devolucion_path(dev), method: :patch, class: "btn #{dev.is_authorized? ? 'btn-outline-secondary' : 'btn-success'}", data: { confirm: dev.is_authorized? ? "¿Desea desautorizar esta devolución?" : "¿Autorizar devolución? Esto ingresará el stock al inventario y actualizará el Kardex." } do %>
+                        <i class="fas <%= dev.is_authorized? ? 'fa-times-circle' : 'fa-check-circle' %>"></i>
+                      <% end %>
+
+                      <!-- Comprobante PDF -->
+                      <%= link_to generate_pdf_admin_devolucion_path(dev), class: "btn btn-info", target: "_blank", title: "Descargar Comprobante PDF" do %>
+                        <i class="fas fa-file-pdf"></i>
+                      <% end %>
+
+                      <!-- Editar / Eliminar (solo si no está autorizada) -->
+                      <% unless dev.is_authorized %>
+                        <%= link_to edit_admin_devolucion_path(dev), class: "btn btn-warning", title: "Editar" do %>
+                          <i class="fas fa-edit"></i>
+                        <% end %>
+                        <%= button_to admin_devolucion_path(dev), method: :delete, class: "btn btn-danger", data: { confirm: "¿Eliminar esta devolución?" } do %>
+                          <i class="fas fa-trash"></i>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- SheetJS para Excel -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<!-- jsPDF + autoTable para PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<!-- Modal para Registrar Nueva Devolución -->
+<div class="modal fade" id="nuevaDevolucionModal" tabindex="-1" role="dialog" aria-labelledby="nuevaDevolucionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title font-weight-bold" id="nuevaDevolucionModalLabel">
+          <i class="fas fa-undo mr-1"></i> Registrar Nueva Devolución
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
+      <%= form_with model: [:admin, Devolucion.new], local: true, class: "needs-validation" do |f| %>
+        <div class="modal-body">
+          
+          <div class="row">
+            <!-- Selección de Venta -->
+            <div class="form-group col-md-6">
+              <label class="font-weight-bold text-dark small">Venta Afectada:</label>
+              <%= f.collection_select :sale_id, Sale.order_by(created_at: :desc).limit(50), :id, :code, { prompt: "Seleccione una venta..." }, { class: "form-control form-control-sm", id: "devolucion_sale_id_select", required: true } %>
+            </div>
+
+            <!-- Nombre del Cliente (Se llena automáticamente) -->
+            <div class="form-group col-md-6">
+              <label class="font-weight-bold text-dark small">Nombre del Cliente:</label>
+              <%= f.text_field :client_name, id: "devolucion_client_name_input", class: "form-control form-control-sm bg-light", readonly: true, placeholder: "Se autocompletará..." %>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Fecha de Devolución -->
+            <div class="form-group col-md-6">
+              <label class="font-weight-bold text-dark small">Fecha de Devolución:</label>
+              <%= f.datetime_local_field :fecha_devolucion, value: Time.current.strftime('%Y-%m-%dT%H:%M'), class: "form-control form-control-sm" %>
+            </div>
+
+            <!-- Motivo -->
+            <div class="form-group col-md-6">
+              <label class="font-weight-bold text-dark small">Motivo / Comentarios:</label>
+              <%= f.text_field :comments_devolucion, class: "form-control form-control-sm", placeholder: "Ej. Producto defectuoso..." %>
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <h6 class="text-gray-800 font-weight-bold mb-2"><i class="fas fa-boxes mr-1"></i> Detalle de Productos de la Venta</h6>
+          <p class="text-muted small">Selecciona los productos de esta venta que el cliente desea devolver y especifica la cantidad y condición.</p>
+          
+          <!-- Contenedor dinámico de los ítems -->
+          <div id="modal-devolucion-detalles-container">
+            <!-- Las filas se cargarán automáticamente mediante JavaScript al elegir la venta -->
+            <div class="text-center text-muted py-3" id="select-sale-message">
+              <i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para cargar sus productos.
+            </div>
+          </div>
+
+          <button type="button" id="modal-add-item-btn" class="btn btn-info btn-sm shadow-sm mt-2" style="display: none;">
+            <i class="fas fa-plus mr-1"></i> Agregar Otro Producto de la Venta
+          </button>
+
+        </div>
+
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+          <%= f.submit "Guardar Devolución", class: "btn btn-success btn-sm shadow-sm px-4", id: "submit-devolucion-btn", disabled: true %>
+        </div>
+      <% end %>
+
+    </div>
+  </div>
+</div>
+
+<!-- Script dinámico inteligente para cargar los ProductSales de la venta elegida -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-  // Bootstrap Tooltips
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+  document.addEventListener("DOMContentLoaded", function() {
+    const saleSelect = document.getElementById("devolucion_sale_id_select");
+    const clientNameInput = document.getElementById("devolucion_client_name_input");
+    const container = document.getElementById("modal-devolucion-detalles-container");
+    const addBtn = document.getElementById("modal-add-item-btn");
+    const submitBtn = document.getElementById("submit-devolucion-btn");
 
-  const table = document.getElementById("devolucionesTable");
+    let saleProductsCache = [];
 
-  // Excel export
-  document.getElementById("exportExcel").addEventListener("click", () => {
-    const wb = XLSX.utils.table_to_book(table, { sheet: "Devoluciones" });
-    XLSX.writeFile(wb, `devoluciones_${new Date().toISOString().slice(0,10)}.xlsx`);
+    if (saleSelect) {
+      saleSelect.addEventListener("change", function() {
+        const saleId = this.value;
+        
+        if (!saleId) {
+          clientNameInput.value = "";
+          container.innerHTML = `<div class="text-center text-muted py-3" id="select-sale-message"><i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para cargar sus productos.</div>`;
+          addBtn.style.display = "none";
+          submitBtn.disabled = true;
+          return;
+        }
+
+        // Petición AJAX para obtener cliente y productos de la venta
+        fetch(`/admin/devoluciones/api_sale_details?sale_id=${saleId}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+              return;
+            }
+
+            // 1. Autocompletar cliente
+            clientNameInput.value = data.client_name;
+            saleProductsCache = data.products;
+
+            // 2. Limpiar contenedor y habilitar botón de guardar
+            container.innerHTML = "";
+            submitBtn.disabled = false;
+            addBtn.style.display = "block";
+
+            // 3. Renderizar el primer producto automáticamente
+            if (saleProductsCache.length > 0) {
+              addRowToContainer(saleProductsCache, false);
+            } else {
+              container.innerHTML = `<div class="text-center text-danger py-2">Esta venta no registra productos asociados.</div>`;
+              submitBtn.disabled = true;
+            }
+          })
+          .catch(err => {
+            console.error("Error al obtener detalles de la venta:", err);
+            alert("No se pudieron cargar los productos de la venta.");
+          });
+      });
+    }
+
+    // Botón para agregar más filas de productos si es devolución parcial múltiple
+    if (addBtn) {
+      addBtn.addEventListener("click", function() {
+        addRowToContainer(saleProductsCache, true);
+      });
+    }
+
+    function addRowToContainer(productsList, showRemove) {
+      let optionsHtml = '<option value="">Seleccione un producto...</option>';
+      productsList.forEach(p => {
+        optionsHtml += `<option value="${p.product_id}" data-max="${p.max_quantity}">${p.name} (Comprados: ${p.max_quantity})</option>`;
+      });
+
+      const rowHtml = `
+        <div class="row modal-devolucion-item border-bottom pb-2 mb-2 align-items-end">
+          <div class="form-group col-md-5 mb-2">
+            <label class="small font-weight-bold">Producto de la Venta:</label>
+            <select name="devolucion[sale_devolucion_detalle][][product_id]" class="form-control form-control-sm product-select" required>
+              ${optionsHtml}
+            </select>
+          </div>
+
+          <div class="form-group col-md-2 mb-2">
+            <label class="small font-weight-bold">Cantidad:</label>
+            <input type="number" name="devolucion[sale_devolucion_detalle][][cantidad]" class="form-control form-control-sm qty-input" value="1" min="1" required>
+          </div>
+
+          <div class="form-group col-md-3 mb-2">
+            <label class="small font-weight-bold">Condición:</label>
+            <select name="devolucion[sale_devolucion_detalle][][condicion]" class="form-control form-control-sm">
+              <option value="buen_estado">Buen Estado</option>
+              <option value="defectuoso">Defectuoso</option>
+            </select>
+          </div>
+
+          <div class="form-group col-md-2 mb-2 text-right">
+            <button type="button" class="btn btn-danger btn-sm modal-remove-item-btn btn-block" ${showRemove ? '' : 'style="display:none;"'}>
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      container.insertAdjacentHTML('beforeend', rowHtml);
+
+      // Vincular evento de eliminar a la nueva fila
+      const newRow = container.lastElementChild;
+      const removeBtn = newRow.querySelector(".modal-remove-item-btn");
+      removeBtn.addEventListener("click", function() {
+        newRow.remove();
+      });
+
+      // Validar que la cantidad devuelta no supere la cantidad comprada en la venta
+      const productSelect = newRow.querySelector(".product-select");
+      const qtyInput = newRow.querySelector(".qty-input");
+
+      productSelect.addEventListener("change", function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const maxQty = selectedOption.getAttribute("data-max") || 1;
+        qtyInput.max = maxQty;
+        qtyInput.value = Math.min(qtyInput.value, maxQty);
+      });
+    }
   });
-
-  // PDF export
-  document.getElementById("exportPDF").addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(14);
-    doc.text("Listado de Devoluciones", 10, 15);
-
-    const rows = [];
-    Array.from(table.tBodies[0].rows).forEach(row => {
-      const rowData = Array.from(row.cells).map(cell => cell.innerText.trim());
-      rows.push(rowData);
-    });
-
-    doc.autoTable({
-      head: [Array.from(table.tHead.rows[0].cells).map(c => c.innerText)],
-      body: rows,
-      startY: 25,
-      theme: "grid",
-      headStyles: { fillColor: [54, 162, 235] },
-      styles: { fontSize: 10 }
-    });
-
-    doc.save(`devoluciones_${new Date().toISOString().slice(0,10)}.pdf`);
-  });
-});
 </script>

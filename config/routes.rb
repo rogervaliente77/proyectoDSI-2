@@ -109,6 +109,7 @@ Rails.application.routes.draw do
       end
       collection do
         get :generate_report
+        get :api_sale_details
       end
     end
 
