@@ -35,15 +35,16 @@ class SaleTicketPdf < Prawn::Document
   private
 
   def calcular_altura_ticket
-    # Base fija (encabezado, cliente, totales, barcode, footer): ~300pt
-    # ~25pt por cada producto
-    300 + (@product_sales.count * 25)
+    # Base fija ajustada a 340pt para dar espacio al correo de la empresa y los nuevos campos
+    # ~25pt por cada producto adicional
+    340 + (@product_sales.count * 25)
   end
 
   def encabezado
     nombre_empresa = @config&.company_name.presence || "BIMERS MOTORS CARS"
     direccion = @config&.address.presence || @config&.short_address.presence || "C. El Algodon Casa 114, San Salvador"
     telefono = @config&.phone.presence || @config&.tel.presence || "2262 1909"
+    email = @config&.company_email.presence || "bimersmotor.cars@gmail.com"
 
     # Logo centrado
     logo_path = Rails.root.join('app/assets/images/logo_bimers.png')
@@ -55,6 +56,7 @@ class SaleTicketPdf < Prawn::Document
     text nombre_empresa.upcase, size: 9, style: :bold, align: :center
     text direccion, size: 7, align: :center
     text "Tel: #{telefono}", size: 7, align: :center
+    text email, size: 7, align: :center, color: "444444"
     move_down 5
 
     text "TICKET DE VENTA", size: 9, style: :bold, align: :center
@@ -66,9 +68,22 @@ class SaleTicketPdf < Prawn::Document
     fecha_venta = @sale.created_at ? @sale.created_at.strftime("%d/%m/%Y %H:%M") : Date.today.strftime("%d/%m/%Y %H:%M")
     cliente_nombre = @sale.client_name.presence || "CLIENTE GENERAL"
 
+    forma_pago_nombre = begin
+      fp = FormaPago.where(codigo: @sale.forma_pago).first
+      fp&.name || @sale.forma_pago.presence || "N/A"
+    rescue
+      @sale.forma_pago.presence || "N/A"
+    end
+
+    caja_nombre = @sale.caja_id.present? ? Caja.where(id: @sale.caja_id).first&.nombre : nil
+    cajero_nombre = @sale.cajero_id.present? ? Cajero.where(id: @sale.cajero_id).first&.nombre : nil
+    cajero_info = [caja_nombre, cajero_nombre].compact.join(" / ").presence
+
     font_size 7 do
       text "<b>FECHA:</b> #{fecha_venta}", inline_format: true
       text "<b>CLIENTE:</b> #{cliente_nombre.upcase}", inline_format: true
+      text "<b>F. PAGO:</b> #{forma_pago_nombre.upcase}", inline_format: true
+      text "<b>CAJA/CAJERO:</b> #{cajero_info.upcase}", inline_format: true if cajero_info
     end
   end
 

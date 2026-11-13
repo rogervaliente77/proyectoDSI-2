@@ -68,9 +68,22 @@ class SalePdf < Prawn::Document
     fecha_venta = @sale.created_at ? @sale.created_at.strftime("%d/%m/%Y %H:%M") : Date.today.strftime("%d/%m/%Y %H:%M")
     cliente_nombre = @sale.client_name.presence || "CLIENTE GENERAL / CONTADO"
 
+    forma_pago_nombre = begin
+      fp = FormaPago.where(codigo: @sale.forma_pago).first
+      fp&.name || @sale.forma_pago.presence || "N/A"
+    rescue
+      @sale.forma_pago.presence || "N/A"
+    end
+
+    caja_nombre = @sale.caja_id.present? ? Caja.where(id: @sale.caja_id).first&.nombre : nil
+    cajero_nombre = @sale.cajero_id.present? ? Cajero.where(id: @sale.cajero_id).first&.nombre : nil
+    cajero_info = [caja_nombre, cajero_nombre].compact.join(" / ").presence || "N/A"
+    condicion_trib = (@sale.condicion_tributaria || "gravado").capitalize
+
     datos = [
       ["<b>CLIENTE:</b>", cliente_nombre.upcase, "<b>FECHA:</b>", fecha_venta],
-      ["<b>CÓDIGO VENTA:</b>", @sale.code.to_s, "", ""]
+      ["<b>CÓDIGO VENTA:</b>", @sale.code.to_s, "<b>FORMA PAGO:</b>", forma_pago_nombre.upcase],
+      ["<b>CONDICIÓN TRIBUTARIA:</b>", condicion_trib.upcase, "<b>CAJA / CAJERO:</b>", cajero_info.upcase]
     ]
 
     font_size 8
@@ -78,12 +91,12 @@ class SalePdf < Prawn::Document
     datos.each do |row|
       float do
         bounding_box([0, cursor], width: 552) do
-          text_box row[0], at: [0, cursor], width: 85, inline_format: true
-          text_box row[1], at: [85, cursor], width: 250, inline_format: true
+          text_box row[0], at: [0, cursor], width: 105, inline_format: true
+          text_box row[1], at: [105, cursor], width: 250, inline_format: true
 
           if row[2].present?
-            text_box row[2], at: [350, cursor], width: 50, inline_format: true
-            text_box row[3], at: [400, cursor], width: 150, inline_format: true
+            text_box row[2], at: [350, cursor], width: 85, inline_format: true
+            text_box row[3], at: [435, cursor], width: 117, inline_format: true
           end
         end
       end

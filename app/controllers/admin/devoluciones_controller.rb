@@ -185,8 +185,10 @@ module Admin
               product_id: ps.product_id.to_s,
               name: ps.product&.name || 'Producto',
               max_quantity: ps.quantity,
-              unit_price: ps.unit_price,
-              subtotal: ps.subtotal
+              unit_price: ps.unit_price.to_f,
+              discount: ps.discount.to_f,
+              discount_porcentage: ps.discount_porcentage.to_f,
+              subtotal: ps.subtotal.to_f
             }
           }
         }
@@ -195,6 +197,21 @@ module Admin
       end
     rescue Mongoid::Errors::DocumentNotFound
       render json: { error: "Venta no encontrada" }, status: :not_found
+    end
+
+    # Endpoint AJAX para obtener ventas frescas sin devoluciones al abrir el modal
+    def api_available_sales
+      sale_ids_con_dev = Devolucion.pluck(:sale_id)
+      ventas = Sale.where(:id.nin => sale_ids_con_dev).order_by(created_at: :desc).limit(50)
+
+      render json: ventas.map { |s|
+        {
+          id: s.id.to_s,
+          code: s.code,
+          client_name: s.client_name || 'Público General',
+          created_at: s.created_at.strftime('%d/%m/%Y %H:%M')
+        }
+      }
     end
 
     private

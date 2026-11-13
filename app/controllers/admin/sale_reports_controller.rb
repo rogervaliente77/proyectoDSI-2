@@ -58,6 +58,7 @@ module Admin
       online_totals = []
       manual_totals = []
       rows = []
+      detailed_groups = []
 
       grouped.each do |date, day_sales|
         labels << date
@@ -74,6 +75,28 @@ module Admin
           manual_amount: "$#{'%.2f' % manual_sum}",
           total_amount: "$#{'%.2f' % (online_sum + manual_sum)}"
         }
+
+        # Agrupación por tipo (En Línea vs Manual) dentro de cada fecha
+        by_type = day_sales.group_by { |s| s.online_order ? 'En Línea' : 'Manual (Taller)' }
+        type_details = by_type.map do |type_name, type_sales|
+          {
+            type_name: type_name,
+            sales: type_sales.map { |s|
+              {
+                code: s.code,
+                client_name: s.client_name || 'Sin cliente',
+                total_amount: "$#{'%.2f' % (s.total_amount || 0)}",
+                status: s.status,
+                payment_status: s.payment_status
+              }
+            }
+          }
+        end
+
+        detailed_groups << {
+          date: date,
+          types: type_details
+        }
       end
 
       {
@@ -86,6 +109,7 @@ module Admin
           ]
         },
         rows: rows,
+        detailed_groups: detailed_groups,
         summary: {
           grand_total: "$#{'%.2f' % sales.sum(&:total_amount)}",
           total_count: sales.count,
@@ -95,6 +119,7 @@ module Admin
       }
     end
 
+    
     def generate_top_products_report(sales)
       sale_ids = sales.pluck(:id)
       product_sales = ProductSale.where(:sale_id.in => sale_ids)

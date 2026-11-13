@@ -1,4 +1,22 @@
-<!-- Audio elements para ringtone continuo y campanita corta -->
+<%# Precarga en memoria: evita una query por fila (N+1) %>
+<%
+  cajas       = Caja.where(id: @online_sales.map(&:caja_id).compact).index_by { |c| c.id.to_s }
+  cajeros     = Cajero.where(id: @online_sales.map(&:cajero_id).compact).index_by { |c| c.id.to_s }
+  formas_pago = FormaPago.where(codigo: @online_sales.map(&:forma_pago).compact.uniq).index_by { |f| f.codigo.to_s }
+%>
+
+<style>
+  @keyframes pulseGlowTable {
+    0%   { background-color: rgba(254, 243, 199, 0.5); }
+    50%  { background-color: rgba(254, 193, 7, 0.4); }
+    100% { background-color: rgba(254, 243, 199, 0.5); }
+  }
+  .pulse-animation-row {
+    animation: pulseGlowTable 1.5s infinite ease-in-out;
+  }
+</style>
+
+<!-- Audio: ringtone continuo y campanita corta -->
 <audio id="persistent-ringtone" loop>
   <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
 </audio>
@@ -23,7 +41,7 @@
           <% if flash[:alert] %><div class="alert alert-danger"><%= flash[:alert] %></div><% end %>
 
           <div class="table-responsive">
-            <table class="table table-bordered" id="onlineSalesTable">
+            <table class="table table-bordered" id="onlineSalesTable" width="100%" cellspacing="0">
               <thead class="thead-light">
                 <tr>
                   <th>No</th>
@@ -35,153 +53,93 @@
                   <th>Pago</th>
                   <th>Entrega</th>
                   <th>Estado Pedido</th>
-                  <th>Acciones</th>
+                  <th class="text-center">Devolución</th>
+                  <th class="text-center">Acciones</th>
                 </tr>
               </thead>
+
+              <%# IMPORTANTE: dentro del tbody SOLO van <tr>. Los modales van después de la tabla. %>
               <tbody>
                 <% @online_sales.each_with_index do |sale, index| %>
-                  <% 
+                  <%
                     is_pending_action = !sale.admin_acknowledged
-                    is_pulse = ['pending_payment_comprob', 'pending_check_payment_comprob'].include?(sale.status)
-                    
-                    # Consultas seguras para Caja y Cajero
-                    caja_obj = Caja.where(id: sale.caja_id).first if sale.caja_id.present?
-                    cajero_obj = Cajero.where(id: sale.cajero_id).first if sale.cajero_id.present?
+                    is_pulse          = %w[pending_payment_comprob pending_check_payment_comprob].include?(sale.status)
+                    caja_obj          = cajas[sale.caja_id.to_s]
+                    cajero_obj        = cajeros[sale.cajero_id.to_s]
+                    forma_pago_obj    = formas_pago[sale.forma_pago.to_s]
+                    devoluciones      = sale.devoluciones.to_a
                   %>
                   <tr id="sale-row-<%= sale.id %>" class="<%= 'pulse-animation-row' if is_pulse %>">
                     <td><%= index + 1 %></td>
+
                     <td>
                       <strong><%= sale.code %></strong>
                       <% if is_pending_action %>
-                        <br><button onclick="acknowledgeSale('<%= sale.id %>')" class="btn btn-warning btn-xs mt-1 shadow-sm font-weight-bold" style="font-size: 0.7rem;"><i class="fas fa-bell"></i> Atender / Silenciar</button>
+                        <br>
+                        <button type="button" onclick="acknowledgeSale('<%= sale.id %>')"
+                                class="btn btn-warning btn-xs mt-1 shadow-sm font-weight-bold" style="font-size: 0.7rem;">
+                          <i class="fas fa-bell"></i> Atender / Silenciar
+                        </button>
                       <% end %>
                     </td>
+
                     <td><%= sale.client_name %></td>
                     <td>$<%= '%.2f' % sale.total_amount %></td>
+
                     <td>
-                      <span class="badge badge-primary">
-                        <% forma_pago = FormaPago.where(codigo: sale.forma_pago).first %>
-                        <%= forma_pago.name rescue 'Sin registro' %>
-                      </span>
+                      <span class="badge badge-primary"><%= forma_pago_obj&.name || 'Sin registro' %></span>
                     </td>
+
                     <td>
                       <div style="font-size: 0.78rem; line-height: 1.2;">
                         <span class="text-dark font-weight-bold">Caja:</span> <%= caja_obj&.nombre || 'N/A' %><br>
                         <span class="text-dark font-weight-bold">Cajero:</span> <%= cajero_obj&.nombre || 'N/A' %>
                       </div>
                     </td>
+
                     <td>
                       <span class="badge badge-<%= sale.payment_status == 'paid' ? 'success' : 'warning' %>">
                         <%= format_sale_payment_status(sale.payment_status) %>
                       </span>
                     </td>
+
                     <td>
                       <span class="badge badge-primary">
                         <%= sale.delivery_method == 'delivery' ? 'Domicilio' : 'Recoger en taller' %>
                       </span>
                     </td>
+
                     <td>
                       <span id="badge-status-<%= sale.id %>" class="badge badge-info">
                         <%= format_sale_status(sale.status) %>
                       </span>
                     </td>
-                    <td>
-                      <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#timelineModal-<%= sale.id %>">
+
+                    <!-- Devolución -->
+                    <td class="text-center align-middle">
+                      <% if devoluciones.any? %>
+                        <button type="button" class="btn btn-danger btn-sm shadow-sm font-weight-bold"
+                                data-toggle="modal" data-target="#devolucionModal-<%= sale.id %>">
+                          <i class="fas fa-undo mr-1"></i> Sí (<%= devoluciones.size %>)
+                        </button>
+                      <% else %>
+                        <span class="badge badge-secondary px-2 py-1">No</span>
+                      <% end %>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="text-center align-middle">
+                      <button type="button" class="btn btn-primary btn-sm shadow-sm"
+                              data-toggle="modal" data-target="#timelineModal-<%= sale.id %>">
                         <i class="fas fa-timeline"></i> <span>Ver Estado</span>
                       </button>
                     </td>
                   </tr>
-
-                  <!-- MODAL DE GESTIÓN Y TRANSICIÓN DE ESTADOS -->
-                  <div class="modal fade" id="timelineModal-<%= sale.id %>" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                      <div class="modal-content shadow">
-                        <div class="modal-header bg-dark text-white">
-                          <h5 class="modal-title font-weight-bold">Seguimiento y Control: <%= sale.code %></h5>
-                          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                          </button>
-                        </div>
-                        <div class="modal-body">
-                          
-                          <% if sale.transfer_proof_path.present? %>
-                            <div class="mb-4 p-3 bg-light border rounded">
-                              <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-receipt text-primary"></i> Comprobante Subido:</h6>
-                              <a href="<%= sale.transfer_proof_path %>" target="_blank" class="btn btn-sm btn-info shadow-sm" data-turbolinks="false">
-                                <i class="fas fa-eye"></i> Ver Comprobante
-                              </a>
-                            </div>
-                          <% end %>
-
-                          <div class="timeline-container mb-4">
-                            <h6 class="font-weight-bold text-dark mb-3">Historial de Bitácora</h6>
-                            <ul class="list-group" id="timeline-list-<%= sale.id %>">
-                              <% 
-                                sorted_logs = (sale.status_logs || []).sort_by { |log| Time.parse(log['changed_at'].to_s) rescue Time.at(0) } 
-                              %>
-                              <% sorted_logs.each do |log| %>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                  <div>
-                                    <span class="font-weight-bold text-primary"><%= format_sale_status(log['status']) %></span>
-                                    <p class="mb-0 text-muted small"><%= log['comment'] %></p>
-                                  </div>
-                                  <small class="text-secondary"><%= Time.zone.parse(log['changed_at'].to_s).strftime("%d/%m/%Y %H:%M") %></small>
-                                </li>
-                              <% end %>
-                            </ul>
-                          </div>
-
-                          <!-- SELECTOR INTELIGENTE DE ESTADOS -->
-                          <div class="p-3 bg-light rounded border">
-                            <h6 class="font-weight-bold text-dark mb-2">Avanzar Estado del Pedido</h6>
-
-                            <% if sale.status == 'delivered'%><h6 class="font-weight-bold text-dark mb-2">Esta venta ya fue completada</h6> <% end %>
-
-                            <%= form_with url: update_status_admin_online_sale_path(sale), method: :patch, local: true, class: "form-row align-items-center" do %>
-                              <div class="col-md-8 mb-2 mb-md-0">
-                                <select name="new_status" class="form-control form-control-sm">
-                                  <% if sale&.status == 'confirmed' && sale&.forma_pago == '01' %>
-                                    <option value="preparing">Preparando pedido (preparing)</option>
-                                  <% elsif sale.status == 'pending_check_payment_comprob' %>
-                                    <option value="payment_approved">Aprobar Pago (Payment Approved)</option>
-                                  <% elsif sale.status == 'payment_approved' %>
-                                    <option value="preparing">Preparando pedido (preparing)</option>
-                                  <% elsif sale.status == 'preparing' %>
-                                    <% if sale.delivery_method == 'pickup' %>
-                                      <option value="pending_to_pickup">Listo para Recoger en Taller (Pending to Pickup)</option>
-                                    <% else %>
-                                      <option value="assigned">Asignar a Mensajero (Assigned)</option>
-                                    <% end %>
-                                  <% elsif sale.status == 'assigned' %>
-                                    <option value="on_route">En Camino (On Route)</option>
-                                  <% elsif sale.status == 'on_route' %>
-                                    <option value="on_place">En el Lugar de Destino (On Place)</option>
-                                  <% elsif sale.status == 'on_place' || sale.status == 'pending_to_pickup' %>
-                                    <option value="delivered">Marcar Pagado y Entregado (Delivered)</option>
-                                  <% elsif sale.status == 'delivered'%>
-                                    <span class="font-weight-bold text-primary">Esta venta fue completada</span>
-                                  <% end %>
-                                  
-                                </select>
-                              </div>
-
-                              <% if sale.status != 'delivered'%>
-                                <div class="col-md-4">
-                                  <button type="submit" class="btn btn-success btn-sm btn-block shadow-sm">Aplicar Cambio</button>
-                                </div>
-                              <% end %>
-                              
-                            <% end %>
-                          </div>
-
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 <% end %>
               </tbody>
             </table>
           </div>
+          <%# fin .table-responsive %>
 
         </div>
       </div>
@@ -189,16 +147,199 @@
   </div>
 </div>
 
-<style>
-  @keyframes pulseGlowTable {
-    0% { background-color: rgba(254, 243, 199, 0.5); }
-    50% { background-color: rgba(254, 193, 7, 0.4); }
-    100% { background-color: rgba(254, 243, 199, 0.5); }
-  }
-  .pulse-animation-row {
-    animation: pulseGlowTable 1.5s infinite ease-in-out;
-  }
-</style>
+<%# ===================== MODALES (fuera de la tabla) ===================== %>
+<% @online_sales.each do |sale| %>
+  <%
+    devoluciones = sale.devoluciones.to_a
+
+    # Productos de las devoluciones de esta venta (una sola query)
+    product_ids = devoluciones.flat_map { |d| (d.sale_devolucion_detalle || []).map { |i| i["product_id"] } }.compact.uniq
+    products    = product_ids.any? ? Product.where(id: product_ids).index_by { |p| p.id.to_s } : {}
+
+    # Siguiente estado permitido: [valor, etiqueta] o nil si no hay acción disponible
+    next_option =
+      if sale.status == 'confirmed' && sale.forma_pago == '01'
+        ['preparing', 'Preparando pedido (preparing)']
+      elsif sale.status == 'pending_check_payment_comprob'
+        ['payment_approved', 'Aprobar Pago (Payment Approved)']
+      elsif sale.status == 'payment_approved'
+        ['preparing', 'Preparando pedido (preparing)']
+      elsif sale.status == 'preparing'
+        if sale.delivery_method == 'pickup'
+          ['pending_to_pickup', 'Listo para Recoger en Taller (Pending to Pickup)']
+        else
+          ['assigned', 'Asignar a Mensajero (Assigned)']
+        end
+      elsif sale.status == 'assigned'
+        ['on_route', 'En Camino (On Route)']
+      elsif sale.status == 'on_route'
+        ['on_place', 'En el Lugar de Destino (On Place)']
+      elsif %w[on_place pending_to_pickup].include?(sale.status)
+        ['delivered', 'Marcar Pagado y Entregado (Delivered)']
+      end
+
+    sorted_logs = (sale.status_logs || []).sort_by do |log|
+      (Time.zone.parse(log['changed_at'].to_s) rescue nil) || Time.at(0)
+    end
+  %>
+
+  <!-- MODAL DE DEVOLUCIONES -->
+  <% if devoluciones.any? %>
+    <div class="modal fade" id="devolucionModal-<%= sale.id %>" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content shadow">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title font-weight-bold">
+              <i class="fas fa-undo mr-2"></i> Detalle de Devoluciones - Orden: <%= sale.code %>
+            </h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <% devoluciones.each_with_index do |dev, idx| %>
+              <div class="card border-left-danger shadow-sm mb-3">
+                <div class="card-body py-2 px-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-weight-bold text-dark">
+                      Devolución #<%= idx + 1 %> (<%= dev.tipo_devolucion.to_s.upcase %>)
+                    </span>
+                    <div>
+                      <% if dev.is_authorized %>
+                        <span class="badge badge-success">Autorizada</span>
+                      <% else %>
+                        <span class="badge badge-warning">Pendiente de Autorización</span>
+                      <% end %>
+                      <span class="badge badge-danger ml-1">Monto: $<%= '%.2f' % dev.total_a_devolver.to_f %></span>
+                    </div>
+                  </div>
+
+                  <p class="small text-muted mb-1">
+                    <strong>Fecha:</strong>
+                    <%= (dev.fecha_devolucion || dev.created_at)&.strftime('%d/%m/%Y %H:%M') %>
+                  </p>
+
+                  <% if dev.comments_devolucion.present? %>
+                    <p class="small text-secondary mb-2"><strong>Comentarios:</strong> <%= dev.comments_devolucion %></p>
+                  <% end %>
+
+                  <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;" width="100%" cellspacing="0">
+                      <thead class="thead-light">
+                        <tr>
+                          <th>Producto</th>
+                          <th class="text-center">Cant. Devuelta</th>
+                          <th class="text-right">Precio Unit.</th>
+                          <th class="text-right">Subtotal</th>
+                          <th class="text-center">Condición</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% (dev.sale_devolucion_detalle || []).each do |item| %>
+                          <%
+                            prod   = products[item["product_id"].to_s]
+                            precio = (item["precio_con_descuento"].presence || item["precio_unitario"]).to_f
+                          %>
+                          <tr>
+                            <td><%= prod&.name || 'Producto' %></td>
+                            <td class="text-center font-weight-bold"><%= item["cantidad"] %></td>
+                            <td class="text-right">$<%= '%.2f' % precio %></td>
+                            <td class="text-right">$<%= '%.2f' % (precio * item["cantidad"].to_i) %></td>
+                            <td class="text-center">
+                              <% if item["condicion"] == "defectuoso" %>
+                                <span class="badge badge-warning text-dark">Defectuoso</span>
+                              <% else %>
+                                <span class="badge badge-success">Buen Estado</span>
+                              <% end %>
+                            </td>
+                          </tr>
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- MODAL DE SEGUIMIENTO Y CAMBIO DE ESTADO -->
+  <div class="modal fade" id="timelineModal-<%= sale.id %>" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content shadow">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title font-weight-bold">Seguimiento y Control: <%= sale.code %></h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+
+          <% if sale.transfer_proof_path.present? %>
+            <div class="mb-4 p-3 bg-light border rounded">
+              <h6 class="font-weight-bold text-dark mb-2">
+                <i class="fas fa-receipt text-primary"></i> Comprobante Subido:
+              </h6>
+              <a href="<%= sale.transfer_proof_path %>" target="_blank" rel="noopener"
+                 class="btn btn-sm btn-info shadow-sm" data-turbolinks="false">
+                <i class="fas fa-eye"></i> Ver Comprobante
+              </a>
+            </div>
+          <% end %>
+
+          <div class="timeline-container mb-4">
+            <h6 class="font-weight-bold text-dark mb-3">Historial de Bitácora</h6>
+            <ul class="list-group" id="timeline-list-<%= sale.id %>">
+              <% sorted_logs.each do |log| %>
+                <% changed_at = (Time.zone.parse(log['changed_at'].to_s) rescue nil) %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="font-weight-bold text-primary"><%= format_sale_status(log['status']) %></span>
+                    <p class="mb-0 text-muted small"><%= log['comment'] %></p>
+                  </div>
+                  <small class="text-secondary"><%= changed_at&.strftime("%d/%m/%Y %H:%M") %></small>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+
+          <!-- Selector de estado -->
+          <div class="p-3 bg-light rounded border">
+            <h6 class="font-weight-bold text-dark mb-2">Avanzar Estado del Pedido</h6>
+
+            <% if sale.status == 'delivered' %>
+              <p class="font-weight-bold text-primary mb-0">Esta venta ya fue completada.</p>
+            <% elsif next_option.nil? %>
+              <p class="text-muted small mb-0">No hay acciones disponibles para el estado actual.</p>
+            <% else %>
+              <%= form_with url: update_status_admin_online_sale_path(sale), method: :patch, local: true,
+                            class: "form-row align-items-center" do %>
+                <div class="col-md-8 mb-2 mb-md-0">
+                  <select name="new_status" class="form-control form-control-sm">
+                    <option value="<%= next_option[0] %>"><%= next_option[1] %></option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <button type="submit" class="btn btn-success btn-sm btn-block shadow-sm">Aplicar Cambio</button>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
 
 <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
 
@@ -211,7 +352,7 @@
     }).then(response => {
       if (response.ok) {
         localStorage.setItem(`acknowledged_${saleId}`, 'true');
-        
+
         const ringtone = document.getElementById('persistent-ringtone');
         if (ringtone) {
           ringtone.pause();
@@ -222,14 +363,15 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", function() {
-    const ringtone = document.getElementById('persistent-ringtone');
+  document.addEventListener("DOMContentLoaded", function () {
+    const ringtone  = document.getElementById('persistent-ringtone');
     const shortBell = document.getElementById('short-bell');
 
+    // Sonar al cargar si hay pedidos pendientes sin atender
     const pendingRows = document.querySelectorAll('.pulse-animation-row');
     if (pendingRows.length > 0 && ringtone) {
       let shouldRing = false;
-      
+
       pendingRows.forEach(row => {
         const saleId = row.id.replace('sale-row-', '');
         if (localStorage.getItem(`acknowledged_${saleId}`) !== 'true') {
@@ -238,7 +380,7 @@
       });
 
       if (shouldRing) {
-        ringtone.play().catch(e => console.log("Audio autoplay bloqueado por políticas del navegador"));
+        ringtone.play().catch(() => console.log("Audio autoplay bloqueado por políticas del navegador"));
       }
     }
 
@@ -266,33 +408,39 @@
       }, 60000);
     }
 
+    // Recarga diferida: si el usuario está en un modal o escribiendo, reintenta cada 10s
+    let reloadTimer = null;
+    function scheduleReload() {
+      if (reloadTimer) return;
+      const attempt = function () {
+        const isModalOpen = document.querySelector('.modal.show') !== null;
+        const el = document.activeElement;
+        const isInteracting = el && (el.tagName === 'SELECT' || el.tagName === 'INPUT');
+
+        if (isModalOpen || isInteracting) {
+          reloadTimer = setTimeout(attempt, 10000);
+        } else {
+          window.location.reload();
+        }
+      };
+      reloadTimer = setTimeout(attempt, 10000);
+    }
+
     const consumer = ActionCable.createConsumer();
     consumer.subscriptions.create({ channel: "SaleChannel" }, {
       received(data) {
-        // Validación inteligente: Si hay un modal abierto o se está interactuando con formularios, 
-        // evitamos la recarga automática para no interrumpir al usuario.
-        const isModalOpen = document.querySelector('.modal.show') !== null;
-        const isInteracting = document.activeElement && (
-          document.activeElement.tagName === 'SELECT' || 
-          document.activeElement.tagName === 'INPUT' || 
-          document.activeElement.tagName === 'BUTTON'
-        );
-
         if (data.action === "new_sale") {
-          if (ringtone) ringtone.play().catch(e => {});
-          showFloatingAlert("¡Nueva Orden En Línea!", `Pedido <b>${data.code}</b> por $${parseFloat(data.total_amount || 0).toFixed(2)}`, "warning");
-          
-          if (!isModalOpen && !isInteracting) {
-            setTimeout(() => window.location.reload(), 10000);
-          }
+          if (ringtone) ringtone.play().catch(() => {});
+          showFloatingAlert(
+            "¡Nueva Orden En Línea!",
+            `Pedido <b>${data.code}</b> por $${parseFloat(data.total_amount || 0).toFixed(2)}`,
+            "warning"
+          );
         } else {
-          if (shortBell) shortBell.play().catch(e => {});
+          if (shortBell) shortBell.play().catch(() => {});
           showFloatingAlert("Actualización de Pedido", `La orden ${data.code || ''} cambió de estado.`, "success");
-          
-          if (!isModalOpen && !isInteracting) {
-            setTimeout(() => window.location.reload(), 10000);
-          }
         }
+        scheduleReload();
       }
     });
   });

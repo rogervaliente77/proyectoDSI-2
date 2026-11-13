@@ -68,7 +68,7 @@
 
       <!-- Tabla de Ventas con Scroll Horizontal -->
       <div class="table-responsive shadow-sm rounded border">
-        <table class="table table-bordered table-hover table-striped table-sm compact-sales-table mb-0">
+        <table class="table table-bordered table-hover table-striped table-sm compact-sales-table mb-0" width="100%" cellspacing="0">
           <thead class="table-dark">
             <tr>
               <th class="text-center">#</th>
@@ -80,40 +80,49 @@
               <th>Cliente</th>
               <th>Caja</th>
               <th>Monto</th>
-              <th class="text-center">Devolución</th>
+              <th class="text-center" title="Devolución"><i class="fas fa-undo"></i></th> <!-- 🌟 Cabecera minimizada con icono -->
               <th class="text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <% @sales.each_with_index do |sale, index| %>
+              <% 
+                devoluciones_venta = sale.devoluciones
+                tiene_devolucion = devoluciones_venta.present?
+              %>
               <tr>
-                <td class="text-center fw-bold"><%= index + 1 %></td>
-                <td><%= sale.sold_at&.strftime('%d/%m/%Y %H:%M') %></td>
-                <td><span class="badge bg-dark font-xs"><%= sale.code %></span></td>
-                <td>
+                <td class="text-center fw-bold align-middle"><%= index + 1 %></td>
+                <td class="align-middle"><%= sale.sold_at&.strftime('%d/%m/%Y %H:%M') %></td>
+                <td class="align-middle"><span class="badge bg-dark font-xs"><%= sale.code %></span></td>
+                <td class="align-middle">
                   <% if sale.tipo_documento_dte.present? %>
                     <span class="badge bg-info text-dark font-xs"><%= sale.tipo_documento_dte.name %></span>
                   <% else %>
                     <span class="badge bg-secondary font-xs">Sin DTE</span>
                   <% end %>
                 </td>
-                <td>
+                <td class="align-middle">
                   <span class="badge bg-light text-dark font-xs border">
                     <%= (sale.condicion_tributaria || "gravado").capitalize %>
                   </span>
                 </td>
-                <td><%= sale.sucursal&.name || sale.caja&.sucursal&.name || "Matriz" %></td>
-                <td><%= sale.client_name || "Sin cliente" %></td>
-                <td><%= sale.caja&.nombre || "Sin caja" %></td>
-                <td class="fw-bold">$<%= number_with_precision(sale.total_amount, precision: 2) %></td>
-                <td class="text-center">
-                  <% if sale.devoluciones.any? %>
-                    <span class="badge bg-success font-xs">SÍ</span>
+                <td class="align-middle"><%= sale.sucursal&.name || sale.caja&.sucursal&.name || "Matriz" %></td>
+                <td class="align-middle"><%= sale.client_name || "Sin cliente" %></td>
+                <td class="align-middle"><%= sale.caja&.nombre || "Sin caja" %></td>
+                <td class="fw-bold align-middle">$<%= number_with_precision(sale.total_amount, precision: 2) %></td>
+                
+                <!-- 🌟 Celda compacta con la flecha de devolución -->
+                <td class="text-center align-middle">
+                  <% if tiene_devolucion %>
+                    <button type="button" class="btn btn-danger btn-xs shadow-sm px-2 py-1" data-toggle="modal" data-target="#devolucionModal-<%= sale.id %>" title="Ver devolución (<%= devoluciones_venta.count %>)">
+                      <i class="fas fa-undo"></i>
+                    </button>
                   <% else %>
-                    <span class="badge bg-secondary font-xs">NO</span>
+                    <span class="text-muted" style="opacity: 0.3;" title="Sin devolución"><i class="fas fa-undo"></i></span>
                   <% end %>
                 </td>
-                <td class="text-center">
+
+                <td class="text-center align-middle">
                   <%= link_to detalle_venta_admin_sales_path(id: sale.id), class: "btn btn-xs btn-outline-primary" do %>
                     Ver detalle
                   <% end %>
@@ -145,6 +154,82 @@
   </div>
 
 </div>
+
+<!-- 🌟 LOS MODALES VAN FUERA DE LA TABLA Y DE LOS CONTENEDORES DE LA TABLA -->
+<% @sales.each do |sale| %>
+  <% if sale.devoluciones.present? %>
+    <div class="modal fade" id="devolucionModal-<%= sale.id %>" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content shadow">
+          <div class="modal-header bg-danger text-white py-2">
+            <h6 class="modal-title font-weight-bold"><i class="fas fa-undo mr-2"></i> Detalle de Devoluciones - Venta: <%= sale.code %></h6>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body text-left">
+            <% sale.devoluciones.each_with_index do |dev, idx| %>
+              <div class="card border-left-danger shadow-sm mb-3">
+                <div class="card-body py-2 px-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-weight-bold text-dark">Devolución #<%= idx + 1 %> (<%= dev.tipo_devolucion.upcase %>)</span>
+                    <div>
+                      <% if dev.is_authorized %>
+                        <span class="badge badge-success">Autorizada</span>
+                      <% else %>
+                        <span class="badge badge-warning">Pendiente de Autorización</span>
+                      <% end %>
+                      <span class="badge badge-danger ml-1">Monto: $<%= '%.2f' % dev.total_a_devolver %></span>
+                    </div>
+                  </div>
+                  <p class="small text-muted mb-1"><strong>Fecha:</strong> <%= dev.fecha_devolucion&.strftime('%d/%m/%Y %H:%M') || dev.created_at.strftime('%d/%m/%Y %H:%M') %></p>
+                  <% if dev.comments_devolucion.present? %>
+                    <p class="small text-secondary mb-2"><strong>Comentarios:</strong> <%= dev.comments_devolucion %></p>
+                  <% end %>
+
+                  <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.82rem;" width="100%" cellspacing="0">
+                      <thead class="thead-light">
+                        <tr>
+                          <th>Producto</th>
+                          <th class="text-center">Cant. Devuelta</th>
+                          <th class="text-right">Precio Unit.</th>
+                          <th class="text-right">Subtotal</th>
+                          <th class="text-center">Condición</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% (dev.sale_devolucion_detalle || []).each do |item| %>
+                          <% prod = Product.find_by(id: item["product_id"]) %>
+                          <tr>
+                            <td><%= prod&.name || 'Producto' %></td>
+                            <td class="text-center font-weight-bold"><%= item["cantidad"] %></td>
+                            <td class="text-right">$<%= '%.2f' % (item["precio_con_descuento"].presence || item["precio_unitario"]).to_f %></td>
+                            <td class="text-right">$<%= '%.2f' % ((item["precio_con_descuento"].presence || item["precio_unitario"]).to_f * item["cantidad"].to_i) %></td>
+                            <td class="text-center">
+                              <% if item["condicion"] == "defectuoso" %>
+                                <span class="badge badge-warning text-dark">Defectuoso</span>
+                              <% else %>
+                                <span class="badge badge-success">Buen Estado</span>
+                              <% end %>
+                            </td>
+                          </tr>
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+          <div class="modal-footer bg-light py-1">
+            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
 
 <!-- Estilos para compactar la tabla y habilitar scroll horizontal si se desborda -->
 <style>

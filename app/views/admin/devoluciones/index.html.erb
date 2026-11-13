@@ -180,10 +180,12 @@
         <div class="modal-body">
           
           <div class="row">
-            <!-- Selección de Venta -->
+            <!-- Selección de Venta (Cargada dinámicamente vía AJAX al abrir el modal) -->
             <div class="form-group col-md-6">
               <label class="font-weight-bold text-dark small">Venta Afectada:</label>
-              <%= f.collection_select :sale_id, Sale.order_by(created_at: :desc).limit(50), :id, :code, { prompt: "Seleccione una venta..." }, { class: "form-control form-control-sm", id: "devolucion_sale_id_select", required: true } %>
+              <select name="devolucion[sale_id]" id="devolucion_sale_id_select" class="form-control form-control-sm" required>
+                <option value="">Cargando ventas disponibles...</option>
+              </select>
             </div>
 
             <!-- Nombre del Cliente (Se llena automáticamente) -->
@@ -209,14 +211,34 @@
 
           <hr class="my-3">
 
-          <h6 class="text-gray-800 font-weight-bold mb-2"><i class="fas fa-boxes mr-1"></i> Detalle de Productos de la Venta</h6>
-          <p class="text-muted small">Selecciona los productos de esta venta que el cliente desea devolver y especifica la cantidad y condición.</p>
+          <!-- Tabla Resumen de Productos Comprados en la Venta -->
+          <div id="sale-summary-section" style="display: none;" class="mb-4">
+            <h6 class="text-gray-800 font-weight-bold mb-2"><i class="fas fa-receipt mr-1"></i> Detalle de la Venta Original (Product Sales)</h6>
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm table-light mb-0 text-dark" style="font-size: 0.85rem;">
+                <thead class="thead-light">
+                  <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cant. Comprada</th>
+                    <th class="text-right">Precio Unit.</th>
+                    <th class="text-right">Descuento</th>
+                    <th class="text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="sale-original-items-tbody">
+                  <!-- Se llena por JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <h6 class="text-gray-800 font-weight-bold mb-2"><i class="fas fa-boxes mr-1"></i> Seleccionar Productos a Devolver</h6>
+          <p class="text-muted small">Selecciona los productos de esta venta que el cliente desea devolver, especificando la cantidad y condición.</p>
           
-          <!-- Contenedor dinámico de los ítems -->
+          <!-- Contenedor dinámico de los ítems a devolver -->
           <div id="modal-devolucion-detalles-container">
-            <!-- Las filas se cargarán automáticamente mediante JavaScript al elegir la venta -->
             <div class="text-center text-muted py-3" id="select-sale-message">
-              <i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para cargar sus productos.
+              <i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para ver su detalle y cargar sus productos.
             </div>
           </div>
 
@@ -236,7 +258,7 @@
   </div>
 </div>
 
-<!-- Script dinámico inteligente para cargar los ProductSales de la venta elegida -->
+<!-- Script dinámico para la gestión del Modal (Consulta AJAX al abrir y limpieza automática al cerrar) -->
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     const saleSelect = document.getElementById("devolucion_sale_id_select");
@@ -244,22 +266,48 @@
     const container = document.getElementById("modal-devolucion-detalles-container");
     const addBtn = document.getElementById("modal-add-item-btn");
     const submitBtn = document.getElementById("submit-devolucion-btn");
+    const saleSummarySection = document.getElementById("sale-summary-section");
+    const saleOriginalItemsTbody = document.getElementById("sale-original-items-tbody");
+    const modalElement = document.getElementById("nuevaDevolucionModal");
 
     let saleProductsCache = [];
 
+    // 🌟 FUNCIÓN PARA CARGAR LAS VENTAS FRESCAS AL ABRIR EL MODAL
+    function cargarVentasDisponibles() {
+      fetch('/admin/devoluciones/api_available_sales')
+        .then(response => response.json())
+        .then(ventas => {
+          saleSelect.innerHTML = '<option value="">Seleccione una venta...</option>';
+          if (ventas.length === 0) {
+            saleSelect.innerHTML = '<option value="">No hay ventas disponibles sin devoluciones</option>';
+            return;
+          }
+          ventas.forEach(v => {
+            saleSelect.insertAdjacentHTML('beforeend', `<option value="${v.id}">${v.code} - ${v.client_name} (${v.created_at})</option>`);
+          });
+        })
+        .catch(err => {
+          console.error("Error al cargar ventas disponibles:", err);
+          saleSelect.innerHTML = '<option value="">Error al cargar ventas</option>';
+        });
+    }
+
+    // Evento al cambiar de venta seleccionada
     if (saleSelect) {
       saleSelect.addEventListener("change", function() {
         const saleId = this.value;
         
         if (!saleId) {
           clientNameInput.value = "";
-          container.innerHTML = `<div class="text-center text-muted py-3" id="select-sale-message"><i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para cargar sus productos.</div>`;
+          saleSummarySection.style.display = "none";
+          saleOriginalItemsTbody.innerHTML = "";
+          container.innerHTML = `<div class="text-center text-muted py-3" id="select-sale-message"><i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para ver su detalle y cargar sus productos.</div>`;
           addBtn.style.display = "none";
           submitBtn.disabled = true;
           return;
         }
 
-        // Petición AJAX para obtener cliente y productos de la venta
+        // Petición AJAX para obtener cliente, productos y su desglose
         fetch(`/admin/devoluciones/api_sale_details?sale_id=${saleId}`)
           .then(response => response.json())
           .then(data => {
@@ -272,12 +320,27 @@
             clientNameInput.value = data.client_name;
             saleProductsCache = data.products;
 
-            // 2. Limpiar contenedor y habilitar botón de guardar
+            // 2. Poblar la tabla resumen con los Product Sales de la venta
+            saleOriginalItemsTbody.innerHTML = "";
+            saleProductsCache.forEach(p => {
+              saleOriginalItemsTbody.insertAdjacentHTML('beforeend', `
+                <tr>
+                  <td>${p.name}</td>
+                  <td class="text-center font-weight-bold">${p.max_quantity}</td>
+                  <td class="text-right">$${p.unit_price.toFixed(2)}</td>
+                  <td class="text-right">${p.discount_porcentage > 0 ? p.discount_porcentage.toFixed(1) + '%' : '$' + p.discount.toFixed(2)}</td>
+                  <td class="text-right font-weight-bold">$${p.subtotal.toFixed(2)}</td>
+                </tr>
+              `);
+            });
+            saleSummarySection.style.display = "block";
+
+            // 3. Limpiar contenedor de devolución y habilitar botón
             container.innerHTML = "";
             submitBtn.disabled = false;
             addBtn.style.display = "block";
 
-            // 3. Renderizar el primer producto automáticamente
+            // 4. Renderizar la primera fila de devolución automáticamente
             if (saleProductsCache.length > 0) {
               addRowToContainer(saleProductsCache, false);
             } else {
@@ -337,14 +400,12 @@
 
       container.insertAdjacentHTML('beforeend', rowHtml);
 
-      // Vincular evento de eliminar a la nueva fila
       const newRow = container.lastElementChild;
       const removeBtn = newRow.querySelector(".modal-remove-item-btn");
       removeBtn.addEventListener("click", function() {
         newRow.remove();
       });
 
-      // Validar que la cantidad devuelta no supere la cantidad comprada en la venta
       const productSelect = newRow.querySelector(".product-select");
       const qtyInput = newRow.querySelector(".qty-input");
 
@@ -353,6 +414,33 @@
         const maxQty = selectedOption.getAttribute("data-max") || 1;
         qtyInput.max = maxQty;
         qtyInput.value = Math.min(qtyInput.value, maxQty);
+      });
+    }
+
+    // 🌟 EVENTOS DE APERTURA Y CIERRE DEL MODAL
+    if (window.jQuery && modalElement) {
+      // Al abrir el modal: cargar ventas frescas por AJAX
+      $(modalElement).on('show.bs.modal', function () {
+        cargarVentasDisponibles();
+      });
+
+      // Al cerrar el modal: limpiar formulario y contenedores por completo
+      $(modalElement).on('hidden.bs.modal', function () {
+        const form = $(this).find('form')[0];
+        if (form) form.reset();
+
+        clientNameInput.value = "";
+        saleSummarySection.style.display = "none";
+        saleOriginalItemsTbody.innerHTML = "";
+        container.innerHTML = `
+          <div class="text-center text-muted py-3" id="select-sale-message">
+            <i class="fas fa-info-circle mr-1"></i> Por favor, seleccione una venta primero para ver su detalle y cargar sus productos.
+          </div>
+        `;
+        addBtn.style.display = "none";
+        submitBtn.disabled = true;
+        saleProductsCache = [];
+        saleSelect.innerHTML = '<option value="">Seleccione una venta...</option>';
       });
     }
   });
