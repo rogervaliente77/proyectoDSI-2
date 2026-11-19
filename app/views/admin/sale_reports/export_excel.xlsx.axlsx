@@ -25,23 +25,45 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
   when 'general'
     general_data = generate_general_report(@sales)
 
-    sheet.add_row ["Fecha", "Transacciones", "Total En Línea", "Total Manual", "Total General"], style: header_style
-    sum_tx = 0; sum_online = 0.0; sum_manual = 0.0; sum_general = 0.0
+    sheet.add_row ["Fecha", "Transacciones", "Total En Línea", "Total Manual", "Devoluciones", "Total General"], style: header_style
+    sum_tx = 0; sum_online = 0.0; sum_manual = 0.0; sum_returned = 0.0; sum_general = 0.0
 
     general_data[:rows].each do |r|
+      ret_val = r[:returned_amount].to_s.delete('$,').to_f
       sum_tx += r[:total_transactions]
       sum_online += r[:online_amount].to_s.delete('$,').to_f
       sum_manual += r[:manual_amount].to_s.delete('$,').to_f
+      sum_returned += ret_val
       sum_general += r[:total_amount].to_s.delete('$,').to_f
 
-      sheet.add_row [r[:date], r[:total_transactions], r[:online_amount], r[:manual_amount], r[:total_amount]]
+      sheet.add_row [
+        r[:date],
+        r[:total_transactions],
+        r[:online_amount],
+        r[:manual_amount],
+        ret_val > 0 ? "-$#{'%.2f' % ret_val}" : "$0.00",
+        r[:total_amount]
+      ]
     end
+
+    sum_net = sum_general - sum_returned
+
     sheet.add_row [
       "TOTALES GENERALES",
       sum_tx,
       "$#{'%.2f' % sum_online}",
       "$#{'%.2f' % sum_manual}",
+      "-$#{'%.2f' % sum_returned}",
       "$#{'%.2f' % sum_general}"
+    ], style: total_style
+
+    sheet.add_row [
+      "TOTAL NETO (SIN DEVOLUCIONES)",
+      "",
+      "",
+      "",
+      "",
+      "$#{'%.2f' % sum_net}"
     ], style: total_style
 
     # Listado detallado agrupado por fecha y tipo de venta
@@ -52,19 +74,21 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
 
       general_data[:detailed_groups].each do |group|
         sheet.add_row []
-        sheet.add_row ["Fecha: #{group[:date]}", "", "", ""], style: group_date_style
+        sheet.add_row ["Fecha: #{group[:date]}", "", "", "", ""], style: group_date_style
 
         group[:types].each do |type_group|
           type_style = type_group[:type_name] == 'En Línea' ? group_type_online_style : group_type_manual_style
           sheet.add_row ["Canal: #{type_group[:type_name]}"], style: type_style
-          sheet.add_row ["Código de Venta", "Cliente", "Estado", "Monto Total"], style: sub_header_style
+          sheet.add_row ["Código de Venta", "Cliente", "Estado", "Monto Total", "Devolución"], style: sub_header_style
 
           type_group[:sales].each do |sale|
+            ret_display = sale[:has_return] ? "-#{sale[:returned_amount]}#{sale[:return_type].present? ? " (#{sale[:return_type]})" : ''}" : "$0.00"
             sheet.add_row [
               sale[:code],
               sale[:client_name],
               sale[:status],
-              sale[:total_amount]
+              sale[:total_amount],
+              ret_display
             ]
           end
         end
@@ -73,34 +97,47 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
 
   when 'top_products'
     top_data = generate_top_products_report(@sales)
-    sheet.add_row ["Producto", "Unidades Vendidas", "Monto Total Generado"], style: header_style
-    sum_qty = 0; sum_sub = 0.0
+    sheet.add_row ["Producto", "Unidades Vendidas", "Monto Bruto", "Devoluciones", "Monto Neto"], style: header_style
+    sum_qty = 0; sum_sub = 0.0; sum_ret = 0.0
 
     top_data[:rows].each do |r|
-      sum_qty += r[:quantity]
-      sum_sub += r[:subtotal].to_s.delete('$,').to_f
-      sheet.add_row [r[:product_name], r[:quantity], r[:subtotal]]
+      ret_val = r[:returned_amount].to_s.delete('$,').to_f
+      sub_val = r[:subtotal].to_s.delete('$,').to_f
+      net_val = r[:net_subtotal].to_s.delete('$,').to_f
+
+      sum_qty += r[:quantity].to_f
+      sum_sub += sub_val
+      sum_ret += ret_val
+
+      ret_display = ret_val > 0 ? "-$#{'%.2f' % ret_val}#{r[:returned_qty].to_f > 0 ? " (#{r[:returned_qty]} ud.)" : ''}" : "$0.00"
+      sheet.add_row [r[:product_name], r[:quantity], r[:subtotal], ret_display, "$#{'%.2f' % net_val}"]
     end
-    sheet.add_row ["TOTALES", sum_qty, "$#{'%.2f' % sum_sub}"], style: total_style
+
+    sum_net_top = sum_sub - sum_ret
+    sheet.add_row ["TOTALES TOP 5", sum_qty, "$#{'%.2f' % sum_sub}", "-$#{'%.2f' % sum_ret}", "$#{'%.2f' % sum_net_top}"], style: total_style
 
     if top_data[:rows].any?
       sheet.add_row []
       sheet.add_row []
-      sheet.add_row ["DESGLOSE POR VENTA (TOP 10 PRODUCTOS)"], style: subtitle_style
+      sheet.add_row ["DESGLOSE POR VENTA (TOP 5 PRODUCTOS)"], style: subtitle_style
 
       top_data[:rows].each do |r|
         sheet.add_row []
-        sheet.add_row ["Producto: #{r[:product_name]}", "Total Unidades: #{r[:quantity]}", "Monto: #{r[:subtotal]}"], style: group_date_style
-        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Canal", "Unidades", "Subtotal"], style: sub_header_style
+        sheet.add_row ["Producto: #{r[:product_name]}", "Unidades: #{r[:quantity]}", "Bruto: #{r[:subtotal]}", "Devoluciones: #{r[:returned_amount]}", "Neto: #{r[:net_subtotal]}"], style: group_date_style
+        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Canal", "Unidades", "Subtotal", "Devolución", "Neto"], style: sub_header_style
 
         (r[:breakdown] || []).each do |b|
+          b_ret_val = b[:returned_amount].to_s.delete('$,').to_f
+          b_ret_display = b_ret_val > 0 ? "-#{b[:returned_amount]}#{b[:returned_qty].to_f > 0 ? " (#{b[:returned_qty]} ud.)" : ''}" : "$0.00"
           sheet.add_row [
             b[:sale_code],
             b[:date],
             b[:client_name],
             b[:channel],
             b[:quantity],
-            b[:subtotal]
+            b[:subtotal],
+            b_ret_display,
+            b[:net_subtotal]
           ]
         end
       end
@@ -108,15 +145,44 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
 
   when 'payment_methods'
     payment_data = generate_payment_methods_report(@sales)
-    sheet.add_row ["Método de Pago", "Cantidad de Transacciones", "Total Acumulado"], style: header_style
-    sum_count = 0; sum_tot = 0.0
+    sheet.add_row ["Método de Pago", "Cantidad de Transacciones", "Total Bruto", "Devoluciones", "Total Neto"], style: header_style
+    sum_count = 0; sum_tot = 0.0; sum_ret = 0.0
 
     payment_data[:rows].each do |r|
+      ret_val = r[:returned_amount].to_s.delete('$,').to_f
+      gross_val = r[:total].to_s.delete('$,').to_f
+      net_val = r[:net_total].to_s.delete('$,').to_f
+
       sum_count += r[:count]
-      sum_tot += r[:total].to_s.delete('$,').to_f
-      sheet.add_row [r[:method], r[:count], r[:total]]
+      sum_tot += gross_val
+      sum_ret += ret_val
+
+      sheet.add_row [
+        r[:method],
+        r[:count],
+        r[:total],
+        ret_val > 0 ? "-$#{'%.2f' % ret_val}" : "$0.00",
+        "$#{'%.2f' % net_val}"
+      ]
     end
-    sheet.add_row ["TOTALES", sum_count, "$#{'%.2f' % sum_tot}"], style: total_style
+
+    sum_net_payment = sum_tot - sum_ret
+
+    sheet.add_row [
+      "TOTALES",
+      sum_count,
+      "$#{'%.2f' % sum_tot}",
+      "-$#{'%.2f' % sum_ret}",
+      "$#{'%.2f' % sum_tot}"
+    ], style: total_style
+
+    sheet.add_row [
+      "TOTAL NETO (SIN DEVOLUCIONES)",
+      "",
+      "",
+      "",
+      "$#{'%.2f' % sum_net_payment}"
+    ], style: total_style
 
     if payment_data[:rows].any?
       sheet.add_row []
@@ -125,17 +191,20 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
 
       payment_data[:rows].each do |r|
         sheet.add_row []
-        sheet.add_row ["Método: #{r[:method]}", "Transacciones: #{r[:count]}", "Total: #{r[:total]}"], style: group_date_style
-        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Canal", "Estado", "Monto Total"], style: sub_header_style
+        sheet.add_row ["Método: #{r[:method]}", "Transacciones: #{r[:count]}", "Bruto: #{r[:total]}", "Devoluciones: #{r[:returned_amount]}", "Neto: #{r[:net_total]}"], style: group_date_style
+        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Canal", "Estado", "Monto Bruto", "Devolución", "Monto Neto"], style: sub_header_style
 
         (r[:sales] || []).each do |s|
+          ret_display = s[:has_return] ? "-#{s[:returned_amount]}#{s[:return_type].present? ? " (#{s[:return_type]})" : ''}" : "$0.00"
           sheet.add_row [
             s[:sale_code],
             s[:date],
             s[:client_name],
             s[:channel],
             s[:status],
-            s[:total_amount]
+            s[:total_amount],
+            ret_display,
+            s[:net_amount]
           ]
         end
       end
@@ -154,15 +223,44 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
 
   when 'by_cashier'
     cashier_data = generate_by_cashier_report(@sales)
-    sheet.add_row ["Cajero / Usuario", "Transacciones Realizadas", "Total Recaudado"], style: header_style
-    sum_count = 0; sum_tot = 0.0
+    sheet.add_row ["Cajero / Usuario", "Transacciones Realizadas", "Total Bruto", "Devoluciones", "Total Neto"], style: header_style
+    sum_count = 0; sum_tot = 0.0; sum_ret = 0.0
 
     cashier_data[:rows].each do |r|
+      ret_val = r[:returned_amount].to_s.delete('$,').to_f
+      gross_val = r[:total].to_s.delete('$,').to_f
+      net_val = r[:net_total].to_s.delete('$,').to_f
+
       sum_count += r[:count]
-      sum_tot += r[:total].to_s.delete('$,').to_f
-      sheet.add_row [r[:cashier], r[:count], r[:total]]
+      sum_tot += gross_val
+      sum_ret += ret_val
+
+      sheet.add_row [
+        r[:cashier],
+        r[:count],
+        r[:total],
+        ret_val > 0 ? "-$#{'%.2f' % ret_val}" : "$0.00",
+        "$#{'%.2f' % net_val}"
+      ]
     end
-    sheet.add_row ["TOTALES", sum_count, "$#{'%.2f' % sum_tot}"], style: total_style
+
+    sum_net_cashier = sum_tot - sum_ret
+
+    sheet.add_row [
+      "TOTALES",
+      sum_count,
+      "$#{'%.2f' % sum_tot}",
+      "-$#{'%.2f' % sum_ret}",
+      "$#{'%.2f' % sum_tot}"
+    ], style: total_style
+
+    sheet.add_row [
+      "TOTAL NETO (SIN DEVOLUCIONES)",
+      "",
+      "",
+      "",
+      "$#{'%.2f' % sum_net_cashier}"
+    ], style: total_style
 
     if cashier_data[:rows].any?
       sheet.add_row []
@@ -171,17 +269,20 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
 
       cashier_data[:rows].each do |r|
         sheet.add_row []
-        sheet.add_row ["Cajero: #{r[:cashier]}", "Transacciones: #{r[:count]}", "Total: #{r[:total]}"], style: group_date_style
-        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Canal", "Estado", "Monto Total"], style: sub_header_style
+        sheet.add_row ["Cajero: #{r[:cashier]}", "Transacciones: #{r[:count]}", "Bruto: #{r[:total]}", "Devoluciones: #{r[:returned_amount]}", "Neto: #{r[:net_total]}"], style: group_date_style
+        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Canal", "Estado", "Monto Bruto", "Devolución", "Monto Neto"], style: sub_header_style
 
         (r[:sales] || []).each do |s|
+          ret_display = s[:has_return] ? "-#{s[:returned_amount]}#{s[:return_type].present? ? " (#{s[:return_type]})" : ''}" : "$0.00"
           sheet.add_row [
             s[:sale_code],
             s[:date],
             s[:client_name],
             s[:channel],
             s[:status],
-            s[:total_amount]
+            s[:total_amount],
+            ret_display,
+            s[:net_amount]
           ]
         end
       end

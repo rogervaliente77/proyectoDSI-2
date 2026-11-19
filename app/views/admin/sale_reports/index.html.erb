@@ -23,7 +23,7 @@
           <label class="font-weight-bold text-dark small">Tipo de Reporte:</label>
           <select id="report_type" class="form-control form-control-sm">
             <option value="general">Ventas Generales (Canales)</option>
-            <option value="top_products">Top 10 Productos Más Vendidos</option>
+            <option value="top_products">Top 5 Productos Más Vendidos</option>
             <option value="payment_methods">Desglose por Métodos de Pago</option>
             <option value="logistics">Logística de Entregas (Online)</option>
             <option value="by_cashier">Ventas por Cajero / Usuario</option>
@@ -206,7 +206,7 @@
               <div class="card-body">
                 <div class="row no-gutters align-items-center">
                   <div class="col mr-2">
-                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Órdenes</div>
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total N° Ventas</div>
                     <div class="h5 mb-0 font-weight-bold text-gray-800">${data.summary.total_count}</div>
                   </div>
                   <div class="col-auto"><i class="fas fa-shopping-bag fa-2x text-gray-300"></i></div>
@@ -237,14 +237,23 @@
       const parseVal = (str) => parseFloat(str.replace(/[^0-9.-]+/g, "")) || 0;
 
       if (data.report_type === "general") {
-        thead.innerHTML = `<tr><th>Fecha</th><th class="text-center">Transacciones</th><th class="text-right">Total En Línea</th><th class="text-right">Total Manual</th><th class="text-right">Total General</th></tr>`;
+        thead.innerHTML = `<tr>
+          <th>Fecha</th>
+          <th class="text-center">Transacciones</th>
+          <th class="text-right">Total En Línea</th>
+          <th class="text-right">Total Manual</th>
+          <th class="text-right">Devoluciones</th>
+          <th class="text-right">Total General</th>
+        </tr>`;
         
-        let sumTx = 0, sumOnline = 0, sumManual = 0, sumTotal = 0;
+        let sumTx = 0, sumOnline = 0, sumManual = 0, sumReturned = 0, sumTotal = 0;
 
         data.rows.forEach(r => {
+          const retVal = parseVal(r.returned_amount || "$0.00");
           sumTx += r.total_transactions;
           sumOnline += parseVal(r.online_amount);
           sumManual += parseVal(r.manual_amount);
+          sumReturned += retVal;
           sumTotal += parseVal(r.total_amount);
 
           tbody.innerHTML += `<tr>
@@ -252,19 +261,29 @@
             <td class="text-center">${r.total_transactions}</td>
             <td class="text-right">${r.online_amount}</td>
             <td class="text-right">${r.manual_amount}</td>
+            <td class="text-right ${retVal > 0 ? 'text-danger font-weight-bold' : 'text-muted'}">${retVal > 0 ? '-' + r.returned_amount : '$0.00'}</td>
             <td class="text-right font-weight-bold text-success">${r.total_amount}</td>
           </tr>`;
         });
 
-        tfoot.innerHTML = `<tr>
-          <td class="text-uppercase text-dark font-weight-bold">TOTALES GENERALES</td>
-          <td class="text-center text-dark">${sumTx}</td>
-          <td class="text-right text-dark">$${sumOnline.toFixed(2)}</td>
-          <td class="text-right text-dark">$${sumManual.toFixed(2)}</td>
-          <td class="text-right text-success font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
-        </tr>`;
+        const sumNet = sumTotal - sumReturned;
 
-        // 🌟 RENDERIZAR LISTADO DETALLADO AGRUPADO POR FECHA Y TIPO
+        tfoot.innerHTML = `
+          <tr>
+            <td class="text-uppercase text-dark font-weight-bold">TOTALES BRUTOS / DEVOLUCIONES</td>
+            <td class="text-center text-dark">${sumTx}</td>
+            <td class="text-right text-dark">$${sumOnline.toFixed(2)}</td>
+            <td class="text-right text-dark">$${sumManual.toFixed(2)}</td>
+            <td class="text-right text-danger font-weight-bold">-$${sumReturned.toFixed(2)}</td>
+            <td class="text-right text-success font-weight-bold">$${sumTotal.toFixed(2)}</td>
+          </tr>
+          <tr class="table-active">
+            <td colspan="5" class="text-right text-uppercase text-dark font-weight-bold">TOTAL NETO (DESCONTANDO DEVOLUCIONES):</td>
+            <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumNet.toFixed(2)}</td>
+          </tr>
+        `;
+
+        // RENDERIZAR LISTADO DETALLADO AGRUPADO POR FECHA Y TIPO
         if (data.detailed_groups && data.detailed_groups.length > 0 && detailedContainer) {
           let html = `<h5 class="font-weight-bold text-gray-800 mb-3 mt-4"><i class="fas fa-list-alt mr-1"></i> Desglose Detallado de Ventas por Fecha y Tipo</h5>`;
           
@@ -291,18 +310,24 @@
                           <th>Cliente</th>
                           <th class="text-center">Estado</th>
                           <th class="text-right">Monto Total</th>
+                          <th class="text-right">Devolución</th>
                         </tr>
                       </thead>
                       <tbody>
               `;
 
               typeGroup.sales.forEach(sale => {
+                const retBadge = sale.has_return
+                  ? `<span class="text-danger font-weight-bold">-${sale.returned_amount}</span>${sale.return_type ? ` <span class="badge badge-warning text-dark">${sale.return_type}</span>` : ''}`
+                  : `<span class="text-muted">$0.00</span>`;
+
                 html += `
                   <tr>
                     <td><strong>${sale.code}</strong></td>
                     <td>${sale.client_name}</td>
                     <td class="text-center"><span class="badge badge-info">${sale.status}</span></td>
                     <td class="text-right font-weight-bold text-success">${sale.total_amount}</td>
+                    <td class="text-right">${retBadge}</td>
                   </tr>
                 `;
               });
@@ -325,36 +350,59 @@
         }
 
       } else if (data.report_type === "top_products") {
-        thead.innerHTML = `<tr><th>Producto</th><th class="text-center">Unidades Vendidas</th><th class="text-right">Monto Total Generado</th></tr>`;
-        let sumQty = 0, sumSubtotal = 0;
+        thead.innerHTML = `<tr>
+          <th>Producto</th>
+          <th class="text-center">Unidades Vendidas</th>
+          <th class="text-right">Monto Bruto</th>
+          <th class="text-right">Devoluciones</th>
+          <th class="text-right">Monto Neto</th>
+        </tr>`;
+        let sumQty = 0, sumSubtotal = 0, sumReturned = 0;
 
         data.rows.forEach(r => {
-          sumQty += r.quantity;
-          sumSubtotal += parseVal(r.subtotal);
+          const retVal = parseVal(r.returned_amount || "$0.00");
+          const subVal = parseVal(r.subtotal);
+          const netVal = parseVal(r.net_subtotal || r.subtotal);
+
+          sumQty += parseFloat(r.quantity) || 0;
+          sumSubtotal += subVal;
+          sumReturned += retVal;
+
+          const retText = retVal > 0
+            ? `-${r.returned_amount}${r.returned_qty > 0 ? ` (${r.returned_qty} ud.)` : ''}`
+            : '$0.00';
 
           tbody.innerHTML += `<tr>
             <td>${r.product_name}</td>
             <td class="text-center">${r.quantity}</td>
-            <td class="text-right font-weight-bold text-primary">${r.subtotal}</td>
+            <td class="text-right">${r.subtotal}</td>
+            <td class="text-right ${retVal > 0 ? 'text-danger font-weight-bold' : 'text-muted'}">${retText}</td>
+            <td class="text-right font-weight-bold text-primary">$${netVal.toFixed(2)}</td>
           </tr>`;
         });
 
-        tfoot.innerHTML = `<tr>
-          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
-          <td class="text-center text-dark">${sumQty}</td>
-          <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumSubtotal.toFixed(2)}</td>
-        </tr>`;
+        const sumNetTop = sumSubtotal - sumReturned;
 
-        // Desglose de ventas por cada producto del Top 10
+        tfoot.innerHTML = `
+          <tr>
+            <td class="text-uppercase text-dark font-weight-bold">TOTALES TOP 5</td>
+            <td class="text-center text-dark">${sumQty}</td>
+            <td class="text-right text-dark">$${sumSubtotal.toFixed(2)}</td>
+            <td class="text-right text-danger font-weight-bold">-$${sumReturned.toFixed(2)}</td>
+            <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumNetTop.toFixed(2)}</td>
+          </tr>
+        `;
+
+        // Desglose de ventas por cada producto del Top 5
         if (detailedContainer) {
-          let html = `<h5 class="font-weight-bold text-gray-800 mb-3 mt-4"><i class="fas fa-boxes mr-1"></i> Desglose por Venta (Top 10 Productos)</h5>`;
+          let html = `<h5 class="font-weight-bold text-gray-800 mb-3 mt-4"><i class="fas fa-boxes mr-1"></i> Desglose por Venta (Top 5 Productos)</h5>`;
 
           data.rows.forEach(r => {
             html += `
               <div class="card shadow-sm mb-3 border-left-info">
                 <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold text-info">${r.product_name}</h6>
-                  <span class="badge badge-info">Total: ${r.quantity} uds (${r.subtotal})</span>
+                  <span class="badge badge-info">Vendidas: ${r.quantity} uds | Bruto: ${r.subtotal} | Neto: ${r.net_subtotal}</span>
                 </div>
                 <div class="card-body p-2">
                   <div class="table-responsive">
@@ -367,12 +415,19 @@
                           <th class="text-center">Canal</th>
                           <th class="text-center">Unidades</th>
                           <th class="text-right">Subtotal</th>
+                          <th class="text-right">Devolución</th>
+                          <th class="text-right">Neto</th>
                         </tr>
                       </thead>
                       <tbody>
             `;
 
             (r.breakdown || []).forEach(b => {
+              const bRetVal = parseVal(b.returned_amount || "$0.00");
+              const bRetHtml = bRetVal > 0
+                ? `<span class="text-danger font-weight-bold">-${b.returned_amount}${b.returned_qty > 0 ? ` (${b.returned_qty} ud.)` : ''}</span>`
+                : `<span class="text-muted">$0.00</span>`;
+
               html += `
                 <tr>
                   <td><strong>${b.sale_code}</strong></td>
@@ -380,7 +435,9 @@
                   <td>${b.client_name}</td>
                   <td class="text-center"><span class="badge badge-${b.channel === 'En Línea' ? 'primary' : 'success'}">${b.channel}</span></td>
                   <td class="text-center font-weight-bold">${b.quantity}</td>
-                  <td class="text-right font-weight-bold text-primary">${b.subtotal}</td>
+                  <td class="text-right">${b.subtotal}</td>
+                  <td class="text-right">${bRetHtml}</td>
+                  <td class="text-right font-weight-bold text-primary">${b.net_subtotal}</td>
                 </tr>
               `;
             });
@@ -398,25 +455,48 @@
         }
 
       } else if (data.report_type === "payment_methods") {
-        thead.innerHTML = `<tr><th>Método de Pago</th><th class="text-center">Cantidad de Transacciones</th><th class="text-right">Total Acumulado</th></tr>`;
-        let sumCount = 0, sumTotal = 0;
+        thead.innerHTML = `<tr>
+          <th>Método de Pago</th>
+          <th class="text-center">Cantidad de Transacciones</th>
+          <th class="text-right">Total Bruto</th>
+          <th class="text-right">Devoluciones</th>
+          <th class="text-right">Total Neto</th>
+        </tr>`;
+        let sumCount = 0, sumTotal = 0, sumReturned = 0;
 
         data.rows.forEach(r => {
+          const retVal = parseVal(r.returned_amount || "$0.00");
+          const grossVal = parseVal(r.total);
+          const netVal = parseVal(r.net_total || r.total);
+
           sumCount += r.count;
-          sumTotal += parseVal(r.total);
+          sumTotal += grossVal;
+          sumReturned += retVal;
 
           tbody.innerHTML += `<tr>
             <td>${r.method}</td>
             <td class="text-center">${r.count}</td>
-            <td class="text-right font-weight-bold text-info">${r.total}</td>
+            <td class="text-right">${r.total}</td>
+            <td class="text-right ${retVal > 0 ? 'text-danger font-weight-bold' : 'text-muted'}">${retVal > 0 ? '-' + r.returned_amount : '$0.00'}</td>
+            <td class="text-right font-weight-bold text-info">$${netVal.toFixed(2)}</td>
           </tr>`;
         });
 
-        tfoot.innerHTML = `<tr>
-          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
-          <td class="text-center text-dark">${sumCount}</td>
-          <td class="text-right text-info font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
-        </tr>`;
+        const sumNetPayment = sumTotal - sumReturned;
+
+        tfoot.innerHTML = `
+          <tr>
+            <td class="text-uppercase text-dark font-weight-bold">TOTALES BRUTOS / DEVOLUCIONES</td>
+            <td class="text-center text-dark">${sumCount}</td>
+            <td class="text-right text-dark">$${sumTotal.toFixed(2)}</td>
+            <td class="text-right text-danger font-weight-bold">-$${sumReturned.toFixed(2)}</td>
+            <td class="text-right text-info font-weight-bold">$${sumTotal.toFixed(2)}</td>
+          </tr>
+          <tr class="table-active">
+            <td colspan="4" class="text-right text-uppercase text-dark font-weight-bold">TOTAL NETO (DESCONTANDO DEVOLUCIONES):</td>
+            <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumNetPayment.toFixed(2)}</td>
+          </tr>
+        `;
 
         // Desglose de ventas por cada método de pago
         if (detailedContainer) {
@@ -427,7 +507,7 @@
               <div class="card shadow-sm mb-3 border-left-info">
                 <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold text-info">${r.method}</h6>
-                  <span class="badge badge-info">Transacciones: ${r.count} | Total: ${r.total}</span>
+                  <span class="badge badge-info">Tx: ${r.count} | Bruto: ${r.total} | Neto: ${r.net_total || r.total}</span>
                 </div>
                 <div class="card-body p-2">
                   <div class="table-responsive">
@@ -439,13 +519,20 @@
                           <th>Cliente</th>
                           <th class="text-center">Canal</th>
                           <th class="text-center">Estado</th>
-                          <th class="text-right">Monto Total</th>
+                          <th class="text-right">Monto Bruto</th>
+                          <th class="text-right">Devolución</th>
+                          <th class="text-right">Monto Neto</th>
                         </tr>
                       </thead>
                       <tbody>
             `;
 
             (r.sales || []).forEach(s => {
+              const sRetVal = parseVal(s.returned_amount || "$0.00");
+              const retBadge = s.has_return
+                ? `<span class="text-danger font-weight-bold">-${s.returned_amount}</span>${s.return_type ? ` <span class="badge badge-warning text-dark">${s.return_type}</span>` : ''}`
+                : `<span class="text-muted">$0.00</span>`;
+
               html += `
                 <tr>
                   <td><strong>${s.sale_code}</strong></td>
@@ -453,7 +540,9 @@
                   <td>${s.client_name}</td>
                   <td class="text-center"><span class="badge badge-${s.channel === 'En Línea' ? 'primary' : 'success'}">${s.channel}</span></td>
                   <td class="text-center"><span class="badge badge-info">${s.status}</span></td>
-                  <td class="text-right font-weight-bold text-info">${s.total_amount}</td>
+                  <td class="text-right">${s.total_amount}</td>
+                  <td class="text-right">${retBadge}</td>
+                  <td class="text-right font-weight-bold text-info">${s.net_amount || s.total_amount}</td>
                 </tr>
               `;
             });
@@ -492,25 +581,48 @@
         </tr>`;
 
       } else if (data.report_type === "by_cashier") {
-        thead.innerHTML = `<tr><th>Cajero / Usuario</th><th class="text-center">Transacciones Realizadas</th><th class="text-right">Total Recaudado</th></tr>`;
-        let sumCount = 0, sumTotal = 0;
+        thead.innerHTML = `<tr>
+          <th>Cajero / Usuario</th>
+          <th class="text-center">Transacciones Realizadas</th>
+          <th class="text-right">Total Bruto</th>
+          <th class="text-right">Devoluciones</th>
+          <th class="text-right">Total Neto</th>
+        </tr>`;
+        let sumCount = 0, sumTotal = 0, sumReturned = 0;
 
         data.rows.forEach(r => {
+          const retVal = parseVal(r.returned_amount || "$0.00");
+          const grossVal = parseVal(r.total);
+          const netVal = parseVal(r.net_total || r.total);
+
           sumCount += r.count;
-          sumTotal += parseVal(r.total);
+          sumTotal += grossVal;
+          sumReturned += retVal;
 
           tbody.innerHTML += `<tr>
             <td>${r.cashier}</td>
             <td class="text-center">${r.count}</td>
-            <td class="text-right font-weight-bold text-success">${r.total}</td>
+            <td class="text-right">${r.total}</td>
+            <td class="text-right ${retVal > 0 ? 'text-danger font-weight-bold' : 'text-muted'}">${retVal > 0 ? '-' + r.returned_amount : '$0.00'}</td>
+            <td class="text-right font-weight-bold text-success">$${netVal.toFixed(2)}</td>
           </tr>`;
         });
 
-        tfoot.innerHTML = `<tr>
-          <td class="text-uppercase text-dark font-weight-bold">TOTALES</td>
-          <td class="text-center text-dark">${sumCount}</td>
-          <td class="text-right text-success font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
-        </tr>`;
+        const sumNetCashier = sumTotal - sumReturned;
+
+        tfoot.innerHTML = `
+          <tr>
+            <td class="text-uppercase text-dark font-weight-bold">TOTALES BRUTOS / DEVOLUCIONES</td>
+            <td class="text-center text-dark">${sumCount}</td>
+            <td class="text-right text-dark">$${sumTotal.toFixed(2)}</td>
+            <td class="text-right text-danger font-weight-bold">-$${sumReturned.toFixed(2)}</td>
+            <td class="text-right text-success font-weight-bold">$${sumTotal.toFixed(2)}</td>
+          </tr>
+          <tr class="table-active">
+            <td colspan="4" class="text-right text-uppercase text-dark font-weight-bold">TOTAL NETO (DESCONTANDO DEVOLUCIONES):</td>
+            <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumNetCashier.toFixed(2)}</td>
+          </tr>
+        `;
 
         // Desglose de ventas por cada cajero
         if (detailedContainer) {
@@ -521,7 +633,7 @@
               <div class="card shadow-sm mb-3 border-left-success">
                 <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
                   <h6 class="m-0 font-weight-bold text-success">${r.cashier}</h6>
-                  <span class="badge badge-success">Transacciones: ${r.count} | Total: ${r.total}</span>
+                  <span class="badge badge-success">Tx: ${r.count} | Bruto: ${r.total} | Neto: ${r.net_total || r.total}</span>
                 </div>
                 <div class="card-body p-2">
                   <div class="table-responsive">
@@ -533,13 +645,20 @@
                           <th>Cliente</th>
                           <th class="text-center">Canal</th>
                           <th class="text-center">Estado</th>
-                          <th class="text-right">Monto Total</th>
+                          <th class="text-right">Monto Bruto</th>
+                          <th class="text-right">Devolución</th>
+                          <th class="text-right">Monto Neto</th>
                         </tr>
                       </thead>
                       <tbody>
             `;
 
             (r.sales || []).forEach(s => {
+              const sRetVal = parseVal(s.returned_amount || "$0.00");
+              const retBadge = s.has_return
+                ? `<span class="text-danger font-weight-bold">-${s.returned_amount}</span>${s.return_type ? ` <span class="badge badge-warning text-dark">${s.return_type}</span>` : ''}`
+                : `<span class="text-muted">$0.00</span>`;
+
               html += `
                 <tr>
                   <td><strong>${s.sale_code}</strong></td>
@@ -547,7 +666,9 @@
                   <td>${s.client_name}</td>
                   <td class="text-center"><span class="badge badge-${s.channel === 'En Línea' ? 'primary' : 'success'}">${s.channel}</span></td>
                   <td class="text-center"><span class="badge badge-info">${s.status}</span></td>
-                  <td class="text-right font-weight-bold text-success">${s.total_amount}</td>
+                  <td class="text-right">${s.total_amount}</td>
+                  <td class="text-right">${retBadge}</td>
+                  <td class="text-right font-weight-bold text-success">${s.net_amount || s.total_amount}</td>
                 </tr>
               `;
             });
@@ -563,6 +684,7 @@
 
           detailedContainer.innerHTML = html;
         }
+        
       }
     }
 
