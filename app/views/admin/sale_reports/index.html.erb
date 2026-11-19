@@ -345,6 +345,58 @@
           <td class="text-right text-primary font-weight-bold" style="font-size: 1.05rem;">$${sumSubtotal.toFixed(2)}</td>
         </tr>`;
 
+        // Desglose de ventas por cada producto del Top 10
+        if (detailedContainer) {
+          let html = `<h5 class="font-weight-bold text-gray-800 mb-3 mt-4"><i class="fas fa-boxes mr-1"></i> Desglose por Venta (Top 10 Productos)</h5>`;
+
+          data.rows.forEach(r => {
+            html += `
+              <div class="card shadow-sm mb-3 border-left-info">
+                <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                  <h6 class="m-0 font-weight-bold text-info">${r.product_name}</h6>
+                  <span class="badge badge-info">Total: ${r.quantity} uds (${r.subtotal})</span>
+                </div>
+                <div class="card-body p-2">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.82rem;">
+                      <thead class="thead-light">
+                        <tr>
+                          <th>Código Venta</th>
+                          <th>Fecha</th>
+                          <th>Cliente</th>
+                          <th class="text-center">Canal</th>
+                          <th class="text-center">Unidades</th>
+                          <th class="text-right">Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+            `;
+
+            (r.breakdown || []).forEach(b => {
+              html += `
+                <tr>
+                  <td><strong>${b.sale_code}</strong></td>
+                  <td>${b.date}</td>
+                  <td>${b.client_name}</td>
+                  <td class="text-center"><span class="badge badge-${b.channel === 'En Línea' ? 'primary' : 'success'}">${b.channel}</span></td>
+                  <td class="text-center font-weight-bold">${b.quantity}</td>
+                  <td class="text-right font-weight-bold text-primary">${b.subtotal}</td>
+                </tr>
+              `;
+            });
+
+            html += `
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          detailedContainer.innerHTML = html;
+        }
+
       } else if (data.report_type === "payment_methods") {
         thead.innerHTML = `<tr><th>Método de Pago</th><th class="text-center">Cantidad de Transacciones</th><th class="text-right">Total Acumulado</th></tr>`;
         let sumCount = 0, sumTotal = 0;
@@ -365,6 +417,58 @@
           <td class="text-center text-dark">${sumCount}</td>
           <td class="text-right text-info font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
         </tr>`;
+
+        // Desglose de ventas por cada método de pago
+        if (detailedContainer) {
+          let html = `<h5 class="font-weight-bold text-gray-800 mb-3 mt-4"><i class="fas fa-credit-card mr-1"></i> Desglose de Ventas por Método de Pago</h5>`;
+
+          data.rows.forEach(r => {
+            html += `
+              <div class="card shadow-sm mb-3 border-left-info">
+                <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                  <h6 class="m-0 font-weight-bold text-info">${r.method}</h6>
+                  <span class="badge badge-info">Transacciones: ${r.count} | Total: ${r.total}</span>
+                </div>
+                <div class="card-body p-2">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.82rem;">
+                      <thead class="thead-light">
+                        <tr>
+                          <th>Código Venta</th>
+                          <th>Fecha</th>
+                          <th>Cliente</th>
+                          <th class="text-center">Canal</th>
+                          <th class="text-center">Estado</th>
+                          <th class="text-right">Monto Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+            `;
+
+            (r.sales || []).forEach(s => {
+              html += `
+                <tr>
+                  <td><strong>${s.sale_code}</strong></td>
+                  <td>${s.date}</td>
+                  <td>${s.client_name}</td>
+                  <td class="text-center"><span class="badge badge-${s.channel === 'En Línea' ? 'primary' : 'success'}">${s.channel}</span></td>
+                  <td class="text-center"><span class="badge badge-info">${s.status}</span></td>
+                  <td class="text-right font-weight-bold text-info">${s.total_amount}</td>
+                </tr>
+              `;
+            });
+
+            html += `
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          detailedContainer.innerHTML = html;
+        }
 
       } else if (data.report_type === "logistics") {
         thead.innerHTML = `<tr><th>Método de Entrega</th><th class="text-center">Total de Pedidos</th><th class="text-right">Monto Total</th></tr>`;
@@ -407,6 +511,58 @@
           <td class="text-center text-dark">${sumCount}</td>
           <td class="text-right text-success font-weight-bold" style="font-size: 1.05rem;">$${sumTotal.toFixed(2)}</td>
         </tr>`;
+
+        // Desglose de ventas por cada cajero
+        if (detailedContainer) {
+          let html = `<h5 class="font-weight-bold text-gray-800 mb-3 mt-4"><i class="fas fa-user-check mr-1"></i> Desglose de Ventas por Cajero / Usuario</h5>`;
+
+          data.rows.forEach(r => {
+            html += `
+              <div class="card shadow-sm mb-3 border-left-success">
+                <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                  <h6 class="m-0 font-weight-bold text-success">${r.cashier}</h6>
+                  <span class="badge badge-success">Transacciones: ${r.count} | Total: ${r.total}</span>
+                </div>
+                <div class="card-body p-2">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.82rem;">
+                      <thead class="thead-light">
+                        <tr>
+                          <th>Código Venta</th>
+                          <th>Fecha</th>
+                          <th>Cliente</th>
+                          <th class="text-center">Canal</th>
+                          <th class="text-center">Estado</th>
+                          <th class="text-right">Monto Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+            `;
+
+            (r.sales || []).forEach(s => {
+              html += `
+                <tr>
+                  <td><strong>${s.sale_code}</strong></td>
+                  <td>${s.date}</td>
+                  <td>${s.client_name}</td>
+                  <td class="text-center"><span class="badge badge-${s.channel === 'En Línea' ? 'primary' : 'success'}">${s.channel}</span></td>
+                  <td class="text-center"><span class="badge badge-info">${s.status}</span></td>
+                  <td class="text-right font-weight-bold text-success">${s.total_amount}</td>
+                </tr>
+              `;
+            });
+
+            html += `
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          detailedContainer.innerHTML = html;
+        }
       }
     }
 

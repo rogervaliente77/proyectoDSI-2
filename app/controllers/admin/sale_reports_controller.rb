@@ -121,7 +121,8 @@ module Admin
 
     
     def generate_top_products_report(sales)
-      sale_ids = sales.pluck(:id)
+      sales_by_id = sales.index_by(&:id)
+      sale_ids = sales_by_id.keys
       product_sales = ProductSale.where(:sale_id.in => sale_ids)
 
       grouped = product_sales.group_by(&:product_id)
@@ -133,9 +134,27 @@ module Admin
 
       sorted_groups = grouped.map do |product_id, items|
         product = Product.where(id: product_id).first
-        qty = items.sum(&:quantity)
-        subtotal = items.sum(&:subtotal)
-        { product_name: product&.name || 'Producto Desconocido', qty: qty, subtotal: subtotal }
+        qty = items.sum { |ps| ps.quantity || 0 }
+        subtotal = items.sum { |ps| ps.subtotal || 0 }
+
+        sales_breakdown = items.map do |ps|
+          sale = sales_by_id[ps.sale_id]
+          {
+            sale_code: sale&.code || 'N/A',
+            date: sale&.created_at ? sale.created_at.in_time_zone('America/El_Salvador').strftime('%d/%m/%Y %H:%M') : 'N/A',
+            client_name: sale&.client_name.presence || 'Sin cliente',
+            channel: sale&.online_order ? 'En Línea' : 'Manual (Taller)',
+            quantity: ps.quantity || 0,
+            subtotal: "$#{'%.2f' % (ps.subtotal || 0)}"
+          }
+        end
+
+        {
+          product_name: product&.name || 'Producto Desconocido',
+          qty: qty,
+          subtotal: subtotal,
+          breakdown: sales_breakdown
+        }
       end.sort_by { |item| item[:qty] }.reverse.first(10)
 
       sorted_groups.each do |item|
@@ -146,7 +165,8 @@ module Admin
         rows << {
           product_name: item[:product_name],
           quantity: item[:qty],
-          subtotal: "$#{'%.2f' % item[:subtotal]}"
+          subtotal: "$#{'%.2f' % item[:subtotal]}",
+          breakdown: item[:breakdown]
         }
       end
 
@@ -176,11 +196,23 @@ module Admin
     
         labels << method_name
         totals << sum.round(2)
+
+        sales_list = method_sales.map do |s|
+          {
+            sale_code: s.code,
+            date: s.created_at ? s.created_at.in_time_zone('America/El_Salvador').strftime('%d/%m/%Y %H:%M') : 'N/A',
+            client_name: s.client_name.presence || 'Sin cliente',
+            channel: s.online_order ? 'En Línea' : 'Manual (Taller)',
+            status: s.status,
+            total_amount: "$#{'%.2f' % (s.total_amount || 0)}"
+          }
+        end
     
         rows << {
           method: method_name,
           count: method_sales.count,
-          total: "$#{'%.2f' % sum}"
+          total: "$#{'%.2f' % sum}",
+          sales: sales_list
         }
       end
     
@@ -243,11 +275,23 @@ module Admin
     
         labels << cashier_name
         totals << sum.round(2)
+
+        sales_list = cashier_sales.map do |s|
+          {
+            sale_code: s.code,
+            date: s.created_at ? s.created_at.in_time_zone('America/El_Salvador').strftime('%d/%m/%Y %H:%M') : 'N/A',
+            client_name: s.client_name.presence || 'Sin cliente',
+            channel: s.online_order ? 'En Línea' : 'Manual (Taller)',
+            status: s.status,
+            total_amount: "$#{'%.2f' % (s.total_amount || 0)}"
+          }
+        end
     
         rows << {
           cashier: cashier_name,
           count: cashier_sales.count,
-          total: "$#{'%.2f' % sum}"
+          total: "$#{'%.2f' % sum}",
+          sales: sales_list
         }
       end
     
