@@ -211,15 +211,70 @@ wb.add_worksheet(name: "Datos del Reporte") do |sheet|
     end
 
   when 'logistics'
-    sheet.add_row ["Método de Entrega", "Total de Pedidos", "Monto Total"], style: header_style
-    sum_count = 0; sum_tot = 0.0
+    logistics_data = generate_logistics_report(@sales)
+    sheet.add_row ["Método de Entrega", "Total de Pedidos", "Monto Bruto", "Devoluciones", "Monto Neto"], style: header_style
+    sum_count = 0; sum_tot = 0.0; sum_ret = 0.0
 
-    generate_logistics_report(@sales)[:rows].each do |r|
+    logistics_data[:rows].each do |r|
+      ret_val = r[:returned_amount].to_s.delete('$,').to_f
+      gross_val = r[:total_amount].to_s.delete('$,').to_f
+      net_val = r[:net_total].to_s.delete('$,').to_f
+
       sum_count += r[:count]
-      sum_tot += r[:total_amount].to_s.delete('$,').to_f
-      sheet.add_row [r[:method], r[:count], r[:total_amount]]
+      sum_tot += gross_val
+      sum_ret += ret_val
+
+      sheet.add_row [
+        r[:method],
+        r[:count],
+        r[:total_amount],
+        ret_val > 0 ? "-$#{'%.2f' % ret_val}" : "$0.00",
+        "$#{'%.2f' % net_val}"
+      ]
     end
-    sheet.add_row ["TOTALES", sum_count, "$#{'%.2f' % sum_tot}"], style: total_style
+
+    sum_net_logistics = sum_tot - sum_ret
+
+    sheet.add_row [
+      "TOTALES",
+      sum_count,
+      "$#{'%.2f' % sum_tot}",
+      "-$#{'%.2f' % sum_ret}",
+      "$#{'%.2f' % sum_tot}"
+    ], style: total_style
+
+    sheet.add_row [
+      "TOTAL NETO (SIN DEVOLUCIONES)",
+      "",
+      "",
+      "",
+      "$#{'%.2f' % sum_net_logistics}"
+    ], style: total_style
+
+    if logistics_data[:rows].any?
+      sheet.add_row []
+      sheet.add_row []
+      sheet.add_row ["DESGLOSE DE PEDIDOS EN LÍNEA POR MÉTODO DE ENTREGA"], style: subtitle_style
+
+      logistics_data[:rows].each do |r|
+        sheet.add_row []
+        sheet.add_row ["Método: #{r[:method]}", "Pedidos: #{r[:count]}", "Bruto: #{r[:total_amount]}", "Devoluciones: #{r[:returned_amount]}", "Neto: #{r[:net_total]}"], style: group_date_style
+        sheet.add_row ["Código Venta", "Fecha", "Cliente", "Estado", "Monto Bruto", "Devolución", "Monto Neto"], style: sub_header_style
+
+        (r[:sales] || []).each do |s|
+          ret_display = s[:has_return] ? "-#{s[:returned_amount]}#{s[:return_type].present? ? " (#{s[:return_type]})" : ''}" : "$0.00"
+          sheet.add_row [
+            s[:sale_code],
+            s[:date],
+            s[:client_name],
+            s[:status],
+            s[:total_amount],
+            ret_display,
+            s[:net_amount]
+          ]
+        end
+      end
+    end
 
   when 'by_cashier'
     cashier_data = generate_by_cashier_report(@sales)

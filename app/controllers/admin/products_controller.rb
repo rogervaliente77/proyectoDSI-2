@@ -82,6 +82,13 @@ module Admin
       @marcas = Marca.all
       @product.product_images.build if @product.product_images.empty?
       @offers = Offer.active
+    
+      @back_path =
+        case params[:origin]
+        when "categories" then admin_productos_path
+        when "catalog"    then admin_products_catalogo_path
+        else admin_productos_path
+        end
     end
 
     # ACTUALIZAR PRODUCTO

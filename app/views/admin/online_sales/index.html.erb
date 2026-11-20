@@ -129,11 +129,52 @@
 
                     <!-- Acciones -->
                     <td class="text-center align-middle">
-                      <button type="button" class="btn btn-primary btn-sm shadow-sm"
-                              data-toggle="modal" data-target="#timelineModal-<%= sale.id %>">
-                        <i class="fas fa-timeline"></i> <span>Ver Estado</span>
-                      </button>
+                      <div class="btn-group btn-group-sm shadow-sm" role="group" aria-label="Acciones de la orden">
+                        <%= link_to detalle_venta_admin_sales_path(id: sale.id, origin: "online"),
+                                    class: "btn btn-outline-primary",
+                                    title: "Ver detalle",
+                                    aria: { label: "Ver detalle" } do %>
+                          <i class="fas fa-eye"></i>
+                        <% end %>
+
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button type="button"
+                                  class="btn btn-outline-secondary dropdown-toggle"
+                                  data-toggle="dropdown"
+                                  aria-haspopup="true"
+                                  aria-expanded="false"
+                                  title="Imprimir comprobante o ticket"
+                                  aria-label="Imprimir comprobante o ticket">
+                            <i class="fas fa-print"></i>
+                          </button>
+                          <div class="dropdown-menu dropdown-menu-right">
+                            <%= link_to generar_comprobante_admin_sales_path(id: sale.id),
+                                        target: "_blank",
+                                        rel: "noopener",
+                                        class: "dropdown-item text-dark" do %>
+                              <i class="fas fa-file-alt text-primary mr-2"></i> Comprobante (Carta)
+                            <% end %>
+                            <%= link_to generar_ticket_admin_sales_path(id: sale.id),
+                                        target: "_blank",
+                                        rel: "noopener",
+                                        class: "dropdown-item text-dark" do %>
+                              <i class="fas fa-receipt text-success mr-2"></i> Ticket (80mm)
+                            <% end %>
+                          </div>
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-primary"
+                                data-toggle="modal"
+                                data-target="#timelineModal-<%= sale.id %>"
+                                title="Ver estado"
+                                aria-label="Ver estado">
+                          <i class="fas fa-stream"></i>
+                        </button>
+                      </div>
                     </td>
+
+
                   </tr>
                 <% end %>
               </tbody>

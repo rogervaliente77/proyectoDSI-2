@@ -342,7 +342,17 @@ module Admin
     end
 
     def generate_logistics_report(sales)
-      online_sales = sales.where(online_order: true)
+      online_sales = sales.where(online_order: true, :status.in => ['delivered', 'completed']).to_a
+      sale_ids = online_sales.map(&:id)
+
+      authorized_returns = Devolucion.where(:sale_id.in => sale_ids, is_authorized: true).to_a
+      returns_by_sale_id = authorized_returns.group_by(&:sale_id).transform_values do |devs|
+        {
+          amount: devs.sum { |d| (d.total_a_devolver || 0).to_f },
+          types: devs.map(&:tipo_devolucion).compact.uniq
+        }
+      end
+
       grouped = online_sales.group_by(&:delivery_method)
 
       labels = []
@@ -351,13 +361,40 @@ module Admin
 
       grouped.each do |method, method_sales|
         method_name = method == 'delivery' ? 'Envío a Domicilio' : 'Retiro en Taller (Pickup)'
+        gross_sum = method_sales.sum { |s| (s.total_amount || 0).to_f }
+        returned_sum = method_sales.sum { |s| returns_by_sale_id[s.id]&.dig(:amount) || 0.0 }
+        net_sum = gross_sum - returned_sum
+
         labels << method_name
         counts << method_sales.count
+
+        sales_list_data = method_sales.map do |s|
+          ret_info = returns_by_sale_id[s.id]
+          ret_amt = ret_info ? ret_info[:amount] : 0.0
+          ret_types = ret_info ? ret_info[:types].join(', ') : ''
+          sale_gross = (s.total_amount || 0).to_f
+          sale_net = sale_gross - ret_amt
+
+          {
+            sale_code: s.code,
+            date: s.created_at ? s.created_at.in_time_zone('America/El_Salvador').strftime('%d/%m/%Y %H:%M') : 'N/A',
+            client_name: s.client_name.presence || 'Sin cliente',
+            status: s.status,
+            total_amount: "$#{'%.2f' % sale_gross}",
+            returned_amount: "$#{'%.2f' % ret_amt}",
+            net_amount: "$#{'%.2f' % sale_net}",
+            has_return: ret_amt > 0,
+            return_type: ret_types
+          }
+        end
 
         rows << {
           method: method_name,
           count: method_sales.count,
-          total_amount: "$#{'%.2f' % method_sales.sum(&:total_amount)}"
+          total_amount: "$#{'%.2f' % gross_sum}",
+          returned_amount: "$#{'%.2f' % returned_sum}",
+          net_total: "$#{'%.2f' % net_sum}",
+          sales: sales_list_data
         }
       end
 

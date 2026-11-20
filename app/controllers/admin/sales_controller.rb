@@ -56,6 +56,14 @@ module Admin
     def detalle_venta
       @sale = Sale.find(params[:id])
       @product_sales = @sale.product_sales
+    
+      @back_path =
+        case params[:origin]
+        when "online" then admin_online_sales_path
+        when "manual" then admin_sales_path
+        else
+          @sale.respond_to?(:online_order) && @sale.online_order ? admin_online_sales_path : admin_sales_path
+        end
     end
 
     def generate_pdf
