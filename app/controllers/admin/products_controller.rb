@@ -82,22 +82,24 @@ module Admin
       @marcas = Marca.all
       @product.product_images.build if @product.product_images.empty?
       @offers = Offer.active
-    
-      @back_path =
-        case params[:origin]
-        when "categories" then admin_productos_path
-        when "catalog"    then admin_products_catalogo_path
-        else admin_productos_path
-        end
+
+      @origin = params[:origin].presence || "categories"
+      @back_path = resolve_back_path(@origin)
     end
 
     # ACTUALIZAR PRODUCTO
     def update
       @product.current_user_id = current_user&.id
+      @origin = params[:origin].presence || "categories"
+      @back_path = resolve_back_path(@origin)
 
       if @product.update(product_params)
-        redirect_to admin_edit_product_path(product_id: @product.id), notice: "#{@product.servicio? ? 'Servicio' : 'Producto'} actualizado con éxito"
+        redirect_to admin_edit_product_path(product_id: @product.id, origin: @origin),
+                    notice: "#{@product.servicio? ? 'Servicio' : 'Producto'} actualizado con éxito"
       else
+        @categories = Category.all
+        @marcas = Marca.all
+        @offers = Offer.active
         flash[:alert] = @product.errors.full_messages.join(", ")
         render :edit
       end
@@ -239,5 +241,14 @@ module Admin
         product_images_attributes: [:id, :title, :image_url, :file, :image_index, :_destroy]
       )
     end
+
+    def resolve_back_path(origin)
+      case origin
+      when "categories" then admin_productos_path
+      when "catalog"    then admin_products_catalogo_path
+      else admin_productos_path
+      end
+    end
+    
   end
 end

@@ -7,9 +7,17 @@
     <% end %>
   </div>
 
-  <% 
+  <%
     # Obtenemos el movimiento de caja asociado a esta venta si existe
     movimiento = @sale.head_movimiento_caja || HeadMovimientoCaja.where(origen_id: @sale.id).first
+
+    # Método de pago desde el código guardado en @sale.forma_pago (o movimiento)
+    forma_pago_code = @sale.forma_pago.presence || movimiento&.forma_pago
+    forma_pago_obj  = forma_pago_code.present? ? FormaPago.where(codigo: forma_pago_code).first : nil
+    metodo_pago_label = forma_pago_obj&.name.presence || (forma_pago_code.present? ? "Código: #{forma_pago_code}" : "No especificado")
+
+    # Condición tributaria
+    condicion_tributaria_label = (@sale.condicion_tributaria.presence || @sale.tipo_impuesto.presence || "N/A").to_s.capitalize
   %>
 
   <div class="row">
@@ -39,10 +47,10 @@
               <input type="text" class="form-control" value="<%= movimiento&.tipo_documento_dte&.name || @sale.tipo_documento_dte&.name || 'Venta Interna' %>" readonly>
             </div>
 
-            <!-- Número de Control DTE / Recibo -->
+            <!-- Método de Pago -->
             <div class="col-sm-4 mb-3">
-              <label><strong>Número de Control DTE / Documento</strong></label>
-              <input type="text" class="form-control font-weight-bold" value="<%= movimiento&.numero_control || movimiento&.comprobante_codigo || @sale.code %>" readonly>
+              <label><strong>Método de Pago</strong></label>
+              <input type="text" class="form-control font-weight-bold" value="<%= metodo_pago_label %>" readonly>
             </div>
 
             <!-- Sucursal -->
@@ -57,10 +65,10 @@
               <input type="text" class="form-control" value="<%= "#{movimiento&.cajero&.nombre || @sale.cajero&.nombre} (#{movimiento&.caja&.nombre || @sale.caja&.nombre})" %>" readonly>
             </div>
 
-            <!-- Código de Generación (UUID del DTE) -->
+            <!-- Condición Tributaria -->
             <div class="col-sm-4 mb-3">
-              <label><strong>Código de Generación DTE (UUID)</strong></label>
-              <input type="text" class="form-control small text-muted" value="<%= movimiento&.codigo_generacion || 'N/A' %>" readonly>
+              <label><strong>Condición Tributaria</strong></label>
+              <input type="text" class="form-control" value="<%= condicion_tributaria_label %>" readonly>
             </div>
           </div>
 
@@ -80,22 +88,36 @@
               </thead>
               <tbody>
                 <% @product_sales.each do |ps| %>
-                  <% 
-                    discount_decimal = (ps.unit_price * ps.quantity) * ((ps.discount || 0) / 100.0)
-                    subtotal = (ps.unit_price * ps.quantity) - discount_decimal 
+                  <%
+                    unit_price = (ps.unit_price || 0).to_f
+                    qty        = (ps.quantity || 0).to_f
+                    discount_amount = if ps.respond_to?(:discount) && !ps.discount.nil?
+                                        ps.discount.to_f
+                                      elsif ps.respond_to?(:discount_porcentage) && ps.discount_porcentage.to_f > 0
+                                        (unit_price * qty) * (ps.discount_porcentage.to_f / 100.0)
+                                      else
+                                        0.0
+                                      end
+                    subtotal = if ps.respond_to?(:subtotal) && !ps.subtotal.nil?
+                                 ps.subtotal.to_f
+                               else
+                                 (unit_price * qty) - discount_amount
+                               end
                   %>
                   <tr>
                     <td><%= ps.product&.name || ps.product_name %></td>
                     <td><%= ps.quantity %></td>
-                    <td>$<%= number_with_precision(ps.unit_price, precision: 2) %></td>
+                    <td>$<%= number_with_precision(unit_price, precision: 2) %></td>
                     <td>
                       <% if ps.offer_type.present? %>
-                        <span class="badge badge-info"><%= ps.offer_type %></span>
+                        <span class="badge badge-info">
+                          <%= ps.offer_type %><%= ps.respond_to?(:discount_porcentage) && ps.discount_porcentage.to_f > 0 ? " (#{ps.discount_porcentage.to_i}%)" : "" %>
+                        </span>
                       <% else %>
                         <span class="badge badge-secondary">N/A</span>
                       <% end %>
                     </td>
-                    <td>$<%= number_with_precision(ps.discount || 0, precision: 2) %></td>
+                    <td>$<%= number_with_precision(discount_amount, precision: 2) %></td>
                     <td>$<%= number_with_precision(subtotal, precision: 2) %></td>
                   </tr>
                 <% end %>
@@ -104,7 +126,7 @@
           </div>
 
           <div class="text-right mt-3">
-            <h4>Total de la venta: $<%= number_with_precision(@sale.total_amount, precision: 2) %></h4>
+            <h4>Total de la venta: $<%= number_with_precision(@sale.total_amount || 0, precision: 2) %></h4>
           </div>
         </div>
       </div>

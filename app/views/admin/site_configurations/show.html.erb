@@ -29,7 +29,7 @@
             </div>
           <% end %>
 
-          <!-- FORMULARIO 1: SUBIDA DE NUEVA LÁMINA CON TEXTOS -->
+          <!-- FORMULARIO 1: SUBIDA DE NUEVA LÁMINA CON TEXTOS Y COLORES -->
           <!-- BOTÓN DISPARADOR PARA AGREGAR NUEVA LÁMINA -->
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="text-dark fw-bold font-weight-bold m-0">
@@ -71,6 +71,22 @@
                   <label class="form-label small font-weight-bold">Descripción del Slide</label>
                   <%= sf.text_area :description, class: "form-control", rows: 2, placeholder: "Breve descripción..." %>
                 </div>
+                <div class="col-md-3">
+                  <label class="form-label small font-weight-bold">Fondo Etiqueta</label>
+                  <%= sf.color_field :badge_bg_color, value: "#0d6efd", class: "form-control form-control-color w-100" %>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small font-weight-bold">Texto Etiqueta</label>
+                  <%= sf.color_field :badge_text_color, value: "#ffffff", class: "form-control form-control-color w-100" %>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small font-weight-bold">Color Título Parte 1</label>
+                  <%= sf.color_field :title_part1_color, value: "#ffffff", class: "form-control form-control-color w-100" %>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small font-weight-bold">Color Título Parte 2</label>
+                  <%= sf.color_field :title_part2_color, value: "#ffc532", class: "form-control form-control-color w-100" %>
+                </div>
                 <div class="col-md-12 text-end">
                   <button type="button" class="btn btn-secondary me-2" data-bs-toggle="collapse" data-bs-target="#collapseSlideForm">Cancelar</button>
                   <%= sf.submit "Subir y Guardar Lámina", class: "btn btn-success shadow-sm px-4" %>
@@ -92,7 +108,7 @@
             </h5>
 
             <p class="text-muted small">
-              <i class="fas fa-info-circle me-1"></i>Puedes editar los textos directamente en cada tarjeta o reordenar las láminas arrastrándolas.
+              <i class="fas fa-info-circle me-1"></i>Puedes editar los textos y colores directamente en cada tarjeta o reordenar las láminas arrastrándolas.
             </p>
 
             <div id="slider-grid" class="row mb-4">
@@ -128,6 +144,25 @@
                       <div class="mb-3">
                         <label class="form-label small text-muted mb-0">Descripción</label>
                         <%= slide_f.text_area :description, class: "form-control form-control-sm", rows: 2, placeholder: "Descripción..." %>
+                      </div>
+
+                      <div class="row g-2 mb-3">
+                        <div class="col-6">
+                          <label class="form-label small text-muted mb-0">Fondo Etiqueta</label>
+                          <%= slide_f.color_field :badge_bg_color, class: "form-control form-control-sm form-control-color w-100" %>
+                        </div>
+                        <div class="col-6">
+                          <label class="form-label small text-muted mb-0">Texto Etiqueta</label>
+                          <%= slide_f.color_field :badge_text_color, class: "form-control form-control-sm form-control-color w-100" %>
+                        </div>
+                        <div class="col-6">
+                          <label class="form-label small text-muted mb-0">Título Parte 1</label>
+                          <%= slide_f.color_field :title_part1_color, class: "form-control form-control-sm form-control-color w-100" %>
+                        </div>
+                        <div class="col-6">
+                          <label class="form-label small text-muted mb-0">Título Parte 2</label>
+                          <%= slide_f.color_field :title_part2_color, class: "form-control form-control-sm form-control-color w-100" %>
+                        </div>
                       </div>
 
                       <%= link_to destroy_slide_admin_site_configuration_path(slide_id: slide.id),

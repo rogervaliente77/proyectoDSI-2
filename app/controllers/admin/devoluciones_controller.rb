@@ -223,14 +223,46 @@ module Admin
     end
 
     def procesar_detalles_devolucion
+      sale_product_sales = if @devolucion.sale.present?
+                             @devolucion.sale.product_sales.to_a
+                           elsif @devolucion.sale_id.present?
+                             ProductSale.where(sale_id: @devolucion.sale_id).to_a
+                           else
+                             []
+                           end
+
+      ps_by_product_id = sale_product_sales.index_by { |ps| ps.product_id.to_s }
+
       detalles = (@devolucion.sale_devolucion_detalle || []).map do |detalle|
-        product = Product.find_by(id: detalle["product_id"])
+        p_id = detalle["product_id"].to_s
+        product = Product.find_by(id: p_id)
         next unless product
 
         qty = detalle["cantidad"].to_i
-        precio = product.price.to_f
-        desc = product.discount.to_f
-        precio_desc = (precio * (1 - desc / 100.0)).round(2)
+        next if qty <= 0
+
+        ps = ps_by_product_id[p_id]
+
+        if ps
+          precio = (ps.unit_price || product.price || 0).to_f
+          ps_qty = (ps.quantity || 0).to_f
+
+          # Si existe subtotal en ProductSale y cantidad > 0, el precio neto unitario cobrado es subtotal / quantity
+          if ps.respond_to?(:subtotal) && !ps.subtotal.nil? && ps_qty > 0
+            precio_desc = (ps.subtotal.to_f / ps_qty).round(2)
+            desc = (precio - precio_desc).round(2)
+          elsif ps.respond_to?(:discount_porcentage) && ps.discount_porcentage.to_f > 0
+            desc = ps.discount_porcentage.to_f
+            precio_desc = (precio * (1 - desc / 100.0)).round(2)
+          else
+            desc = (ps.respond_to?(:discount) ? ps.discount.to_f : 0.0)
+            precio_desc = (precio - desc).round(2)
+          end
+        else
+          precio = product.price.to_f
+          desc = product.discount.to_f
+          precio_desc = (precio * (1 - desc / 100.0)).round(2)
+        end
 
         {
           "product_id" => product.id.to_s,

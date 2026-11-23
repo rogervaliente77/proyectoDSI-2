@@ -2,19 +2,33 @@
 <header class="hero-carousel">
   <% if @config.header_slides.present? && @config.header_slides.any? %>
     <% @config.header_slides.each_with_index do |slide, index| %>
+      <%
+        badge_bg     = slide.badge_bg_color.presence || "#0d6efd"
+        badge_color  = slide.badge_text_color.presence || "#ffffff"
+        t1_color     = slide.title_part1_color.presence || "#ffffff"
+        t2_color     = slide.title_part2_color.presence || "#ffc532"
+        desc_color   = slide.description_color.presence || "#f8f9fa"
+      %>
       <div class="carousel-slide <%= 'active' if index.zero? %>" style="background-image: url('<%= slide.image_url %>');">
         <div class="carousel-overlay"></div>
         <div class="carousel-content">
           <% if slide.badge_text.present? %>
-            <span class="carousel-badge"><%= slide.badge_text %></span>
+            <span class="carousel-badge" style="background-color: <%= badge_bg %>; color: <%= badge_color %>;">
+              <%= slide.badge_text %>
+            </span>
           <% end %>
 
           <% if slide.title_part1.present? || slide.title_part2.present? %>
-            <h1><%= slide.title_part1 %> <% if slide.title_part2.present? %> <span><%= slide.title_part2 %></span><% end %></h1>
+            <h1 style="color: <%= t1_color %>;">
+              <%= slide.title_part1 %>
+              <% if slide.title_part2.present? %>
+                <span style="color: <%= t2_color %>;"><%= slide.title_part2 %></span>
+              <% end %>
+            </h1>
           <% end %>
 
           <% if slide.description.present? %>
-            <p><%= slide.description %></p>
+            <p style="color: <%= desc_color %>;"><%= slide.description %></p>
           <% end %>
         </div>
       </div>

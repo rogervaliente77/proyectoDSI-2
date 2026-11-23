@@ -24,7 +24,7 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
     if params[:slide_image].present?
       uploaded = Cloudinary::Uploader.upload(params[:slide_image], folder: "site_slider")
       next_position = @config.header_slides.count
-      
+
       @config.header_slides.create!(
         image_url: uploaded['secure_url'],
         public_id: uploaded['public_id'],
@@ -32,7 +32,12 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
         badge_text: params[:badge_text],
         title_part1: params[:title_part1],
         title_part2: params[:title_part2],
-        description: params[:description]
+        description: params[:description],
+        badge_bg_color: params[:badge_bg_color].presence || "#0d6efd",
+        badge_text_color: params[:badge_text_color].presence || "#ffffff",
+        title_part1_color: params[:title_part1_color].presence || "#ffffff",
+        title_part2_color: params[:title_part2_color].presence || "#ffc532",
+        description_color: params[:description_color].presence || "#f8f9fa"
       )
       redirect_to admin_site_configuration_path, notice: "Lámina agregada exitosamente al slider."
     else
@@ -79,7 +84,9 @@ class Admin::SiteConfigurationsController < Admin::ApplicationController
       :company_bank_account_type, :company_bank_account_holder,
       header_slides_attributes: [
         :id, :image_url, :public_id, :position, :_destroy,
-        :badge_text, :title_part1, :title_part2, :description
+        :badge_text, :title_part1, :title_part2, :description,
+        :badge_bg_color, :badge_text_color, :title_part1_color,
+        :title_part2_color, :description_color
       ]
     )
   end
